@@ -1,4 +1,4 @@
-name: SUN Repository Factory v1
+name: Repository Factory
 on:
   workflow_dispatch:
     inputs:
