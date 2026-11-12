@@ -37,7 +37,32 @@ var settings = new Dictionary<string, object> {
 };
 var diffs = settings.Where(kv => info[kv.Key]?.ToJsonString() != JsonSerializer.Serialize(kv.Value))
     .Select(kv => $"{kv.Key}: {info[kv.Key]?.ToJsonString() ?? "(unknown)"} -> {JsonSerializer.Serialize(kv.Value)}").ToArray();
-var rules = await Api("GET", $"repos/{repo}/rulesets?includes_parents=false") as JsonArray ?? new JsonArray();
+// Private repositories on some GitHub plans cannot use repository rulesets.
+// Fail closed for enforcement operations; report the limitation for read-only modes.
+var visibility = info["visibility"]?.GetValue<string>() ?? (info["private"]?.GetValue<bool>() == true ? "private" : "public");
+Console.WriteLine($"Repository visibility: {visibility}");
+JsonArray rules;
+try
+{
+    rules = await Api("GET", $"repos/{repo}/rulesets?includes_parents=false") as JsonArray ?? new JsonArray();
+}
+catch (HttpRequestException ex) when (
+    ex.StatusCode == HttpStatusCode.Forbidden &&
+    visibility == "private" &&
+    ex.Message.Contains("Upgrade to GitHub Pro or make this repository public", StringComparison.OrdinalIgnoreCase))
+{
+    Console.WriteLine("GOVERNANCE CAPABILITY: repository rulesets unavailable for this private repository on the current GitHub plan.");
+    Console.WriteLine("NOT ENFORCED: main protection, required CI checks, PR-only merges and history protection cannot be certified by SUN.");
+    Console.WriteLine("OPTIONS: upgrade to an eligible plan or deliberately make a non-sensitive repository public.");
+    if (mode is "audit" or "plan")
+    {
+        Console.WriteLine("READ-ONLY RESULT: governance unavailable; no changes made.");
+        Environment.ExitCode = 0;
+        return;
+    }
+    throw new InvalidOperationException(
+        $"Cannot {mode} SUN governance for private repository {repo}: GitHub rulesets are unavailable on this plan. No changes made.", ex);
+}
 var existing = rules.FirstOrDefault(x => x?["name"]?.GetValue<string>() == "SUN Main Protection");
 var rulePresent = existing is not null;
 Console.WriteLine($"SUN Git Policy v1.0 | {repo} | default branch: {main} | mode: {mode}");
