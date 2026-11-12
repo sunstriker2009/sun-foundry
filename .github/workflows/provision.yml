@@ -20,6 +20,7 @@ on:
         description: 'For apply: re-enter owner/repository exactly'
         required: false
         type: string
+# Owner-only workflow_dispatch authorization. Keep secrets in protected environments.
 permissions:
   contents: read
 jobs:
@@ -40,6 +41,7 @@ jobs:
           fi
           echo 'Preflight passed. Apply requires approval from repository-administration environment.'
   provision:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && github.ref == 'refs/heads/main' }}
     needs: preflight
     runs-on: ubuntu-latest
     environment: ${{ inputs.operation == 'apply' && 'repository-administration' || 'repository-audit' }}
