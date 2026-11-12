@@ -43,7 +43,9 @@ var rulePresent = existing is not null;
 Console.WriteLine($"SUN Git Policy v1.0 | {repo} | default branch: {main} | mode: {mode}");
 foreach (var diff in diffs) Console.WriteLine($"SETTING DRIFT: {diff}");
 Console.WriteLine(rulePresent ? "RULESET: SUN Main Protection exists (contents must be verified)" : "RULESET MISSING: SUN Main Protection");
-if (checks.Length == 0) Console.WriteLine("WARNING: no required CI checks specified. Applying protection is blocked until explicit check names are supplied.");
+if (checks.Length == 0) Console.WriteLine("WARNING: exact required checks are needed for apply and verify.");
+if (checks.Distinct(StringComparer.Ordinal).Count() != checks.Length) throw new ArgumentException("Duplicate required check names");
+if (mode == "verify" && checks.Length == 0) throw new ArgumentException("Verify requires --checks for exact membership comparison");
 if (mode == "plan" || mode == "audit") { Environment.ExitCode = mode == "audit" && (diffs.Length > 0 || !rulePresent) ? 2 : 0; return; }
 if (mode == "apply")
 {
@@ -90,19 +92,43 @@ if (mode == "apply")
 var updated = await Api("GET", $"repos/{repo}");
 var remaining = settings.Where(kv => updated?[kv.Key]?.ToJsonString() != JsonSerializer.Serialize(kv.Value)).Select(kv => kv.Key).ToArray();
 var activeRules = await Api("GET", $"repos/{repo}/rulesets?includes_parents=false") as JsonArray ?? new JsonArray();
-var active = activeRules.FirstOrDefault(x => x?["name"]?.GetValue<string>() == "SUN Main Protection" && x?["enforcement"]?.GetValue<string>() == "active");
+var matches = activeRules.Where(x => x?["name"]?.GetValue<string>() == "SUN Main Protection").ToArray();
+var violations = new List<string>();
+if (matches.Length != 1) violations.Add($"Expected exactly one SUN Main Protection ruleset; found {matches.Length}");
+var active = matches.SingleOrDefault();
+if (active?["enforcement"]?.GetValue<string>() != "active") violations.Add("Ruleset enforcement must be active");
+if (active?["target"]?.GetValue<string>() != "branch") violations.Add("Ruleset target must be branch");
 if (active is not null)
 {
     var detail = await Api("GET", $"repos/{repo}/rulesets/{active["id"]}");
+    var include = (detail?["conditions"]?["ref_name"]?["include"] as JsonArray)?.Select(x => x?.GetValue<string>()).ToArray();
+    var exclude = detail?["conditions"]?["ref_name"]?["exclude"] as JsonArray;
+    if (include is null || include.Length != 1 || include[0] != "refs/heads/main" || exclude is null || exclude.Count != 0)
+        violations.Add("Ruleset must target only refs/heads/main without exclusions");
+    if (detail?["bypass_actors"] is not JsonArray bypass || bypass.Count != 0) violations.Add("Ruleset must have no bypass actors");
     var rs = detail?["rules"] as JsonArray ?? new JsonArray();
+    foreach (var type in new[] { "deletion", "non_fast_forward", "pull_request", "required_status_checks" })
+        if (rs.Count(x => x?["type"]?.GetValue<string>() == type) != 1) violations.Add($"Expected exactly one {type} rule");
     var required = rs.FirstOrDefault(x => x?["type"]?.GetValue<string>() == "required_status_checks");
     var pr = rs.FirstOrDefault(x => x?["type"]?.GetValue<string>() == "pull_request");
-    if (required?["parameters"]?["strict_required_status_checks_policy"]?.GetValue<bool>() != true ||
-        pr?["parameters"]?["required_review_thread_resolution"]?.GetValue<bool>() != true ||
-        (required?["parameters"]?["required_status_checks"] as JsonArray)?.Count == 0)
-        throw new InvalidOperationException("Ruleset exists but strict CI or conversation resolution is not enforced");
+    if (required?["parameters"]?["strict_required_status_checks_policy"]?.GetValue<bool>() != true)
+        violations.Add("Strict required status checks must be enabled");
+    if (required?["parameters"]?["do_not_enforce_on_create"]?.GetValue<bool>() != false)
+        violations.Add("Required checks must be enforced on creation");
+    if (pr?["parameters"]?["required_review_thread_resolution"]?.GetValue<bool>() != true)
+        violations.Add("PR review threads must be resolved");
+    if (pr?["parameters"]?["required_approving_review_count"]?.GetValue<int>() != 0)
+        violations.Add("Expected zero required approving reviews (baseline policy)");
+    var actualChecks = (required?["parameters"]?["required_status_checks"] as JsonArray ?? new JsonArray())
+        .Select(x => x?["context"]?.GetValue<string>()).Where(x => x is not null).Select(x => x!)
+        .OrderBy(x => x, StringComparer.Ordinal).ToArray();
+    var expectedChecks = checks.OrderBy(x => x, StringComparer.Ordinal).ToArray();
+    if (!actualChecks.SequenceEqual(expectedChecks, StringComparer.Ordinal))
+        violations.Add($"Required check mismatch. Expected [{string.Join(", ", expectedChecks)}]; actual [{string.Join(", ", actualChecks)}]");
 }
-if (remaining.Length > 0 || active is null) throw new InvalidOperationException("Policy verification failed: " + string.Join(",", remaining));
-Console.WriteLine("Verified: merge settings and active ruleset with strict CI and resolved conversations.");
-Console.WriteLine("MANUAL GATE: sensitive changes still require enforceable reviewer/CODEOWNERS policy and a failing-CI PR test.");
+foreach (var key in remaining) violations.Add($"Repository setting drift: {key}");
+if (violations.Count > 0) throw new InvalidOperationException("Policy verification failed:\\n" + string.Join("\\n", violations));
+Console.WriteLine("Verified: exact required checks, active main-only ruleset, no bypass actors, PR protection, merge settings and automatic branch deletion enabled.");
+Console.WriteLine("NOTE: delete_branch_on_merge setting verified; actual post-merge branch removal still requires a disposable PR integration test.");
+Console.WriteLine("MANUAL GATE: reviewer/CODEOWNERS enforcement and failing-CI merge protection remain separate integration tests.");
 string? Arg(string name) { var i = Array.IndexOf(args, name); return i >= 0 && i + 1 < args.Length ? args[i + 1] : null; }
