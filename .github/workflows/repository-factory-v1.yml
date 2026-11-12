@@ -1,0 +1,132 @@
+name: SUN Repository Factory v1
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Target repository name (new) or owner/name (resume)'
+        required: true
+        type: string
+      mode:
+        description: 'Create a new repository or resume an existing one'
+        required: true
+        type: choice
+        options: [create, resume]
+        default: create
+      visibility:
+        description: 'Visibility for newly created repositories'
+        required: true
+        type: choice
+        options: [public, private]
+        default: public
+      confirm_repository:
+        description: 'Repeat the target name exactly'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sun-factory-v1-${{ inputs.repository }}
+  cancel-in-progress: false
+jobs:
+  factory:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && github.repository == 'sunstriker2009/sun-repo-bootstrap' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: repository-administration
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Create or locate repository and seed PR
+        id: prepare
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          TARGET: ${{ inputs.repository }}
+          CONFIRM: ${{ inputs.confirm_repository }}
+          MODE: ${{ inputs.mode }}
+          VISIBILITY: ${{ inputs.visibility }}
+        run: |
+          set -euo pipefail
+          [[ -n "$GH_TOKEN" ]] || { echo "::error::Missing administration token"; exit 1; }
+          [[ "$TARGET" == "$CONFIRM" ]] || { echo "::error::Target confirmation mismatch"; exit 1; }
+          if [[ "$MODE" == create ]]; then
+            [[ "$TARGET" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] || exit 1
+            REPO="sunstriker2009/$TARGET"
+            if gh api "repos/$REPO" >/dev/null 2>&1; then
+              echo "::error::Repository already exists; use resume"; exit 1
+            fi
+            [[ "$VISIBILITY" == private || "$VISIBILITY" == public ]] || exit 1
+            [[ "$VISIBILITY" == private ]] && is_private=true || is_private=false
+            gh api -X POST repos/sunstriker2009/sun-repo-template/generate \
+              -f owner=sunstriker2009 -f name="$TARGET" -F private="$is_private" -F include_all_branches=false >/dev/null
+          else
+            [[ "$TARGET" =~ ^sunstriker2009/[A-Za-z0-9._-]+$ ]] || exit 1
+            REPO="$TARGET"
+          fi
+          echo "repository=$REPO" >> "$GITHUB_OUTPUT"
+          default=$(gh api "repos/$REPO" --jq .default_branch)
+          [[ "$default" == main ]] || { echo "::error::Expected main default branch"; exit 1; }
+          for file in .github/workflows/ci.yml .github/workflows/pr-title.yml; do
+            gh api "repos/$REPO/contents/$file" --jq .path >/dev/null
+          done
+          branch=chore/sun-governance-ci-seed
+          pr=$(gh api "repos/$REPO/pulls?state=open&head=sunstriker2009:$branch" --jq '.[0].number // empty')
+          if [[ -z "$pr" ]]; then
+            if gh api "repos/$REPO/branches/$branch" >/dev/null 2>&1; then
+              echo "::error::Seed branch exists without an open PR; inspect manually"; exit 1
+            fi
+            sha=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
+            gh api -X POST "repos/$REPO/git/refs" -f ref="refs/heads/$branch" -f sha="$sha" >/dev/null
+            content=$(printf '%s\n' '# SUN Governance CI Seed' '' 'Temporary validation PR. Squash merge only after governance Apply and Verify.' | base64 -w0)
+            gh api -X PUT "repos/$REPO/contents/docs/SUN-GOVERNANCE-CI-SEED.md" \
+              -f message="chore: seed SUN governance CI checks" -f content="$content" -f branch="$branch" >/dev/null
+            pr=$(gh api -X POST "repos/$REPO/pulls" -f title="test: seed SUN governance CI checks" \
+              -f head="$branch" -f base=main -f body="Disposable CI initialization PR; merge only after strict Verify." --jq .number)
+          fi
+          echo "pr=$pr" >> "$GITHUB_OUTPUT"
+          echo "Seed PR: https://github.com/$REPO/pull/$pr" >> "$GITHUB_STEP_SUMMARY"
+      - name: Wait for required PR checks
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REPO: ${{ steps.prepare.outputs.repository }}
+          PR: ${{ steps.prepare.outputs.pr }}
+        run: |
+          set -euo pipefail
+          sha=$(gh api "repos/$REPO/pulls/$PR" --jq .head.sha)
+          for attempt in {1..40}; do
+            checks=$(gh api "repos/$REPO/commits/$sha/check-runs?per_page=100" --jq '[.check_runs[] | select(.name == "repository-validation" or .name == "conventional-title") | {name,status,conclusion}]')
+            echo "Attempt $attempt: $checks"
+            if jq -e 'length == 2 and (map(.name) | unique | length) == 2 and all(.[]; .status == "completed" and .conclusion == "success")' <<< "$checks" >/dev/null; then
+              echo "Both required checks passed"; exit 0
+            fi
+            if jq -e 'any(.[]; .status == "completed" and (.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out"))' <<< "$checks" >/dev/null; then
+              echo "::error::A required check failed; fix the PR then rerun in resume mode"; exit 1
+            fi
+            sleep 15
+          done
+          echo "::error::Timed out waiting for CI; rerun in resume mode"; exit 1
+      - name: Plan governance
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REPO: ${{ steps.prepare.outputs.repository }}
+        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode plan --checks repository-validation,conventional-title
+      - name: Apply governance
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REPO: ${{ steps.prepare.outputs.repository }}
+        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode apply --checks repository-validation,conventional-title --confirm "$REPO"
+      - name: Strict verify governance
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REPO: ${{ steps.prepare.outputs.repository }}
+        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode verify --checks repository-validation,conventional-title
+      - name: Completion summary
+        env:
+          REPO: ${{ steps.prepare.outputs.repository }}
+          PR: ${{ steps.prepare.outputs.pr }}
+        run: |
+          echo "Governance applied and strictly verified for $REPO." >> "$GITHUB_STEP_SUMMARY"
+          echo "Final manual smoke test: squash merge https://github.com/$REPO/pull/$PR and confirm automatic branch deletion." >> "$GITHUB_STEP_SUMMARY"
