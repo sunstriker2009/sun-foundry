@@ -56,8 +56,21 @@ if (mode == "apply")
     var sha = info["default_branch"] is null ? null : (await Api("GET", $"repos/{repo}/branches/{main}"))?["commit"]?["sha"]?.GetValue<string>();
     var runs = await Api("GET", $"repos/{repo}/commits/{sha}/check-runs?per_page=100");
     var known = (runs?["check_runs"] as JsonArray ?? new JsonArray()).Select(x => x?["name"]?.GetValue<string>()).Where(x => x is not null).ToHashSet();
+    // PR-only checks do not run on main; discover them on open pull-request heads.
+    var prs = await Api("GET", $"repos/{repo}/pulls?state=open&per_page=100") as JsonArray ?? new JsonArray();
+    foreach (var item in prs)
+    {
+        var headSha = item?["head"]?["sha"]?.GetValue<string>();
+        if (string.IsNullOrEmpty(headSha)) continue;
+        var prRuns = await Api("GET", $"repos/{repo}/commits/{headSha}/check-runs?per_page=100");
+        foreach (var run in prRuns?["check_runs"] as JsonArray ?? new JsonArray())
+        {
+            var name = run?["name"]?.GetValue<string>();
+            if (!string.IsNullOrEmpty(name)) known.Add(name);
+        }
+    }
     var missing = checks.Where(x => !known.Contains(x)).ToArray();
-    if (missing.Length > 0) throw new InvalidOperationException("Check names not found on latest main commit: " + string.Join(", ", missing) + ". Run CI on main first.");
+    if (missing.Length > 0) throw new InvalidOperationException("Check names not found on main or open PR heads: " + string.Join(", ", missing) + ". Run CI on main first.");
     // Ruleset created before modifying merge settings, so failure cannot leave merge-method changes without branch protection.
     var ruleset = new {
         name = "SUN Main Protection", target = "branch", enforcement = "active",
