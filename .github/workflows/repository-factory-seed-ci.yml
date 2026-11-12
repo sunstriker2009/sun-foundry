@@ -10,10 +10,12 @@ on:
         description: 'Repeat owner/name to authorize a seed PR'
         required: true
         type: string
+# Owner-only workflow_dispatch authorization. Keep secrets in protected environments.
 permissions:
   contents: read
 jobs:
   seed:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && github.repository == 'sunstriker2009/sun-repo-bootstrap' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: repository-administration
     steps:
