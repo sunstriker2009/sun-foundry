@@ -66,11 +66,22 @@ jobs:
             REPO="$TARGET"
           fi
           echo "repository=$REPO" >> "$GITHUB_OUTPUT"
-          default=$(gh api "repos/$REPO" --jq .default_branch)
-          [[ "$default" == main ]] || { echo "::error::Expected main default branch"; exit 1; }
-          for file in .github/workflows/ci.yml .github/workflows/pr-title.yml; do
-            gh api "repos/$REPO/contents/$file" --jq .path >/dev/null
+          # Template generation is asynchronous: the repository may exist before
+          # its default branch and Contents API are fully available.
+          ready=false
+          for attempt in {1..24}; do
+            default=$(gh api "repos/$REPO" --jq .default_branch 2>/dev/null || true)
+            if [[ "$default" == main ]] &&
+               gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha >/dev/null 2>&1 &&
+               gh api "repos/$REPO/contents/.github/workflows/ci.yml" --jq .path >/dev/null 2>&1 &&
+               gh api "repos/$REPO/contents/.github/workflows/pr-title.yml" --jq .path >/dev/null 2>&1; then
+              ready=true
+              break
+            fi
+            echo "Waiting for template initialization ($attempt/24)..."
+            sleep 5
           done
+          [[ "$ready" == true ]] || { echo "::error::Repository template not ready after 120 seconds; resume after checking its main branch and workflows"; exit 1; }
           branch=chore/sun-governance-ci-seed
           pr=$(gh api "repos/$REPO/pulls?state=open&head=sunstriker2009:$branch" --jq '.[0].number // empty')
           if [[ -z "$pr" ]]; then
