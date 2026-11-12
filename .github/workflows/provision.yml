@@ -23,7 +23,24 @@ on:
 permissions:
   contents: read
 jobs:
+  preflight:
+    name: validate-dispatch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain requested operation
+        env:
+          OPERATION: ${{ inputs.operation }}
+          TARGET: ${{ inputs.repository }}
+          CONFIRM: ${{ inputs.confirm_repository }}
+        run: |
+          echo "Operation: $OPERATION; target: $TARGET"
+          if [[ "$OPERATION" == "apply" && "$TARGET" != "$CONFIRM" ]]; then
+            echo '::error::Apply requires the exact repository name in the confirmation field'
+            exit 1
+          fi
+          echo 'Preflight passed. Apply requires approval from repository-administration environment.'
   provision:
+    needs: preflight
     runs-on: ubuntu-latest
     environment: ${{ inputs.operation == 'apply' && 'repository-administration' || 'repository-audit' }}
     steps:
