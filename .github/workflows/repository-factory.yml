@@ -16,6 +16,7 @@ on:
         description: 'Repeat repository name to authorize creation'
         required: true
         type: string
+# Owner-only workflow_dispatch authorization. Keep secrets in protected environments.
 permissions:
   contents: read
 concurrency:
@@ -23,6 +24,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   create:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && github.repository == 'sunstriker2009/sun-repo-bootstrap' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: repository-administration
     outputs:
