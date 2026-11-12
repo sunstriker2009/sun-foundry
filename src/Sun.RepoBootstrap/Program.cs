@@ -105,7 +105,7 @@ if (active is not null)
     var exclude = detail?["conditions"]?["ref_name"]?["exclude"] as JsonArray;
     if (include is null || include.Length != 1 || include[0] != "refs/heads/main" || exclude is null || exclude.Count != 0)
         violations.Add("Ruleset must target only refs/heads/main without exclusions");
-    if ((detail?["bypass_actors"] as JsonArray)?.Count != 0) violations.Add("Ruleset must have no bypass actors");
+    if (detail?["bypass_actors"] is not JsonArray bypass || bypass.Count != 0) violations.Add("Ruleset must have no bypass actors");
     var rs = detail?["rules"] as JsonArray ?? new JsonArray();
     foreach (var type in new[] { "deletion", "non_fast_forward", "pull_request", "required_status_checks" })
         if (rs.Count(x => x?["type"]?.GetValue<string>() == type) != 1) violations.Add($"Expected exactly one {type} rule");
