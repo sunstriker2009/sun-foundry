@@ -55,7 +55,9 @@ jobs:
   plan:
     needs: create
     runs-on: ubuntu-latest
-    environment: repository-audit
+    # Plan needs the same repository-scoped credential as Create.
+    # Audit-only environment secrets cannot be assumed to contain it.
+    environment: repository-administration
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
