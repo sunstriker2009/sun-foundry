@@ -7,11 +7,20 @@ on:
         required: true
         type: string
       operation:
-        description: 'Non-mutating operation'
+        description: 'Diagnose, plan, apply, or verify'
         required: true
         default: diagnose
         type: choice
-        options: [diagnose, plan]
+        options: [diagnose, plan, apply, verify]
+      required_checks:
+        description: 'Exact CI job names, comma-separated'
+        required: false
+        default: repository-validation,conventional-title
+        type: string
+      confirm_repository:
+        description: 'For Apply, repeat owner/name exactly'
+        required: false
+        type: string
 permissions:
   contents: read
 jobs:
@@ -38,9 +47,32 @@ jobs:
             echo "::error::Token cannot read $TARGET. Verify token owner, repository access, approval, and secret value."
             exit 1
           fi
-      - name: Run non-mutating governance plan
-        if: ${{ inputs.operation == 'plan' }}
+      - name: Validate operation confirmation
+        shell: bash
+        env:
+          OPERATION: ${{ inputs.operation }}
+          TARGET: ${{ inputs.repository }}
+          CONFIRM: ${{ inputs.confirm_repository }}
+          CHECKS: ${{ inputs.required_checks }}
+        run: |
+          set -euo pipefail
+          if [[ "$OPERATION" == apply && "$TARGET" != "$CONFIRM" ]]; then
+            echo "::error::Apply requires exact repository confirmation"
+            exit 1
+          fi
+          if [[ "$OPERATION" != diagnose && -z "$CHECKS" ]]; then
+            echo "::error::Governance operation requires exact check names"
+            exit 1
+          fi
+      - name: Run governance operation
+        if: ${{ inputs.operation != 'diagnose' }}
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           TARGET: ${{ inputs.repository }}
-        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$TARGET" --mode plan --checks repository-validation,conventional-title
+          OPERATION: ${{ inputs.operation }}
+          CHECKS: ${{ inputs.required_checks }}
+          CONFIRM: ${{ inputs.confirm_repository }}
+        run: |
+          dotnet run --project src/Sun.RepoBootstrap -- \
+            --repo "$TARGET" --mode "$OPERATION" \
+            --checks "$CHECKS" --confirm "$CONFIRM"
