@@ -1,0 +1,46 @@
+name: SUN Repository Factory Resume
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Existing target repository (owner/name)'
+        required: true
+        type: string
+      operation:
+        description: 'Non-mutating operation'
+        required: true
+        default: diagnose
+        type: choice
+        options: [diagnose, plan]
+permissions:
+  contents: read
+jobs:
+  resume:
+    runs-on: ubuntu-latest
+    environment: repository-administration
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Check token and target repository access
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          TARGET: ${{ inputs.repository }}
+        run: |
+          set -euo pipefail
+          [[ "$TARGET" =~ ^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$ ]] || { echo "::error::Invalid owner/repository"; exit 1; }
+          [[ -n "$GH_TOKEN" ]] || { echo "::error::Administration token is missing in this environment"; exit 1; }
+          echo "Checking authenticated identity and repository access (no secret values logged)"
+          gh api user --jq '.login' || { echo "::error::Token cannot authenticate to GitHub"; exit 1; }
+          if ! gh api "repos/$TARGET" --jq '{full_name,visibility,default_branch}' ; then
+            echo "::error::Token cannot read $TARGET. Verify token owner, repository access, approval, and secret value."
+            exit 1
+          fi
+      - name: Run non-mutating governance plan
+        if: ${{ inputs.operation == 'plan' }}
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          TARGET: ${{ inputs.repository }}
+        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$TARGET" --mode plan --checks repository-validation,conventional-title
