@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="sun-foundry-brand-concept.png" alt="FOUNDRY by Sun — anvil and sunrise brand artwork" width="420" />
+<img src="branding/assets/readme-banner-v1.png" alt="FOUNDRY by Sun — modular F beneath SUN’s arc. Build. Standardize. Launch." width="100%" />
 
 # FOUNDRY by Sun
 
