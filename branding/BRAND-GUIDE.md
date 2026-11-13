@@ -54,7 +54,7 @@ The SVGs are **simplified vector adaptations** of the approved direction, not pi
 - [x] SUN arc, purpose-led F and distinct warm/cool palette defined.
 - [x] Initial compact SVG lockup and symbol variants prepared.
 - [ ] Approved concept PNG committed unchanged under `branding/concepts/`.
-- [ ] Approved panoramic PNG committed as `branding/assets/readme-banner-v1.png`.
-- [ ] README updated to reference the approved panoramic PNG.
+- [x] Approved panoramic PNG committed as `branding/assets/readme-banner-v1.png`.
+- [x] README updated to reference the approved panoramic PNG.
 - [ ] SVGs visually reviewed and app-icon exports produced.
 - [ ] Final asset palette and typography approved.
