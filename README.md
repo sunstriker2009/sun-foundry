@@ -2,7 +2,7 @@
 
 **Build. Standardize. Launch.**
 
-Repository creation and governance automation for SUN products. The GitHub repository will be renamed from `sun-repo-bootstrap` to `sun-foundry` after the migration-preparation PR merges.
+Repository creation and governance automation for SUN products. The canonical GitHub repository is [`sunstriker2009/sun-foundry`](https://github.com/sunstriker2009/sun-foundry).
 
 ## Workflows
 
