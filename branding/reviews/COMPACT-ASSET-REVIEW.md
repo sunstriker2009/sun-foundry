@@ -1,8 +1,15 @@
 # FOUNDRY Compact Asset Review
 
-**Status:** Review requested — simplified vector interpretations of the approved Foundry F second treatment.
+**Status:** Revision 2 for owner review — floating disconnected F arms and a thin glass-like SUN arc, based on the approved Foundry F second treatment.
 
 The production panoramic banner remains unchanged: [README banner](../assets/readme-banner-v1.png). These compact assets are designed to be legible in application headers, docs and icons, rather than reproduce the cinematic effects of the banner.
+
+## Revision 2 design notes
+
+- The vertical stem, upper arm and middle arm are **separate paths**, with intentional negative-space gaps.
+- The SUN arc is a fine translucent gradient with a subtle secondary highlight, rather than a heavy solid band.
+- At very small sizes the arc is slightly strengthened for visibility; the panoramic banner is unchanged.
+- The compact SVGs remain **proposals pending owner visual approval**, not final production assets.
 
 ## Symbol variants
 
