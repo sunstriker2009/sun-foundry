@@ -1,41 +1,28 @@
-# SUN Repository Bootstrap
+# FOUNDRY by Sun
 
-Manually triggered governance provisioner for [SUN Git Workflow & Merge Policy v1.0](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/GIT-WORKFLOW.md).
+**Build. Standardize. Launch.**
 
-## Operations
+Repository creation and governance automation for SUN products. The GitHub repository will be renamed from `sun-repo-bootstrap` to `sun-foundry` after the migration-preparation PR merges.
 
-| Mode | Effect |
-| --- | --- |
-| audit | Report settings drift and ruleset presence; exit 2 if drift found |
-| plan | Show intended changes without modifying repositories |
-| apply | Create a protected-main ruleset and set squash-only merge/auto-merge/branch deletion |
-| verify | Check settings and strict CI/conversation-resolution rules |
+## Workflows
 
-This is the **first milestone**, not full policy compliance. It intentionally refuses to overwrite an existing SUN-named ruleset, requires existing exact CI check names, and does not install CI or configure CODEOWNERS in target repositories.
+- **Repository Factory**: create from [sun-repo-template](https://github.com/sunstriker2009/sun-repo-template) or resume interrupted provisioning; seed CI, await required checks, plan, apply and strictly verify governance.
+- **Repository Maintenance**: diagnose, plan, apply or verify governance for existing repositories.
 
-## Setup
+See [workflow instructions](docs/WORKFLOWS.md) and [SUN governance policy](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/GIT-WORKFLOW.md).
 
-1. Create a fine-grained `SUN_REPO_ADMIN_TOKEN` secret with repository Administration permissions (write for apply, read for audit), and Checks/Metadata read access. Scope it to approved targets.
-2. Configure GitHub Actions environments `repository-administration` (**required reviewers for apply**) and `repository-audit`. The workflow references these names but does not create or protect them automatically.
-3. Run CI on the latest `main` commit of the target repository and note the exact check-run names.
-4. Go to **Actions → SUN repository provisioning → Run workflow**. Start with `plan`, then `apply`, entering exact required checks and repeating the target repository for confirmation.
-5. Run `verify`. Manually test that failed CI blocks merging; separately enforce sensitive-change reviewer rules.
+## Safety
 
-## Local usage
+Administration workflows require owner-initiated dispatch on protected `main`, use the `repository-administration` environment secret `SUN_REPO_ADMIN_TOKEN`, and retain exact target confirmation for mutations. The rename migration temporarily recognizes both old and new GitHub repository identities. After the rename and a successful Diagnose, remove the old identity in a separate PR.
+
+GitHub Free personal private repositories may not support enforceable rulesets; strict Apply/Verify fails closed when unavailable. Do not treat a successful Plan as enforced governance.
+
+## Local CLI
 
 Requires .NET 10 SDK and `GH_TOKEN`:
 
 ```sh
-dotnet run --project src/Sun.RepoBootstrap -- --repo sunstriker2009/example --mode plan
-dotnet run --project src/Sun.RepoBootstrap -- --repo sunstriker2009/example --mode apply --checks build,test --confirm sunstriker2009/example
+dotnet run --project src/Sun.RepoBootstrap -- --repo sunstriker2009/example --mode plan --checks repository-validation,conventional-title
 ```
 
-## Safety
-
-- Apply requires explicit matching confirmation and existing CI checks, and fails closed on an existing named ruleset.
-- Rule creation precedes merge-setting changes; a partial API failure requires manual inspection.
-- GitHub personal-account/private-repository feature availability depends on plan and permissions.
-- Version 1 does not yet validate full inherited rulesets, reviewer approvals, conventional commit titles, release procedures, or fail-CI blocking.
-- This project does not modify ORYVA or MarketPilot AI unless a future explicitly approved apply operation targets them.
-
-See [roadmap](docs/ROADMAP.md).
+The internal .NET project and namespaces remain `Sun.RepoBootstrap` for now; repository branding does not require a code namespace migration.

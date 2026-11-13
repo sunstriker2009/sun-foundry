@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   factory:
-    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && github.repository == 'sunstriker2009/sun-repo-bootstrap' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && (github.repository == 'sunstriker2009/sun-repo-bootstrap' || github.repository == 'sunstriker2009/sun-foundry') && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: repository-administration
     timeout-minutes: 25
