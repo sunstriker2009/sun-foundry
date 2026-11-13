@@ -29,8 +29,8 @@ These are **working vector approximation values**, not sampled or formally appro
 | Asset | Purpose |
 | --- | --- |
 | `branding/concepts/foundry-f-treatment-02.png` | Owner-approved original concept, to be preserved unchanged |
-| `branding/assets/readme-banner-v1.png` | Approved panoramic README image, pending binary upload |
-| `branding/assets/symbol-dark.svg` | Compact F symbol for dark UI |
+| `branding/assets/readme-banner-v1.png` | Approved panoramic README image, committed and in use |
+| `branding/assets/icons/app-icon.svg` | Approved-direction compact vector app icon master |\n| `scripts/export-brand-icons.py` | Deterministic raster icon export script |\n| `branding/assets/icons/png/` | Generated PNG sizes (pending committed exports) |\n| `branding/assets/symbol-dark.svg` | Compact F symbol for dark UI |
 | `branding/assets/symbol-light.svg` | Compact F symbol for light UI |
 | `branding/assets/symbol-mono.svg` | Monochrome symbol |
 | `branding/assets/symbol-small.svg` | Simplified small-size symbol |
@@ -38,7 +38,7 @@ These are **working vector approximation values**, not sampled or formally appro
 | `branding/assets/lockup-light.svg` | Full product lockup for light UI |
 | `branding/assets/lockup-mono.svg` | Monochrome full lockup |
 
-The SVGs are **simplified vector adaptations** of the approved direction, not pixel-identical traces of the panoramic rendering. Validate them at application sizes before treating them as final. App-icon raster exports remain to be generated.
+The SVGs are **simplified vector adaptations** of the approved direction, not pixel-identical traces of the panoramic rendering. Owner approved the revision with **disconnected F arms and a thinner glass-like SUN arc**. Raster icons can be exported reproducibly using `python -m pip install cairosvg` followed by `python scripts/export-brand-icons.py`; commit and inspect the generated PNGs before marking exports complete.
 
 ## Usage and revision rules
 
@@ -56,5 +56,5 @@ The SVGs are **simplified vector adaptations** of the approved direction, not pi
 - [ ] Approved concept PNG committed unchanged under `branding/concepts/`.
 - [x] Approved panoramic PNG committed as `branding/assets/readme-banner-v1.png`.
 - [x] README updated to reference the approved panoramic PNG.
-- [ ] SVGs visually reviewed and app-icon exports produced.
+- [x] Revised compact SVG direction reviewed and approved (disconnected F arms and glass-like arc).\n- [ ] Raster app-icon exports generated, inspected and committed.
 - [ ] Final asset palette and typography approved.
