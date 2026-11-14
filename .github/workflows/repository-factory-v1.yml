@@ -59,7 +59,7 @@ jobs:
             fi
             [[ "$VISIBILITY" == private || "$VISIBILITY" == public ]] || exit 1
             [[ "$VISIBILITY" == private ]] && is_private=true || is_private=false
-            gh api -X POST repos/sunstriker2009/sun-repo-template/generate \
+            gh api -X POST repos/sunstriker2009/sun-strata/generate \
               -f owner=sunstriker2009 -f name="$TARGET" -F private="$is_private" -F include_all_branches=false >/dev/null
           else
             [[ "$TARGET" =~ ^sunstriker2009/[A-Za-z0-9._-]+$ ]] || exit 1
