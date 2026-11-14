@@ -13,9 +13,7 @@
     48,
     64,
     128,
-    256,
-    512,
-    1024
+    256
   ],
   "transparentSymbol": true,
   "maxFileBytes": 5000000
