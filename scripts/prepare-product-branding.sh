@@ -19,12 +19,12 @@ if ! grep -q '^# STRATA by Sun$' <<< "$readme"; then
   exit 1
 fi
 # Only delete exact known template-brand paths, not arbitrary product assets.
-tree=$(gh api "repos/$REPO/git/trees/$sha?recursive=1")
+base_tree=$(gh api "repos/$REPO/git/commits/$sha" --jq .tree.sha)
+tree=$(gh api "repos/$REPO/git/trees/$base_tree?recursive=1")
 mapfile -t paths < <(jq -r '.tree[] | select(.type == "blob") | .path | select(startswith("branding/"))' <<< "$tree")
 for required in branding/BRAND-GUIDE.md branding/assets/readme-banner-v1.png; do
   printf '%s\n' "${paths[@]}" | grep -Fxq "$required" || { echo "::error::Missing STRATA branding fingerprint: $required"; exit 1; }
 done
-base_tree=$(gh api "repos/$REPO/git/commits/$sha" --jq .tree.sha)
 payload=$(printf '%s\n' "${paths[@]}" | jq -R '{path:.,mode:"100644",type:"blob",sha:null}' | jq -sc --arg base "$base_tree" '{base_tree:$base,tree:.}')
 new_tree=$(gh api -X POST "repos/$REPO/git/trees" --input - --jq .sha <<< "$payload")
 new_commit=$(gh api -X POST "repos/$REPO/git/commits" -f message="chore: remove inherited STRATA artwork" -f tree="$new_tree" -f parents[]="$sha" --jq .sha)
