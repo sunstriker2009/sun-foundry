@@ -24,11 +24,11 @@ python scripts/prepare-assets.py --product-root /path/to/product --config brandi
 
 Adapt source paths, target sizes and `transparentSymbol` to the approved product masters. Do not use a flattened opaque banner as a symbol source. If no transparent symbol master exists, set `transparentSymbol: false`; a transparent icon canvas does **not** remove an opaque source background.
 
-**Pilot candidate:** ASTELVO, after confirming its approved banner and symbol source paths. Pilot assets are not committed to ASTELVO by this PR.
+**Pilot target:** FOUNDRY itself, using the checked-in `branding/asset-config.json`. See [self-pilot acceptance criteria](FOUNDRY-ASSET-PILOT.md). ASTELVO and ORYVA are intentionally excluded while their automated development workflows are active.
 
 ## CI and GitHub minutes
 
-The [asset validation workflow](../.github/workflows/asset-validation.yml) runs on manual dispatch or changes to the FOUNDRY asset script, config example, requirements or workflow itself. It performs a synthetic smoke test without modifying product repositories. Product repositories can adopt a similar **path-filtered** check for their own approved source/config/output files after the pilot. Do not trigger generation on every application commit.
+The [asset validation workflow](../.github/workflows/asset-validation.yml) runs on manual dispatch or changes to the FOUNDRY asset script, config example, requirements or workflow itself. It performs a synthetic smoke test and FOUNDRY self-pilot against the approved master artwork, without modifying approved production assets. Product repositories can adopt a similar **path-filtered** check for their own approved source/config/output files after the pilot. Do not trigger generation on every application commit.
 
 ## Limits
 
