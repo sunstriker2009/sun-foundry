@@ -4,16 +4,22 @@ on:
   pull_request:
     paths:
       - 'scripts/prepare-assets.py'
+      - 'tests/test_asset_pipeline.py'
       - 'assets/**'
       - 'branding/asset-config.json'
       - 'branding/archive/originals/readme-banner-v1.png'
       - 'branding/assets/symbol-canonical-v2.png'
+      - 'docs/FOUNDRY-ASSET-PILOT.md'
       - '.github/workflows/asset-validation.yml'
   push:
     branches: [main]
     paths:
       - 'scripts/prepare-assets.py'
       - 'assets/**'
+      - 'tests/test_asset_pipeline.py'
+      - 'branding/asset-config.json'
+      - 'branding/archive/originals/readme-banner-v1.png'
+      - 'branding/assets/symbol-canonical-v2.png'
       - '.github/workflows/asset-validation.yml'
 permissions:
   contents: read
@@ -26,6 +32,8 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -r assets/requirements.txt
+      - name: Asset pipeline regression tests
+        run: python -m unittest discover -s tests -p 'test_asset_pipeline.py' -v
       - name: Generate synthetic approved-source fixtures and validate
         run: |
           python - <<'PY'
