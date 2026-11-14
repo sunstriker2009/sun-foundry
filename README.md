@@ -40,7 +40,7 @@ See [docs/WORKFLOWS.md](docs/WORKFLOWS.md) for operational details.
 
 ## Shared asset preparation (pilot)
 
-FOUNDRY now includes a [local-first SUN asset-preparation tool](docs/ASSET-PIPELINE.md) for approved PNG artwork. It prepares proportional README banners, icon sizes, favicon, optional transparent symbol exports and a SHA-256 manifest in a separate generated directory. It does not invent artwork or overwrite approved production assets. A narrowly path-filtered CI smoke test covers the tool; product rollout follows an ASTELVO pilot.
+FOUNDRY now includes a [local-first SUN asset-preparation tool](docs/ASSET-PIPELINE.md) for approved PNG artwork. It prepares proportional README banners, icon sizes, favicon, optional transparent symbol exports and a SHA-256 manifest in a separate generated directory. It does not invent artwork or overwrite approved production assets. A narrowly path-filtered CI smoke test covers the tool; the first pilot ran on FOUNDRY itself. See the [opt-in adoption guide](docs/ASSET-ADOPTION.md) for new SUN products; ORYVA and ASTELVO are not modified.
 
 ## Security and governance
 
