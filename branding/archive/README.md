@@ -1,10 +1,10 @@
 # FOUNDRY Brand Archive
 
-Historical and nonproduction branding artifacts belong here, separate from approved production files in `branding/assets/`.
+Historical and nonproduction branding artifacts live here, separate from approved production files in `branding/assets/`.
 
-- `originals/`: exact, unmodified owner-approved original artwork. For FOUNDRY the original is identical to `branding/assets/readme-banner-v1.png`; its archival copy must have the same Git blob SHA.
-- `concepts/`: exploratory and rejected concept images, clearly marked as not approved.
-- `intermediate/`: extraction prototypes, review sheets and comparison images.
-- `retired/`: obsolete production exports kept for historical reference.
+- `originals/`: exact, immutable owner-approved source artwork. The approved original is identical to the production banner and shares blob SHA `dbfba49871e4a27b7d72dfd62fd026973cec3be5`.
+- `concepts/`: exploratory and rejected concepts, when such files exist. Do not invent or substitute concept art.
+- `intermediate/`: extraction prototypes, comparisons and review sheets; includes the V3 small-icon comparison.
+- `retired/`: obsolete production assets retained only when needed for historical reference.
 
-The original artwork copy and comparison-sheet relocation remain pending until the binary files can be copied/moved through GitHub. Do not treat this documentation commit as completion of archival.
+Empty directories are intentionally absent from Git. Production icons, banner, canonical mark and approved vector master remain under `branding/assets/`.
