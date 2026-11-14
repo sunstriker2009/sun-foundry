@@ -2,6 +2,7 @@
 """Prepare reproducible raster derivatives from owner-approved PNG artwork."""
 import argparse
 import hashlib
+import io
 import json
 from pathlib import Path
 import sys
@@ -62,9 +63,12 @@ def prepare(root, config_file, check=False):
         destination = within(output, relative)
         if not destination.is_relative_to(output):
             raise ValueError("Output path escapes generated directory")
+        expected_buffer = io.BytesIO()
+        image.save(expected_buffer, format=fmt, optimize=True)
+        expected_bytes = expected_buffer.getvalue()
         if not check:
             destination.parent.mkdir(parents=True, exist_ok=True)
-            image.save(destination, format=fmt, optimize=True)
+            destination.write_bytes(expected_bytes)
         if not destination.is_file():
             raise ValueError(f"Missing output: {destination}")
         with Image.open(destination) as actual:
@@ -77,6 +81,8 @@ def prepare(root, config_file, check=False):
                 raise ValueError(f"Incorrect format: {destination}")
             if "A" in image.getbands() and "A" not in actual.getbands():
                 raise ValueError(f"Transparency lost: {destination}")
+        if check and destination.read_bytes() != expected_bytes:
+            raise ValueError(f"Output content differs from deterministic generation: {destination}")
         if destination.stat().st_size > max_bytes:
             raise ValueError(f"Output exceeds file-size limit: {destination}")
         results[relative] = {"width": image.width, "height": image.height, "bytes": destination.stat().st_size, "sha256": digest(destination)}

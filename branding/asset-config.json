@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "banner": "branding/archive/originals/readme-banner-v1.png",
+    "symbol": "branding/assets/symbol-canonical-v2.png"
+  },
+  "outputDir": "branding/generated",
+  "bannerWidth": 1600,
+  "iconSizes": [
+    16,
+    24,
+    32,
+    48,
+    64,
+    128,
+    256
+  ],
+  "transparentSymbol": true,
+  "maxFileBytes": 5000000
+}

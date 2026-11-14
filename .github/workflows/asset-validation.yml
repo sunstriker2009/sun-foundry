@@ -5,6 +5,9 @@ on:
     paths:
       - 'scripts/prepare-assets.py'
       - 'assets/**'
+      - 'branding/asset-config.json'
+      - 'branding/archive/originals/readme-banner-v1.png'
+      - 'branding/assets/symbol-canonical-v2.png'
       - '.github/workflows/asset-validation.yml'
   push:
     branches: [main]
@@ -38,3 +41,7 @@ jobs:
           PY
           python scripts/prepare-assets.py --product-root /tmp/sun-assets-smoke --config config.json
           python scripts/prepare-assets.py --product-root /tmp/sun-assets-smoke --config config.json --check
+      - name: Run FOUNDRY approved-master self-pilot
+        run: |
+          python scripts/prepare-assets.py --product-root . --config branding/asset-config.json
+          python scripts/prepare-assets.py --product-root . --config branding/asset-config.json --check
