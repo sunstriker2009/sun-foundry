@@ -1,0 +1,40 @@
+name: Asset preparation validation
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/prepare-assets.py'
+      - 'assets/**'
+      - '.github/workflows/asset-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/prepare-assets.py'
+      - 'assets/**'
+      - '.github/workflows/asset-validation.yml'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r assets/requirements.txt
+      - name: Generate synthetic approved-source fixtures and validate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from PIL import Image
+          root=Path('/tmp/sun-assets-smoke')
+          (root/'masters').mkdir(parents=True,exist_ok=True)
+          Image.new('RGB',(1800,600),'navy').save(root/'masters/banner.png')
+          Image.new('RGBA',(1024,1024),(255,160,0,0)).save(root/'masters/symbol.png')
+          config={'schemaVersion':1,'sources':{'banner':'masters/banner.png','symbol':'masters/symbol.png'},'outputDir':'generated','bannerWidth':1600,'iconSizes':[16,48,256,1024],'transparentSymbol':True}
+          (root/'config.json').write_text(json.dumps(config))
+          PY
+          python scripts/prepare-assets.py --product-root /tmp/sun-assets-smoke --config config.json
+          python scripts/prepare-assets.py --product-root /tmp/sun-assets-smoke --config config.json --check
