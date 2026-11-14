@@ -16,5 +16,11 @@
     256
   ],
   "transparentSymbol": true,
-  "maxFileBytes": 5000000
+  "maxFileBytes": 5000000,
+  "iconOverrides": {
+    "16": "branding/assets/icons/icon-16.png",
+    "24": "branding/assets/icons/icon-24.png",
+    "32": "branding/assets/icons/icon-32.png",
+    "48": "branding/assets/icons/icon-48.png"
+  }
 }
