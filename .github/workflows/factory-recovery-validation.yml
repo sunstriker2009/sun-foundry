@@ -1,0 +1,32 @@
+name: Factory recovery validation
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/repository-factory-v1.yml'
+      - '.github/workflows/factory-recovery-validation.yml'
+      - 'scripts/prepare-product-branding.sh'
+      - 'docs/WORKFLOWS.md'
+permissions:
+  contents: read
+jobs:
+  recovery-static-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check branding recovery shell syntax
+        run: bash -n scripts/prepare-product-branding.sh
+      - name: Verify resume guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          factory = Path(".github/workflows/repository-factory-v1.yml").read_text()
+          branding = Path("scripts/prepare-product-branding.sh").read_text()
+          assert '[[ "$valid" == "open|main|$branch|$REPO" ]]' in factory
+          assert 'if ! gh api "repos/$REPO/contents/docs/SUN-GOVERNANCE-CI-SEED.md?ref=$branch"' in factory
+          assert 'Product README exists but STRATA banner remains' in branding
+          assert 'Product README exists without brand guide' in branding
+          assert 'docs/TEMPLATE-GUIDE.md?ref=$BRANCH' in branding
+          print("Recovery guards present; no remote GitHub mutations performed")
+          PY

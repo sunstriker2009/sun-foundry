@@ -84,15 +84,26 @@ jobs:
           [[ "$ready" == true ]] || { echo "::error::Repository template not ready after 120 seconds; resume after checking its main branch and workflows"; exit 1; }
           branch=chore/sun-governance-ci-seed
           pr=$(gh api "repos/$REPO/pulls?state=open&head=sunstriker2009:$branch" --jq '.[0].number // empty')
-          if [[ -z "$pr" ]]; then
+          if [[ -n "$pr" ]]; then
+            # Resume only a genuine, open seed PR targeting main from the
+            # expected branch. Do not silently accept an unrelated PR.
+            valid=$(gh api "repos/$REPO/pulls/$pr" --jq '[.state, .base.ref, .head.ref, .head.repo.full_name] | join("|")')
+            [[ "$valid" == "open|main|$branch|$REPO" ]] || {
+              echo "::error::Existing PR #$pr does not match expected seed PR; inspect manually"
+              exit 1
+            }
+            bash scripts/prepare-product-branding.sh "$REPO" "$branch"
+          else
             if ! gh api "repos/$REPO/branches/$branch" >/dev/null 2>&1; then
               sha=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
               gh api -X POST "repos/$REPO/git/refs" -f ref="refs/heads/$branch" -f sha="$sha" >/dev/null
             fi
             bash scripts/prepare-product-branding.sh "$REPO" "$branch"
-            content=$(printf '%s\n' '# SUN Governance CI Seed' '' 'Temporary validation PR. Squash merge only after governance Apply and Verify.' | base64 -w0)
-            gh api -X PUT "repos/$REPO/contents/docs/SUN-GOVERNANCE-CI-SEED.md" \
-              -f message="chore: seed SUN governance CI checks" -f content="$content" -f branch="$branch" >/dev/null
+            if ! gh api "repos/$REPO/contents/docs/SUN-GOVERNANCE-CI-SEED.md?ref=$branch" >/dev/null 2>&1; then
+              content=$(printf '%s\n' '# SUN Governance CI Seed' '' 'Temporary validation PR. Squash merge only after governance Apply and Verify.' | base64 -w0)
+              gh api -X PUT "repos/$REPO/contents/docs/SUN-GOVERNANCE-CI-SEED.md" \
+                -f message="chore: seed SUN governance CI checks" -f content="$content" -f branch="$branch" >/dev/null
+            fi
             pr=$(gh api -X POST "repos/$REPO/pulls" -f title="test: seed SUN governance CI checks" \
               -f head="$branch" -f base=main -f body="Disposable CI initialization PR; merge only after strict Verify." --jq .number)
           fi
