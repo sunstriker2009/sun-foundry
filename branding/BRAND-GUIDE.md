@@ -1,6 +1,6 @@
 # FOUNDRY by Sun — Brand Guide
 
-**Status:** Visual direction and production V3 assets approved; naming and archive migration in review  
+**Status:** Approved production V3 assets and canonical naming/archive migration complete; palette and typography specifications remain provisional  
 **Approved concept:** Foundry F — second panoramic treatment (2026-11-13)  
 **Tagline:** Build. Standardize. Launch.  
 **Canonical SUN standard:** [Product Repository Branding Standard](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/PRODUCT-BRANDING.md)
@@ -74,8 +74,8 @@ The canonical transparent symbol remains version 2. V3 small PNG icons (16–48 
 - [x] Approved panoramic PNG committed as `branding/assets/readme-banner-v1.png`.
 - [x] README updated to reference the approved panoramic PNG.
 - [x] Revised compact SVG direction reviewed (disconnected F arms and glass-like arc).
-- [ ] Canonical F + arc extracted and inspected from the original approved artwork.
-- [ ] Raster app-icon exports produced from the canonical extraction.
+- [x] Owner-approved transparent canonical V2 symbol delivered and validated against the approved asset package (not a claim of pixel-perfect extraction from a layered source).
+- [x] Nine owner-approved V3 PNG icon exports delivered and validated (16–48 px are optical adaptations; 64–1024 px derive from the canonical raster).
 - [ ] Final asset palette and typography formally approved (separate design task).
 
 ## SUN naming and archival migration
