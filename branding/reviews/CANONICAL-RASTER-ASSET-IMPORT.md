@@ -1,6 +1,6 @@
 # Approved FOUNDRY Raster Asset Package
 
-**Owner approval:** canonical transparent symbol v2 approved on 2026-11-13.
+**Owner approval:** Version 3 package approved. The transparent canonical symbol remains v2; the 16–48 px icons are optical-size adaptations, not downscales of the canonical raster.
 
 The approved raster files are packaged externally for upload to this PR branch. Do **not** replace them with independently generated approximations.
 
@@ -14,12 +14,12 @@ The approved raster files are packaged externally for upload to this PR branch. 
 
 Sizes: 16, 24, 32, 48, 64, 128, 256, 512, 1024.
 
-The transparent master is 709 × 581 px. All icons were derived from that master. For tiny interface sizes, prefer the existing compact SVG where it renders more clearly.
+The transparent master is 709 × 581 px. The 64, 128, 256, 512 and 1024 px icons derive from the approved canonical raster. The 16, 24, 32 and 48 px icons are purpose-built simplified adaptations, approved as the v3 package. Do **not** upload the older v2 16–48 px icons.
 
 ## Verification before merge
 
 - [ ] Upload the **exact binary files** from the approved ZIP to the paths above on this PR branch.
-- [ ] Confirm all nine icon sizes exist and retain transparency.
+- [ ] Confirm all nine **v3** icon sizes exist and retain transparency.\n- [ ] Check that 16–48 px are the optically simplified v3 icons, not the original downscaled versions.
 - [ ] Compare the transparent master with the approved four-background review.
 - [ ] Confirm the panoramic README banner remains unchanged.
 - [ ] Update the brand guide's raster export checklist only after the files are present.
