@@ -90,6 +90,7 @@ jobs:
             fi
             sha=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
             gh api -X POST "repos/$REPO/git/refs" -f ref="refs/heads/$branch" -f sha="$sha" >/dev/null
+            bash scripts/prepare-product-branding.sh "$REPO" "$branch"
             content=$(printf '%s\n' '# SUN Governance CI Seed' '' 'Temporary validation PR. Squash merge only after governance Apply and Verify.' | base64 -w0)
             gh api -X PUT "repos/$REPO/contents/docs/SUN-GOVERNANCE-CI-SEED.md" \
               -f message="chore: seed SUN governance CI checks" -f content="$content" -f branch="$branch" >/dev/null
