@@ -36,9 +36,9 @@ These are **working vector approximation values**, not sampled or formally appro
 
 | Asset | Purpose |
 | --- | --- |
-| `branding/concepts/foundry-f-treatment-02.png` | Owner-approved original concept, to be preserved unchanged |
+| `branding/archive/originals/readme-banner-v1.png` | Immutable copy of the approved original (identical to production banner); archival copy pending |
 | `branding/assets/readme-banner-v1.png` | Approved panoramic README image, canonical raster source |
-| `branding/assets/foundry-symbol-canonical-v2.png` | Owner-approved transparent extraction; committed on PR #26 branch |\n| `branding/assets/icons/foundry-icon-{size}.png` | Nine approved V3 raster icon sizes, committed on PR #26 branch |\n| `branding/reviews/CANONICAL-RASTER-ASSET-IMPORT.md` | Exact package import and verification checklist |\n| `branding/assets/symbol-dark.svg` | Compact F symbol for dark UI |
+| `branding/assets/foundry-symbol-canonical-v2.png` | Approved canonical transparent symbol (legacy filename; standard: `symbol-canonical-v2.png`) |\n| `branding/assets/icons/foundry-icon-{size}.png` | Approved V3 icons (legacy filenames; standard: `icon-{size}.png`) |\n| `branding/reviews/CANONICAL-RASTER-ASSET-IMPORT.md` | Historical V3 import verification record |\n| `branding/archive/intermediate/small-icon-comparison.png` | V3 review sheet; move from `branding/assets/` pending |\n| `branding/assets/small-icon-master.svg` | Approved small-size vector master; retained as a production source |\n| `branding/assets/symbol-dark.svg` | Compact F symbol for dark UI |
 | `branding/assets/symbol-light.svg` | Compact F symbol for light UI |
 | `branding/assets/symbol-mono.svg` | Monochrome symbol |
 | `branding/assets/symbol-small.svg` | Simplified small-size symbol |
@@ -66,3 +66,18 @@ The compact SVGs are **owner-reviewed vector adaptations** of the approved direc
 - [x] README updated to reference the approved panoramic PNG.
 - [x] Revised compact SVG direction reviewed (disconnected F arms and glass-like arc).\n- [ ] Canonical F + arc extracted and inspected from the original approved artwork.\n- [ ] Raster app-icon exports produced from the canonical extraction.
 - [ ] Final asset palette and typography approved.
+
+## SUN naming and archival migration
+
+Follow the [SUN Product Branding Standard](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/PRODUCT-BRANDING.md), section 5. Product identity belongs in the repository, not in every filename.
+
+- **Approved original:** The owner confirmed the approved concept and the panoramic README image are **the same file**. Preserve an exact byte-for-byte copy of `branding/assets/readme-banner-v1.png` at `branding/archive/originals/readme-banner-v1.png`; never replace it with a recreated image.
+- **Production assets:** Keep the README banner and canonical transparent symbol, icon PNGs and usable SVG masters under `branding/assets/`.
+- **Intermediate work:** Move `branding/assets/small-icon-comparison.png` to `branding/archive/intermediate/small-icon-comparison.png`. Archive future reviews, extraction prototypes and rejected experiments in `branding/archive/`.
+- **Legacy names:** The existing `foundry-symbol-canonical-v2.png` and `foundry-icon-{size}.png` remain supported. A later migration may rename them to `symbol-canonical-v2.png` and `icon-{size}.png` only after references are updated. No need to rename the already-standard `readme-banner-v1.png`.
+
+### Remaining migration actions
+
+- [ ] Copy approved banner to `branding/archive/originals/readme-banner-v1.png` with identical Git blob SHA.
+- [ ] Move comparison sheet to `branding/archive/intermediate/small-icon-comparison.png` and update any references.
+- [ ] Verify README banner path is unchanged and all production files remain intact.
