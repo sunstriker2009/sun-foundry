@@ -89,6 +89,32 @@ class AssetPipelineTests(unittest.TestCase):
         Image.new("RGB", (512, 512), "orange").save(self.root / "masters/symbol.png")
         self.run_pipeline(success=False)
 
+    def test_optical_override_preserved(self):
+        source = self.root / "masters/optical-16.png"
+        Image.new("RGBA", (16, 16), (12, 34, 56, 255)).save(source)
+        self.config["iconOverrides"] = {"16": "masters/optical-16.png"}
+        self.write_config()
+        self.run_pipeline()
+        self.run_pipeline(check=True)
+        with Image.open(self.root / "generated/icons/icon-16.png") as image:
+            self.assertEqual(image.getpixel((0, 0)), (12, 34, 56, 255))
+        manifest = json.loads((self.root / "generated/asset-manifest.json").read_text())
+        self.assertIn("16", manifest["iconOverrides"])
+
+    def test_invalid_override_dimensions_rejected(self):
+        Image.new("RGBA", (32, 32), (0, 0, 0, 0)).save(self.root / "masters/wrong.png")
+        self.config["iconOverrides"] = {"16": "masters/wrong.png"}
+        self.write_config()
+        self.run_pipeline(success=False)
+
+    def test_override_can_supply_larger_size_without_upscale(self):
+        Image.new("RGBA", (1024, 1024), (0, 0, 0, 0)).save(self.root / "masters/large.png")
+        self.config["iconSizes"] = [16, 1024]
+        self.config["iconOverrides"] = {"1024": "masters/large.png"}
+        self.write_config()
+        self.run_pipeline()
+        self.run_pipeline(check=True)
+
     def test_path_escape_rejected(self):
         self.config["outputDir"] = "../outside"
         self.write_config()
