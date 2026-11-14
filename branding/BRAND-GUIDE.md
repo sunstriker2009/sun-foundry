@@ -11,6 +11,14 @@ The approved concept is the **second treatment** of the modular F, **not** the e
 
 The symbol expresses modular repository creation and standardization. The F is natural to the product name; the SUN arc links the product family. Do not replace this approved reference with a newly generated lookalike.
 
+## Canonical symbol extraction policy
+
+**Source of truth:** the exact owner-approved second-treatment panoramic PNG at `branding/assets/readme-banner-v1.png`. Preserve its original F and SUN arc (including the distinctive disconnected arms, glass-like luminosity, gradients and material). Do not recreate the high-resolution symbol from the compact SVG.
+
+**Production sequence:** (1) archive the original approved concept unchanged when available; (2) obtain a layered/transparent source if possible, otherwise carefully isolate the F and arc from the committed banner; (3) export a transparent high-resolution standalone PNG with documented crop/mask and visual inspection; (4) derive raster app icons from that extraction, validating at 16–32 px; (5) retain the reviewed compact SVGs for scalable, monochrome and small-size needs.
+
+A flattened banner may have baked-in navy background, glow and overlapping lighting. **An exact transparent cutout is not guaranteed** without layers; inspect edge halos and avoid claiming pixel-perfect isolation where manual masking is required. Do not replace the approved banner.
+
 ## Working palette and typography
 
 | Role | Color | Value |
@@ -29,7 +37,7 @@ These are **working vector approximation values**, not sampled or formally appro
 | Asset | Purpose |
 | --- | --- |
 | `branding/concepts/foundry-f-treatment-02.png` | Owner-approved original concept, to be preserved unchanged |
-| `branding/assets/readme-banner-v1.png` | Approved panoramic README image, pending binary upload |
+| `branding/assets/readme-banner-v1.png` | Approved panoramic README image, canonical raster source |
 | `branding/assets/symbol-dark.svg` | Compact F symbol for dark UI |
 | `branding/assets/symbol-light.svg` | Compact F symbol for light UI |
 | `branding/assets/symbol-mono.svg` | Monochrome symbol |
@@ -38,7 +46,7 @@ These are **working vector approximation values**, not sampled or formally appro
 | `branding/assets/lockup-light.svg` | Full product lockup for light UI |
 | `branding/assets/lockup-mono.svg` | Monochrome full lockup |
 
-The SVGs are **simplified vector adaptations** of the approved direction, not pixel-identical traces of the panoramic rendering. Validate them at application sizes before treating them as final. App-icon raster exports remain to be generated.
+The compact SVGs are **owner-reviewed vector adaptations** of the approved direction, with disconnected F arms and a thinner glass-like arc; they are not pixel-identical traces. High-resolution raster app icons must instead derive from the canonical artwork extraction. Exports remain pending.
 
 ## Usage and revision rules
 
@@ -56,5 +64,5 @@ The SVGs are **simplified vector adaptations** of the approved direction, not pi
 - [ ] Approved concept PNG committed unchanged under `branding/concepts/`.
 - [x] Approved panoramic PNG committed as `branding/assets/readme-banner-v1.png`.
 - [x] README updated to reference the approved panoramic PNG.
-- [ ] SVGs visually reviewed and app-icon exports produced.
+- [x] Revised compact SVG direction reviewed (disconnected F arms and glass-like arc).\n- [ ] Canonical F + arc extracted and inspected from the original approved artwork.\n- [ ] Raster app-icon exports produced from the canonical extraction.
 - [ ] Final asset palette and typography approved.
