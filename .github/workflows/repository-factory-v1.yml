@@ -85,11 +85,10 @@ jobs:
           branch=chore/sun-governance-ci-seed
           pr=$(gh api "repos/$REPO/pulls?state=open&head=sunstriker2009:$branch" --jq '.[0].number // empty')
           if [[ -z "$pr" ]]; then
-            if gh api "repos/$REPO/branches/$branch" >/dev/null 2>&1; then
-              echo "::error::Seed branch exists without an open PR; inspect manually"; exit 1
+            if ! gh api "repos/$REPO/branches/$branch" >/dev/null 2>&1; then
+              sha=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
+              gh api -X POST "repos/$REPO/git/refs" -f ref="refs/heads/$branch" -f sha="$sha" >/dev/null
             fi
-            sha=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
-            gh api -X POST "repos/$REPO/git/refs" -f ref="refs/heads/$branch" -f sha="$sha" >/dev/null
             bash scripts/prepare-product-branding.sh "$REPO" "$branch"
             content=$(printf '%s\n' '# SUN Governance CI Seed' '' 'Temporary validation PR. Squash merge only after governance Apply and Verify.' | base64 -w0)
             gh api -X PUT "repos/$REPO/contents/docs/SUN-GOVERNANCE-CI-SEED.md" \
