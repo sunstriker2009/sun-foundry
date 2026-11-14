@@ -20,7 +20,7 @@ Create consistent GitHub repositories, initialize required CI, enforce supported
 
 | Capability | Description |
 | --- | --- |
-| **Create** | Generate a repository from the [SUN template](https://github.com/sunstriker2009/sun-repo-template). |
+| **Create** | Generate a repository from the [STRATA template](https://github.com/sunstriker2009/sun-strata). |
 | **Initialize** | Seed a pull request and wait for the required CI checks to become available. |
 | **Govern** | Plan and apply supported repository settings and protected-branch rules. |
 | **Verify** | Check live repository settings and fail closed where strict enforcement is unavailable. |
@@ -58,6 +58,6 @@ The internal project and namespaces currently retain `Sun.RepoBootstrap` for com
 
 ## SUN ecosystem
 
-FOUNDRY is the standardized repository provisioning tool for the [SUN product ecosystem](https://github.com/sunstriker2009/sun-ecosystem). The [SUN repository template](https://github.com/sunstriker2009/sun-repo-template) supplies the starting structure and CI workflows.
+FOUNDRY is the standardized repository provisioning tool for the [SUN product ecosystem](https://github.com/sunstriker2009/sun-ecosystem). The [STRATA by Sun](https://github.com/sunstriker2009/sun-strata) supplies the starting structure and CI workflows.
 
 **FOUNDRY v1.0** · *Build. Standardize. Launch.*
