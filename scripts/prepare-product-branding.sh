@@ -22,6 +22,10 @@ fi
 base_tree=$(gh api "repos/$REPO/git/commits/$sha" --jq .tree.sha)
 tree=$(gh api "repos/$REPO/git/trees/$base_tree?recursive=1")
 mapfile -t paths < <(jq -r '.tree[] | select(.type == "blob") | .path | select(startswith("branding/"))' <<< "$tree")
+allowed=(branding/BRAND-GUIDE.md branding/archive/README.md branding/archive/concepts/concept-banner-v1.png branding/archive/originals/readme-banner-v1.png branding/archive/originals/symbol-reference-v1.png branding/assets/lockup-dark.svg branding/assets/readme-banner-v1.png branding/assets/symbol-dark.svg branding/assets/symbol-light.svg branding/assets/symbol-small.svg)
+for path in "${paths[@]}"; do
+  printf '%s\\n' "${allowed[@]}" | grep -Fxq "$path" || { echo "::error::Unexpected branding file $path; refusing to remove potentially approved product artwork"; exit 1; }
+done
 for required in branding/BRAND-GUIDE.md branding/assets/readme-banner-v1.png; do
   printf '%s\n' "${paths[@]}" | grep -Fxq "$required" || { echo "::error::Missing STRATA branding fingerprint: $required"; exit 1; }
 done
