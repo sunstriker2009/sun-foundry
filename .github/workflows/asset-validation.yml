@@ -9,6 +9,7 @@ on:
       - 'branding/asset-config.json'
       - 'branding/archive/originals/readme-banner-v1.png'
       - 'branding/assets/symbol-canonical-v2.png'
+      - 'branding/assets/icons/**'
       - 'docs/FOUNDRY-ASSET-PILOT.md'
       - '.github/workflows/asset-validation.yml'
   push:

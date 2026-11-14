@@ -8,7 +8,7 @@
 - Keep originals in the product's established `branding/archive/originals/` or approved master locations. A product-local JSON configuration selects the sources.
 - Generated output goes into a **separate directory** (default `branding/generated/`), not the canonical `branding/assets/` paths. Review derivatives before copying/promoting them into production paths. Do not silently overwrite approved live artwork.
 - The generated banner is proportionally resized to configured width, without upscaling. PNG icons are contained within square transparent canvases, preserving proportions. The favicon is a 48 px ICO. Transparent symbol export is optional and requires an actually transparent approved master.
-- Raster/vector decisions remain product-specific: **SVG assets are not generated or replaced** by this tool. Product-specific optical variants may still need manual review.
+- Raster/vector decisions remain product-specific: **SVG assets are not generated or replaced** by this tool. Use optional `iconOverrides` (a size-to-approved-PNG-path map) to copy manually approved optical icons without resampling; each override must match its configured square size. Overrides are hashed in the manifest and remain outside the generated directory. Only non-overridden sizes require a sufficiently large canonical symbol. Product-specific optical variants still need manual approval.
 - Manifest records SHA-256 of each approved source and each output, output dimensions and byte size. `--check` checks outputs against the manifest without modifying files.
 
 ## Local pilot
