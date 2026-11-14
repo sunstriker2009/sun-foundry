@@ -12,7 +12,21 @@ sha=$(gh api "repos/$REPO/git/ref/heads/$BRANCH" --jq .object.sha)
 readme=$(gh api -H "Accept: application/vnd.github.raw+json" "repos/$REPO/contents/README.md?ref=$BRANCH")
 if ! grep -q '^# STRATA by Sun$' <<< "$readme"; then
   if grep -q '^# SUN Product Repository$' <<< "$readme"; then
-    echo "Product README already initialized; leaving branding unchanged"
+    echo "Product README already initialized; checking remaining branding cleanup"
+    # A prior attempt may have stopped after writing README but before removing
+    # the STRATA template guide. Continue only with safe, explicit cleanup.
+    if gh api "repos/$REPO/contents/branding/assets/readme-banner-v1.png?ref=$BRANCH" >/dev/null 2>&1; then
+      echo "::error::Product README exists but STRATA banner remains; manual inspection required"
+      exit 1
+    fi
+    if guide_sha=$(gh api "repos/$REPO/contents/docs/TEMPLATE-GUIDE.md?ref=$BRANCH" --jq .sha 2>/dev/null); then
+      gh api -X DELETE "repos/$REPO/contents/docs/TEMPLATE-GUIDE.md" -f message="docs: remove STRATA template authoring guide" -f sha="$guide_sha" -f branch="$BRANCH" >/dev/null
+    fi
+    if ! gh api "repos/$REPO/contents/branding/BRAND-GUIDE.md?ref=$BRANCH" >/dev/null 2>&1; then
+      echo "::error::Product README exists without brand guide; manual inspection required"
+      exit 1
+    fi
+    echo "Product-neutral branding already initialized"
     exit 0
   fi
   echo "::error::README does not match STRATA template; refusing destructive cleanup"
