@@ -42,6 +42,24 @@ def prepare(root, config_file, check=False):
     sizes = cfg.get("iconSizes", list(ICON_SIZES))
     if not sizes or any(type(s) is not int or s not in ICON_SIZES for s in sizes) or len(set(sizes)) != len(sizes):
         raise ValueError("iconSizes must be distinct supported sizes")
+    overrides = cfg.get("iconOverrides", {})
+    if not isinstance(overrides, dict):
+        raise ValueError("iconOverrides must be a size-to-PNG-path object")
+    if any(not isinstance(key, str) or not key.isdigit() or int(key) not in sizes for key in overrides):
+        raise ValueError("iconOverrides keys must match configured iconSizes")
+    approved_overrides = {}
+    for size_text, source_name in overrides.items():
+        if not isinstance(source_name, str):
+            raise ValueError("Invalid icon override path")
+        source_path = within(root, source_name)
+        if source_path.is_relative_to(output) or source_path.suffix.lower() != ".png" or not source_path.is_file():
+            raise ValueError(f"Approved icon override missing or inside generated directory: {source_name}")
+        with Image.open(source_path) as override:
+            override.load()
+            size = int(size_text)
+            if override.format != "PNG" or override.size != (size, size):
+                raise ValueError(f"Icon override must be a {size}x{size} PNG: {source_name}")
+            approved_overrides[size] = (source_name, source_path)
     max_bytes = int(cfg.get("maxFileBytes", 5_000_000))
     if max_bytes <= 0:
         raise ValueError("maxFileBytes must be positive")
@@ -54,7 +72,8 @@ def prepare(root, config_file, check=False):
         symbol = image.convert("RGBA" if "A" in image.getbands() else "RGB")
     if banner.width < banner_width:
         raise ValueError("Banner source is smaller than target width; refusing to upscale")
-    if symbol.width < max(sizes) or symbol.height < max(sizes):
+    derived_sizes = [size for size in sizes if size not in approved_overrides]
+    if derived_sizes and (symbol.width < max(derived_sizes) or symbol.height < max(derived_sizes)):
         raise ValueError("Symbol source is smaller than largest icon; refusing to upscale")
     banner = banner.resize((banner_width, round(banner.height * banner_width / banner.width)), Image.Resampling.LANCZOS)
 
@@ -89,9 +108,13 @@ def prepare(root, config_file, check=False):
 
     add("readme-banner.png", banner)
     for size in sizes:
-        icon = ImageOps.contain(symbol, (size, size), Image.Resampling.LANCZOS)
-        canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-        canvas.alpha_composite(icon.convert("RGBA"), ((size - icon.width) // 2, (size - icon.height) // 2))
+        if size in approved_overrides:
+            with Image.open(approved_overrides[size][1]) as approved:
+                canvas = approved.copy()
+        else:
+            icon = ImageOps.contain(symbol, (size, size), Image.Resampling.LANCZOS)
+            canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+            canvas.alpha_composite(icon.convert("RGBA"), ((size - icon.width) // 2, (size - icon.height) // 2))
         add(f"icons/icon-{size}.png", canvas)
     favicon = ImageOps.contain(symbol, (48, 48), Image.Resampling.LANCZOS)
     canvas = Image.new("RGBA", (48, 48), (0, 0, 0, 0))
@@ -105,6 +128,7 @@ def prepare(root, config_file, check=False):
         "schemaVersion": 1,
         "generator": "sun-foundry/scripts/prepare-assets.py",
         "sources": {key: {"path": sources[key], "sha256": digest(path)} for key, path in (("banner", banner_source), ("symbol", symbol_source))},
+        "iconOverrides": {str(size): {"path": name, "sha256": digest(path)} for size, (name, path) in sorted(approved_overrides.items())},
         "outputs": results,
     }
     manifest_path = output / "asset-manifest.json"
