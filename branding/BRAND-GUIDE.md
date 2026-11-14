@@ -38,7 +38,7 @@ These are **working vector approximation values**, not sampled or formally appro
 | --- | --- |
 | `branding/concepts/foundry-f-treatment-02.png` | Owner-approved original concept, to be preserved unchanged |
 | `branding/assets/readme-banner-v1.png` | Approved panoramic README image, canonical raster source |
-| `branding/assets/symbol-dark.svg` | Compact F symbol for dark UI |
+| `branding/assets/foundry-symbol-canonical-v2.png` | Owner-approved transparent extraction; committed on PR #26 branch |\n| `branding/assets/icons/foundry-icon-{size}.png` | Nine approved V3 raster icon sizes, committed on PR #26 branch |\n| `branding/reviews/CANONICAL-RASTER-ASSET-IMPORT.md` | Exact package import and verification checklist |\n| `branding/assets/symbol-dark.svg` | Compact F symbol for dark UI |
 | `branding/assets/symbol-light.svg` | Compact F symbol for light UI |
 | `branding/assets/symbol-mono.svg` | Monochrome symbol |
 | `branding/assets/symbol-small.svg` | Simplified small-size symbol |
@@ -46,7 +46,7 @@ These are **working vector approximation values**, not sampled or formally appro
 | `branding/assets/lockup-light.svg` | Full product lockup for light UI |
 | `branding/assets/lockup-mono.svg` | Monochrome full lockup |
 
-The compact SVGs are **owner-reviewed vector adaptations** of the approved direction, with disconnected F arms and a thinner glass-like arc; they are not pixel-identical traces. High-resolution raster app icons must instead derive from the canonical artwork extraction. Exports remain pending.
+The compact SVGs are **owner-reviewed vector adaptations** of the approved direction, with disconnected F arms and a thinner glass-like arc; they are not pixel-identical traces. High-resolution raster app icons must instead derive from the canonical artwork extraction. The owner-approved canonical v2 transparent symbol and V3 PNG icons (16–1024 px) are uploaded to the PR branch. The 16–48 px sizes are purpose-built optical adaptations; the 64–1024 px sizes derive from the canonical raster. See [raster import checklist](reviews/CANONICAL-RASTER-ASSET-IMPORT.md).
 
 ## Usage and revision rules
 
