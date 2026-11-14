@@ -1,6 +1,6 @@
 # FOUNDRY self-pilot: shared asset preparation
 
-**Pilot target:** FOUNDRY (SUN-G003). **Status:** configuration and validation setup; actual image-generation verification pending CI.
+**Pilot target:** FOUNDRY (SUN-G003). **Status:** self-pilot configured; regression hardening in progress. CI results must be checked before marking complete.
 
 ## Approved inputs
 
@@ -30,3 +30,7 @@ Output goes to `branding/generated/`, separate from approved production files. C
 ## Important limitation
 
 Generic icon resampling cannot reproduce reviewed optical variants. Passing automated checks does **not** mean generated icons are approved replacements.
+
+## Regression coverage
+
+Run `python -m unittest discover -s tests -p 'test_asset_pipeline.py' -v` locally. Tests cover valid manifest generation, transparent icon output, missing/corrupted source, altered or missing output, modified manifest, attempted upscaling, nontransparent symbol rejection and output path traversal. The 16–48 px approved optical variants remain authoritative and are never overwritten.
