@@ -50,9 +50,25 @@ class RepositoryInputTests(unittest.TestCase):
 
     def test_foreign_owner_traversal_shell_and_newline_inputs_are_rejected(self):
         for bad in ('other/sun-foundry', '../sun-foundry', 'sun-one/two', 'sun-one\nx=bad',
-                    'sun-$(echo bad)', ' sun-foundry', '-sun-foundry'):
+                    'sun-$(echo bad)', 'sun foundry', '-sun-foundry'):
             with self.assertRaises(ValueError):
                 inputs.resolve(inputs.OTHER, bad, bad, 'registration', 'apply')
+
+    def test_pasted_confirmation_whitespace_is_normalized_in_every_profile(self):
+        for profile, operation in [('alignment', 'apply'), ('maintenance', 'apply'),
+                                   ('registration', 'apply'), ('symbol', 'apply'), ('factory', 'resume')]:
+            result = inputs.resolve(' sun-foundry ', '   ', '\t sun-foundry \n', profile, operation)
+            self.assertEqual(result['repository'], 'sunstriker2009/sun-foundry')
+            self.assertEqual(result['confirmation'], result['repository'])
+        result = inputs.resolve(inputs.OTHER, ' sun-example ', ' sun-example ', 'factory', 'create')
+        self.assertEqual(result['factory_target'], 'sun-example')
+        self.assertEqual(result['factory_confirmation'], 'sun-example')
+
+    def test_whitespace_only_confirmation_stays_empty_and_does_not_confirm_apply(self):
+        result = inputs.resolve('sun-foundry', '', ' \t\n ', 'alignment', 'plan')
+        self.assertEqual(result['confirmation'], '')
+        with self.assertRaises(ValueError):
+            inputs.resolve('sun-foundry', '', ' \t\n ', 'alignment', 'apply')
 
     def test_same_owner_full_inputs_remain_compatible(self):
         result = inputs.resolve('sunstriker2009/sun-foundry', '',
