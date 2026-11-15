@@ -1,0 +1,41 @@
+name: SUN Governance Fleet Audit
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sun-governance-fleet-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    if: ${{ github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' && github.actor == 'sunstriker2009' }}
+    runs-on: ubuntu-latest
+    environment: repository-administration
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build verifier
+        run: dotnet build src/Sun.RepoBootstrap/Sun.RepoBootstrap.csproj --configuration Release
+      - name: Audit explicit allowlist (read only)
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+        run: python3 scripts/audit-governance-fleet.py --workers 2
+      - name: Publish readable summary
+        if: ${{ always() }}
+        run: |
+          if [ -f artifacts/governance-fleet/summary.md ]; then
+            cat artifacts/governance-fleet/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: governance-fleet-report
+          path: artifacts/governance-fleet/
+          if-no-files-found: warn
+          retention-days: 7

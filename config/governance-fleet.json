@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "repositories": [
+    {"repository": "sunstriker2009/sun-foundry", "requiredChecks": ["build"]},
+    {"repository": "sunstriker2009/sun-strata", "requiredChecks": ["repository-validation", "conventional-title"]},
+    {"repository": "sunstriker2009/sun-ecosystem", "requiredChecks": null},
+    {"repository": "sunstriker2009/sun-oryva", "requiredChecks": ["backend", "frontend", "reservation"]},
+    {"repository": "sunstriker2009/sun-astelvo", "requiredChecks": ["repository-validation", "conventional-title"]}
+  ]
+}

@@ -26,6 +26,7 @@ Create consistent GitHub repositories, initialize required CI, enforce supported
 | **Verify** | Check live repository settings and fail closed where strict enforcement is unavailable. |
 | **Recover** | Resume interrupted provisioning without creating a duplicate repository. |
 | **Maintain** | Diagnose, plan, apply and verify governance on existing repositories. |
+| **Audit** | Report strict governance compliance and drift across an explicit repository allowlist without changing settings. |
 
 ## Get started
 
@@ -67,3 +68,7 @@ The internal project and namespaces currently retain `Sun.RepoBootstrap` for com
 FOUNDRY is the standardized repository provisioning tool for the [SUN product ecosystem](https://github.com/sunstriker2009/sun-ecosystem). The [STRATA by Sun](https://github.com/sunstriker2009/sun-strata) supplies the starting structure and CI workflows.
 
 **FOUNDRY v1.0** · *Build. Standardize. Launch.*
+
+## Milestones and fleet audit
+
+See the [FOUNDRY roadmap](docs/ROADMAP.md) for implemented milestones and outstanding validation gates. The next live validation is the [manual governance fleet audit](docs/GOVERNANCE-FLEET-AUDIT.md), using the existing `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`. It produces per-repository results and JSON evidence; it does not remediate findings or run on a schedule.
