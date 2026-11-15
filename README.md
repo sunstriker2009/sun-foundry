@@ -38,7 +38,7 @@ Create consistent GitHub repositories, initialize required CI, enforce supported
 
 For existing repositories, use **[Repository Maintenance](https://github.com/sunstriker2009/sun-foundry/actions/workflows/repository-factory-resume.yml)** with `diagnose`, `plan`, `apply` or `verify`.
 
-See [docs/WORKFLOWS.md](docs/WORKFLOWS.md) for operational details.
+See [docs/WORKFLOWS.md](docs/WORKFLOWS.md) for operational details and [repository selection](docs/WORKFLOW-INPUTS.md) for short-name dropdowns and confirmations.
 
 ## Shared asset preparation (v1)
 

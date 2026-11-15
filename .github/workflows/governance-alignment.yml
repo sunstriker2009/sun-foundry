@@ -3,14 +3,14 @@ on:
   workflow_dispatch:
     inputs:
       repository:
-        description: 'Explicit target repository'
-        type: choice
+        description: 'Repository (owner is implicit)'
         required: true
+        type: choice
         options:
-          - sunstriker2009/sun-foundry
-          - sunstriker2009/sun-strata
-          - sunstriker2009/sun-oryva
-          - sunstriker2009/sun-astelvo
+          - sun-foundry
+          - sun-strata
+          - sun-oryva
+          - sun-astelvo
       operation:
         description: 'Plan changes, apply a reviewed plan, or verify'
         type: choice
@@ -22,7 +22,7 @@ on:
         type: string
         required: false
       confirm_repository:
-        description: 'Apply only: repeat owner/name exactly'
+        description: 'Apply only: repeat short repository name'
         type: string
         required: false
 permissions:
@@ -39,6 +39,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Resolve repository selection
+        id: target
+        env:
+          SELECTION: ${{ inputs.repository }}
+          CONFIRM_SHORT: ${{ inputs.confirm_repository }}
+          OPERATION: ${{ inputs.operation }}
+        run: python3 scripts/resolve-workflow-repository.py --profile alignment
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -46,8 +53,8 @@ jobs:
         if: ${{ inputs.operation == 'apply' }}
         env:
           PLAN_RUN_ID: ${{ inputs.plan_run_id }}
-          TARGET: ${{ inputs.repository }}
-          CONFIRM: ${{ inputs.confirm_repository }}
+          TARGET: ${{ steps.target.outputs.repository }}
+          CONFIRM: ${{ steps.target.outputs.confirmation }}
         run: |
           python3 - <<'PY'
           import os
@@ -67,7 +74,7 @@ jobs:
       - name: Validate reviewed Plan result
         if: ${{ inputs.operation == 'apply' }}
         env:
-          TARGET: ${{ inputs.repository }}
+          TARGET: ${{ steps.target.outputs.repository }}
         run: |
           python3 - <<'PY'
           import json, os
@@ -79,9 +86,9 @@ jobs:
       - name: Plan, apply or verify selected ruleset
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
-          TARGET: ${{ inputs.repository }}
+          TARGET: ${{ steps.target.outputs.repository }}
           OPERATION: ${{ inputs.operation }}
-          CONFIRM: ${{ inputs.confirm_repository }}
+          CONFIRM: ${{ steps.target.outputs.confirmation }}
         run: |
           args=(--repository "$TARGET" --operation "$OPERATION")
           if [[ "$OPERATION" == apply ]]; then

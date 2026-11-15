@@ -5,7 +5,7 @@ Use two supported workflows:
 - **Repository Factory** (`.github/workflows/repository-factory-v1.yml`): create a repository or resume interrupted provisioning. Initializes a seed PR, waits for CI, applies and strictly verifies governance.
 - **Repository Maintenance** (`.github/workflows/repository-factory-resume.yml`): diagnose, plan, apply, or verify governance on an existing repository without creating or seeding it.
 
-Both require owner-initiated manual dispatch on `main` and the `repository-administration` environment credential. Exact repository confirmation remains required for mutations.
+Both require owner-initiated manual dispatch on `main` and the `repository-administration` environment credential. Choose a short repository name from the dropdown; the owner is implicit. Where required, confirmation repeats only the short name. See [repository input guide](WORKFLOW-INPUTS.md) for new or unlisted repositories.
 
 Retired workflows: original Repository Factory (create + plan only), standalone Seed CI, and legacy Provisioning. Git history retains their definitions if recovery is needed. The supported workflows above replace their functions.
 
@@ -58,7 +58,7 @@ See [fleet audit setup and result meanings](GOVERNANCE-FLEET-AUDIT.md) and [mile
 
 After strict governance Verify succeeds, Repository Factory proposes a **pending-only** registration PR in `sunstriker2009/sun-ecosystem`. This also runs on resume, allowing recovery if an earlier registration step failed. Registration does not assign SUN IDs, approve product identities, or auto-merge.
 
-For existing repositories, run [Register SUN Repository](https://github.com/sunstriker2009/sun-foundry/actions/workflows/register-sun-repository.yml) on `main` with the full `sunstriker2009/name` repository, matching confirmation, and `preview` (read-only) or `apply` (propose PR). The workflow uses the protected `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`, which must have repository read access and contents/PR write permissions on `sun-ecosystem`.
+For existing repositories, run [Register SUN Repository](https://github.com/sunstriker2009/sun-foundry/actions/workflows/register-sun-repository.yml) on `main` with a repository dropdown selection (or `other-repository` plus its short name), matching short-name confirmation, and `preview` (read-only) or `apply` (propose PR). The workflow uses the protected `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`, which must have repository read access and contents/PR write permissions on `sun-ecosystem`.
 
 The script refuses to overwrite an existing registration branch, rejects mismatched confirmations and duplicate catalog entries, and refuses to create a pending duplicate for a repository already assigned an approved ID. Resolve existing branches or reconcile approved identities manually. The resulting PR updates `registry/repositories.json` and the generated README gallery only; it requires review and CI before squash merge.
 
