@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'scripts/sync-approved-symbol.py'
+      - 'scripts/propose-symbol-approval.py'
+      - '.github/workflows/propose-symbol-approval.yml'
       - 'scripts/reconcile-approved-symbols.py'
       - '.github/workflows/reconcile-approved-symbols.yml'
       - '.github/workflows/sync-approved-sun-symbol.yml'
@@ -15,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Python syntax
-        run: python3 -m py_compile scripts/sync-approved-symbol.py scripts/reconcile-approved-symbols.py
+        run: python3 -m py_compile scripts/sync-approved-symbol.py scripts/reconcile-approved-symbols.py scripts/propose-symbol-approval.py
       - name: Validate safety invariants
         run: |
           python3 - <<'PY'
@@ -35,6 +37,13 @@ jobs:
           scheduled=Path('.github/workflows/reconcile-approved-symbols.yml').read_text()
           assert 'repository-symbol-sync' in scheduled
           assert 'SUN_SYMBOL_SYNC_TOKEN' in scheduled
+          proposal=Path('scripts/propose-symbol-approval.py').read_text()
+          approval_workflow=Path('.github/workflows/propose-symbol-approval.yml').read_text()
+          assert 'registry/symbol-approvals.json' in proposal
+          assert 'changed != ["registry/symbol-approvals.json"]' in proposal
+          assert '"--auto"' not in proposal
+          assert 'github.actor == ' in approval_workflow
+          assert 'repository-administration' in approval_workflow
           assert 'repository-administration' in workflow
           assert 'options: [preview, apply]' in workflow
           PY
