@@ -1,0 +1,38 @@
+name: Register SUN Repository
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Existing repository, e.g. sunstriker2009/sun-example'
+        required: true
+        type: string
+      confirm_repository:
+        description: 'Repeat repository exactly'
+        required: true
+        type: string
+      mode:
+        description: 'Preview (read only) or create pending registration PR'
+        required: true
+        type: choice
+        options: [preview, apply]
+        default: preview
+permissions:
+  contents: read
+concurrency:
+  group: sun-ecosystem-registration
+  cancel-in-progress: false
+jobs:
+  register:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: repository-administration
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate and propose registration
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          TARGET: ${{ inputs.repository }}
+          CONFIRM: ${{ inputs.confirm_repository }}
+          MODE: ${{ inputs.mode }}
+        run: bash scripts/register-ecosystem-repository.sh
