@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="branding/assets/readme-banner-v1.png" alt="FOUNDRY by Sun — modular F beneath SUN’s arc. Build. Standardize. Launch." width="100%" />
+<img src="branding/assets/readme-banner.png" alt="FOUNDRY by Sun — modular F beneath SUN’s arc. Build. Standardize. Launch." width="100%" />
 
 # FOUNDRY by Sun
 

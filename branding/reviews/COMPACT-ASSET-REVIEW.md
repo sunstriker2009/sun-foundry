@@ -2,7 +2,7 @@
 
 **Status:** Revision 2 for owner review — floating disconnected F arms and a thin glass-like SUN arc, based on the approved Foundry F second treatment.
 
-The production panoramic banner remains unchanged: [README banner](../assets/readme-banner-v1.png). These compact assets are designed to be legible in application headers, docs and icons, rather than reproduce the cinematic effects of the banner.
+The production panoramic banner remains unchanged: [README banner](../assets/readme-banner.png). These compact assets are designed to be legible in application headers, docs and icons, rather than reproduce the cinematic effects of the banner.
 
 ## Revision 2 design notes
 
