@@ -1,0 +1,28 @@
+name: Symbol sync validation
+on:
+  pull_request:
+    paths:
+      - 'scripts/sync-approved-symbol.py'
+      - '.github/workflows/sync-approved-sun-symbol.yml'
+      - '.github/workflows/symbol-sync-validation.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python syntax
+        run: python3 -m py_compile scripts/sync-approved-symbol.py
+      - name: Validate safety invariants
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          script=Path('scripts/sync-approved-symbol.py').read_text()
+          workflow=Path('.github/workflows/sync-approved-sun-symbol.yml').read_text()
+          for token in ('"preview"', '"apply"', 'args.confirm', 'meta.get("size", 0) > 2_000_000', 'sha256(data)', 'render-repository-gallery.py', 'Existing symbol-sync branch', 'classification"] == "pending"'):
+              assert token in script, token
+          assert 'github.actor == ' in workflow
+          assert 'repository-administration' in workflow
+          assert 'options: [preview, apply]' in workflow
+          PY

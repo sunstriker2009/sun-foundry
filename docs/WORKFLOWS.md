@@ -61,3 +61,11 @@ For existing repositories, run [Register SUN Repository](https://github.com/suns
 The script refuses to overwrite an existing registration branch, rejects mismatched confirmations and duplicate catalog entries, and refuses to create a pending duplicate for a repository already assigned an approved ID. Resolve existing branches or reconcile approved identities manually. The resulting PR updates `registry/repositories.json` and the generated README gallery only; it requires review and CI before squash merge.
 
 **Limits:** This milestone does not synchronize PNG icons, install branding hooks in member repositories, or auto-merge any PR. The factory registration step is deliberately after governance Verify: if it fails, the repository may already be successfully provisioned; rerun `resume` or use manual registration to recover.
+
+## Approved symbol synchronization (phase 3, manual gate)
+
+Run [Sync Approved SUN Symbol](https://github.com/sunstriker2009/sun-foundry/actions/workflows/sync-approved-sun-symbol.yml) on `main`. Supply a confirmed, already registered repository, repeat its full name, select an **owner-approved** PNG source path on its `main` branch, and start with `preview`. Use `apply` only after verifying the brand guide explicitly approves that symbol.
+
+The workflow fetches the source PNG, checks size/signature, computes SHA-256, and opens a SUN Ecosystem PR updating the copied PNG, `registry/repositories.json`, and the generated README gallery. It does not assign IDs, change product names, or auto-merge. It refuses existing sync branches and avoids no-op updates. Requires `SUN_REPO_ADMIN_TOKEN` read access to source and contents/PR write access to `sun-ecosystem`.
+
+**Current branding:** ASTELVO's `branding/assets/symbol-canonical-v1.png` is documented as approved. ORYVA's icon exports are documented as proposals, so do not sync them until separately approved. No automatic member-repository event hooks or restricted auto-merge are active yet; those require additional credential and trust-boundary design.
