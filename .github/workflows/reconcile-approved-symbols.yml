@@ -1,0 +1,22 @@
+name: Reconcile Approved SUN Symbols
+on:
+  schedule:
+    - cron: '17 8 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sun-ecosystem-symbol-sync
+  cancel-in-progress: false
+jobs:
+  reconcile:
+    if: ${{ github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: repository-administration
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconcile only governance-approved symbol hashes
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+        run: python3 scripts/reconcile-approved-symbols.py
