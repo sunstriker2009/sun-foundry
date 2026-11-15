@@ -46,18 +46,10 @@ fi
 git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" clone --quiet "https://github.com/$ECO.git" "$tmp/ecosystem"
 cd "$tmp/ecosystem"
 if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-  git fetch --quiet origin "$branch"
-  git checkout -q -B "$branch" "origin/$branch"
-else
-  git checkout -q -b "$branch"
+  echo "::error::Existing registration branch $branch; inspect its PR and resolve manually"
+  exit 1
 fi
-# Refuse to overwrite changed catalog state on an existing registration branch.
-python3 - "$TARGET" <<'PY'
-import json,sys
-c=json.load(open("registry/repositories.json"))
-if any(x["repository"]==sys.argv[1] for x in c["repositories"]):
-    raise SystemExit("Existing registration branch already contains target; inspect its PR")
-PY
+git checkout -q -b "$branch"
 cp "$tmp/next.json" registry/repositories.json
 python3 scripts/render-repository-gallery.py
 git add registry/repositories.json README.md
