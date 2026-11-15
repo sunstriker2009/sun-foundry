@@ -48,9 +48,11 @@ A temporary public repository, `sunstriker2009/sun-foundry-validation`, was crea
 
 **Validation boundaries:** This is evidence for the exercised public-repository path, not blanket certification of private-repository ruleset availability, all failure/retry boundaries, GitHub permissions, or future API behavior. Repeat controlled integration tests after material governance changes.
 
-## Next milestone — SUN governance fleet audit
+## SUN governance fleet audit
 
-Add a read-only, explicit-target governance audit for the SUN repository fleet. Start with a reviewed allowlist, bounded concurrency, per-repository results, and a machine-readable summary. Audit must never invoke Apply, create repositories, or change branch protection. Keep private-repository capability limits visible rather than treating missing enforcement as success. Prefer manual dispatch first; schedule only after the output and GitHub Actions cost are reviewed.
+The manual-only fleet audit is implemented for an explicit five-repository allowlist, with two concurrent strict verifier processes and a per-repository JSON report. It invokes only `verify`, never Apply or provisioning. Missing check policy, drift, private-plan limits and access errors cannot be reported as compliance.
+
+See [fleet audit setup and result meanings](GOVERNANCE-FLEET-AUDIT.md) and [milestone status](ROADMAP.md). The first live report remains pending until the read-only environment credential is configured and the merged workflow is dispatched. No audit schedule or remediation is enabled.
 
 ## SUN ecosystem registration (phase 2)
 

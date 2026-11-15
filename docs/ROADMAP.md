@@ -1,25 +1,12 @@
-# Roadmap
+# FOUNDRY milestones
 
-## Milestone 1 — Manual governance bootstrap (this PR)
-- [x] .NET 10 CLI supporting audit, plan, apply, verify
-- [x] Explicit target confirmation and fail-closed checks on apply
-- [x] Strict required CI ruleset and squash-only repository settings
-- [x] Manual GitHub Actions dispatch and build CI
-- [ ] Validate workflow against a disposable test repository
-- [ ] Configure protected apply environment and fine-grained token
+| Milestone | Status | Remaining gate |
+| --- | --- | --- |
+| Repository Factory v1 and maintenance | Implemented; controlled public-repository create/resume test completed | Broader interruption and private-plan boundaries remain documented. |
+| Shared raster asset preparation | Implemented; FOUNDRY pilot and regression checks present | Product adoption remains explicit. |
+| Ecosystem registration and gallery | Implemented | New product identities and IDs require review. |
+| Canonical symbol reconciliation | Implemented; daily schedule and manual dispatch | Monitor registry PRs and required checks. |
+| Governance fleet audit v1 | Implementation prepared | Merge, configure read-only audit credential and inspect first live report. |
+| Governance remediation planning | Next after first fleet report | Review drift, effective protections and per-repository profiles before any mutation. |
 
-## Milestone 2 — Compliance hardening
-- [ ] Detect effective/inherited branch rulesets and inspect full rule parameters
-- [ ] Detect and safely reconcile existing rulesets without weakening protection
-- [ ] Enforce CODEOWNERS and explicit review gates for sensitive paths
-- [ ] Conventional Commit PR-title validation and branch naming checks
-- [ ] Validate required CI names across pagination, GitHub Actions and external providers
-- [ ] Structured JSON reports, tests and exit-code conventions
-- [ ] Safely verify failed-CI blocking with test PR
-
-## Milestone 3 — Provisioning templates
-- [ ] Optional CI/PR templates for new repositories
-- [ ] Idempotent provisioning and drift detection across multiple repositories
-- [ ] Release policy and SemVer audit (no automatic publishing)
-
-**Policy:** [SUN Git Workflow & Merge Policy v1.0](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/GIT-WORKFLOW.md).
+Fleet audit scope and operator instructions: [Governance Fleet Audit](GOVERNANCE-FLEET-AUDIT.md). The first audit is manual-only; adding a schedule or automatic remediation is a separate decision.
