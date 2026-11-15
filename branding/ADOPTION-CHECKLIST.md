@@ -14,7 +14,7 @@ Use this checklist when migrating ASTELVO, ORYVA or any SUN product to the [SUN 
 - [ ] Keep the active panoramic image at `branding/assets/readme-banner.png` (retain versioned references under `refs/`).
 - [ ] Place transparent master at `branding/assets/symbol.png`.
 - [ ] Place reviewed optical-size vector master at `branding/assets/refs/symbol-small-master.svg`, if applicable.
-- [ ] Use `branding/assets/refs/icons/icon-{size}.png` for reviewed PNG sizes; do not assume all sizes are downscales.
+- [ ] Use `branding/assets/icons/icon-{size}.png` for reviewed PNG sizes; do not assume all sizes are downscales.
 - [ ] Keep approved `symbol-*.svg` and `lockup-*.svg` variants in `branding/assets/refs/`.
 - [ ] Remove product-name prefixes from generic asset filenames, updating all consumers in the same PR.
 

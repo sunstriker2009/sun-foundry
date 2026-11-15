@@ -6,7 +6,7 @@
 
 - `branding/archive/originals/readme-banner-v1.png`: exact archived owner-approved banner; do not replace.
 - `branding/assets/refs/symbol-canonical-v2.png`: owner-approved transparent canonical symbol.
-- `branding/assets/refs/icons/icon-{size}.png`: already approved production icons. Small 16–48 px icons are **optical adaptations**, not expected to match generic downscales.
+- `branding/assets/icons/icon-{size}.png`: already approved production icons. Small 16–48 px icons are **optical adaptations**, not expected to match generic downscales.
 
 ## How to run
 

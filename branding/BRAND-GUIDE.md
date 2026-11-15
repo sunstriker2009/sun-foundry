@@ -40,7 +40,7 @@ These are **working vector approximation values**, not sampled or formally appro
 | `branding/assets/symbol.png` | Stable registry source: byte-identical copy of the approved transparent canonical V2 F and SUN arc |
 | `branding/assets/refs/symbol-canonical-v2.png` | Retained versioned approved transparent canonical master |
 | `branding/assets/refs/symbol-small-master.svg` | Approved optical small-icon vector source |
-| `branding/assets/refs/icons/icon-{size}.png` | Approved V3 PNGs, sizes 16, 24, 32, 48, 64, 128, 256, 512 and 1024 |
+| `branding/assets/icons/icon-{size}.png` | Approved V3 PNGs, sizes 16, 24, 32, 48, 64, 128, 256, 512 and 1024 |
 | `branding/assets/refs/symbol-{dark,light,mono,small}.svg` | Purpose-built compact vector adaptations |
 | `branding/assets/refs/lockup-{dark,light,mono}.svg` | Full product lockup variants |
 
@@ -93,4 +93,4 @@ Merging this branding alignment PR approves the canonical source for FOUNDRY (SU
 
 ## Active asset layout
 
-Only `readme-banner.png` and `symbol.png` remain as active files directly under `branding/assets/`. Versioned masters, SVG variants and icon exports are retained unchanged under `branding/assets/refs/`. The repository README stays at the repository root and uses the stable banner path. Historical import/archive records describe prior layouts.
+Only `readme-banner.png` and `symbol.png` remain as active files directly under `branding/assets/`. Versioned masters and SVG variants are retained unchanged under `branding/assets/refs/`. Production icon exports remain in `branding/assets/icons/`. The repository README stays at the repository root and uses the stable banner path. Historical import/archive records describe prior layouts.
