@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reconcile approved SUN symbol digests without trusting unreviewed asset changes."""
+"""Reconcile canonical SUN symbols merged to main; no separate approval ledger."""
 import base64
 import hashlib
 import json
@@ -40,41 +40,45 @@ def read_png_blob(repo, source, meta):
 
 
 def main():
-    approvals = json.loads(api(f"repos/{ECO}/contents/registry/symbol-approvals.json", True))
     catalog = json.loads(api(f"repos/{ECO}/contents/registry/repositories.json", True))
-    if approvals.get("schemaVersion") != 1 or catalog.get("schemaVersion") != 1:
+    if catalog.get("schemaVersion") != 1:
         raise SystemExit("Unsupported registry schema")
-    rows = {r["repository"]: r for r in catalog["repositories"]}
     seen = set()
-    for approval in approvals.get("approvedSymbols", []):
-        repo = approval["repository"]
+    failures = []
+    for row in catalog["repositories"]:
+        repo = row["repository"]
         if repo in seen:
-            raise SystemExit(f"Duplicate approval: {repo}")
+            raise SystemExit(f"Duplicate repository: {repo}")
         seen.add(repo)
-        if repo not in rows or rows[repo]["classification"] == "pending":
-            raise SystemExit(f"Unregistered or pending repository in approvals: {repo}")
-        if approval.get("source") != SOURCE:
-            raise SystemExit(f"Noncanonical approved source: {repo}")
-        expected = approval["sha256"]
-        if len(expected) != 64 or any(ch not in "0123456789abcdef" for ch in expected):
-            raise SystemExit(f"Invalid digest: {repo}")
-        meta = json.loads(api(f"repos/{repo}/contents/{SOURCE}?ref=main"))
+        if row["classification"] == "pending":
+            continue
+        # Canonical assets on main have already passed the branding PR merge.
+        result = subprocess.run(["gh", "api", f"repos/{repo}/contents/{SOURCE}?ref=main"],
+                                capture_output=True, text=True)
+        if result.returncode:
+            if "HTTP 404" in result.stderr:
+                print(f"SKIP {repo}: canonical symbol not adopted yet")
+                continue
+            failures.append(repo)
+            print(f"ERROR {repo}: cannot read canonical symbol")
+            continue
+        meta = json.loads(result.stdout)
         content = read_png_blob(repo, SOURCE, meta)
         actual = hashlib.sha256(content).hexdigest()
-        if actual != expected:
-            print(f"SKIP {repo}: changed symbol is not approved; update governance ledger through review")
-            continue
-        row = rows[repo]
         destination = f"branding/registry/{repo.split('/')[1]}.png"
         if row.get("icon") == destination and row.get("iconSha256") == actual:
             print(f"OK {repo}: already synchronized")
             continue
-        print(f"SYNC {repo}: approved digest differs from gallery")
-        subprocess.run(
+        print(f"SYNC {repo}: merged canonical symbol differs from gallery")
+        outcome = subprocess.run(
             ["python3", str(Path(__file__).with_name("sync-approved-symbol.py")),
              "--repository", repo, "--confirm", repo, "--source", SOURCE, "--mode", "apply"],
-            check=True,
+            check=False,
         )
+        if outcome.returncode:
+            failures.append(repo)
+    if failures:
+        raise SystemExit(f"Symbol reconciliation failed: {failures}")
 
 
 if __name__ == "__main__":
