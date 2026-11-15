@@ -2,6 +2,9 @@ import importlib.util
 import os
 from pathlib import Path
 import tempfile
+import subprocess
+import sys
+import textwrap
 import unittest
 from unittest.mock import patch
 
@@ -78,6 +81,28 @@ class RepositoryInputTests(unittest.TestCase):
             self.assertIn('steps.target.outputs.', text, filename)
             self.assertIn("github.actor == 'sunstriker2009'", text, filename)
             self.assertIn('environment: repository-administration', text, filename)
+
+    def test_apply_plan_run_id_trims_edges_and_downloads_the_validated_value(self):
+        workflow = (inputs.ROOT / '.github/workflows/governance-alignment.yml').read_text()
+        section = workflow.split('- name: Validate Apply inputs', 1)[1]
+        code = textwrap.dedent(section.split("python3 - <<'PY'\n", 1)[1].split('\n          PY', 1)[0])
+        self.assertIn('run-id: ${{ steps.apply_inputs.outputs.plan_run_id }}', workflow)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'outputs'
+            env = dict(os.environ, GITHUB_OUTPUT=str(output), TARGET='sunstriker2009/sun-foundry',
+                       CONFIRM='sunstriker2009/sun-foundry')
+            for value in ('43751547708', '    43751547708  ', '\t43751547708\n'):
+                output.write_text('')
+                result = subprocess.run([sys.executable, '-c', code], env=dict(env, PLAN_RUN_ID=value),
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(output.read_text(), 'plan_run_id=43751547708\n')
+            for value in ('', '  ', '0', '-1', '437 51547708', 'not-a-run', '１２３'):
+                output.write_text('')
+                result = subprocess.run([sys.executable, '-c', code], env=dict(env, PLAN_RUN_ID=value),
+                                        capture_output=True, text=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(output.read_text(), '')
 
     def test_cli_outputs_do_not_implicitly_confirm_an_empty_confirmation(self):
         with tempfile.TemporaryDirectory() as directory:
