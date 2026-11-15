@@ -1,0 +1,106 @@
+name: SUN Governance Alignment
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Explicit target repository'
+        type: choice
+        required: true
+        options:
+          - sunstriker2009/sun-foundry
+          - sunstriker2009/sun-strata
+          - sunstriker2009/sun-oryva
+          - sunstriker2009/sun-astelvo
+      operation:
+        description: 'Plan changes, apply a reviewed plan, or verify'
+        type: choice
+        required: true
+        default: plan
+        options: [plan, apply, verify]
+      plan_run_id:
+        description: 'Apply only: successful Plan workflow run ID whose artifact you reviewed'
+        type: string
+        required: false
+      confirm_repository:
+        description: 'Apply only: repeat owner/name exactly'
+        type: string
+        required: false
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: sun-governance-alignment
+  cancel-in-progress: false
+jobs:
+  align:
+    if: ${{ github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' && github.actor == 'sunstriker2009' }}
+    runs-on: ubuntu-latest
+    environment: repository-administration
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate Apply inputs
+        if: ${{ inputs.operation == 'apply' }}
+        env:
+          PLAN_RUN_ID: ${{ inputs.plan_run_id }}
+          TARGET: ${{ inputs.repository }}
+          CONFIRM: ${{ inputs.confirm_repository }}
+        run: |
+          python3 - <<'PY'
+          import os
+          value = os.environ['PLAN_RUN_ID']
+          if not value.isascii() or not value.isdigit() or int(value) <= 0:
+              raise SystemExit('Apply requires a positive Plan run ID')
+          if os.environ['TARGET'] != os.environ['CONFIRM']:
+              raise SystemExit('Apply requires exact repository confirmation')
+          PY
+      - uses: actions/download-artifact@v4
+        if: ${{ inputs.operation == 'apply' }}
+        with:
+          name: governance-alignment-plan
+          path: reviewed-plan
+          run-id: ${{ inputs.plan_run_id }}
+          github-token: ${{ github.token }}
+      - name: Validate reviewed Plan result
+        if: ${{ inputs.operation == 'apply' }}
+        env:
+          TARGET: ${{ inputs.repository }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          result = json.loads(Path('reviewed-plan/result.json').read_text())
+          if result.get('operation') != 'plan' or result.get('status') != 'planned' or result.get('repository') != os.environ['TARGET']:
+              raise SystemExit('Artifact must be a successful Plan for this target')
+          PY
+      - name: Plan, apply or verify selected ruleset
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          TARGET: ${{ inputs.repository }}
+          OPERATION: ${{ inputs.operation }}
+          CONFIRM: ${{ inputs.confirm_repository }}
+        run: |
+          args=(--repository "$TARGET" --operation "$OPERATION")
+          if [[ "$OPERATION" == apply ]]; then
+            args+=(--reviewed-plan reviewed-plan/plan.json --confirm "$CONFIRM")
+          fi
+          python3 scripts/align-governance.py "${args[@]}"
+      - name: Publish plan and outcome
+        if: ${{ always() }}
+        run: |
+          if [ -f artifacts/governance-alignment/summary.md ]; then
+            cat artifacts/governance-alignment/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f artifacts/governance-alignment/result.json ]; then
+            cat artifacts/governance-alignment/result.json >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: governance-alignment-plan
+          path: artifacts/governance-alignment/
+          retention-days: 7
+          if-no-files-found: warn

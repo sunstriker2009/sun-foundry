@@ -79,3 +79,7 @@ Use **Reconcile Approved SUN Symbols** with manual dispatch to scan immediately,
 The unattended workflow uses the `repository-symbol-sync` environment on `main` with secret `SUN_SYMBOL_SYNC_TOKEN`, requiring member-repository read and ecosystem contents/PR write access. Configure it without a reviewer gate for unattended execution. Owner-dispatched single-target workflows retain `repository-administration` and `SUN_REPO_ADMIN_TOKEN`.
 
 Repositories must adopt the canonical path through their normal branding PR process. Product identity registration and governance controls are unchanged. Existing sync branches are preserved for inspection rather than overwritten; resolve a stale branch before retrying that repository. An error for one repository does not prevent subsequent sync attempts.
+
+## Controlled governance alignment
+
+Use [SUN Governance Alignment](GOVERNANCE-ALIGNMENT.md) for reviewed in-place changes to the explicitly mapped existing ruleset IDs. Run Plan, review the artifact, then Apply using its run ID and exact repository confirmation. Apply rechecks state and policy, strengthens the selected ruleset, updates merge settings and verifies the readback. This is separate from Factory Apply, which still refuses to overwrite an existing ruleset. The workflow uses `repository-administration` and `SUN_REPO_ADMIN_TOKEN`; no schedule or automatic fleet-wide Apply is enabled.
