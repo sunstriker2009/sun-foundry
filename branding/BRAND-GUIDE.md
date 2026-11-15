@@ -37,7 +37,8 @@ These are **working vector approximation values**, not sampled or formally appro
 | Asset | Purpose |
 | --- | --- |
 | `branding/assets/readme-banner-v1.png` | Approved panoramic README banner, unchanged |
-| `branding/assets/symbol-canonical-v2.png` | Approved transparent canonical F and SUN arc |
+| `branding/assets/symbol.png` | Stable registry source: byte-identical copy of the approved transparent canonical V2 F and SUN arc |
+| `branding/assets/symbol-canonical-v2.png` | Retained versioned approved transparent canonical master |
 | `branding/assets/symbol-small-master.svg` | Approved optical small-icon vector source |
 | `branding/assets/icons/icon-{size}.png` | Approved V3 PNGs, sizes 16, 24, 32, 48, 64, 128, 256, 512 and 1024 |
 | `branding/assets/symbol-{dark,light,mono,small}.svg` | Purpose-built compact vector adaptations |
@@ -83,3 +84,9 @@ The canonical transparent symbol remains version 2. V3 small PNG icons (16–48 
 The approved SUN standard uses generic filenames within product repositories, without redundant product prefixes. This migration reuses original Git blob hashes to rename the canonical symbol and all nine icons, moves the review comparison to `archive/intermediate/`, and archives an exact copy of the original banner. All live README references remain unchanged.
 
 See [migration notes](archive/MIGRATION-NOTES.md) for old-to-new paths and verification.
+
+## Ecosystem registry synchronization
+
+The stable canonical path is `branding/assets/symbol.png`. It reuses the exact Git blob `06ad4f6a79eef95ae04ae439c9ff44ba088eccba` from the approved `symbol-canonical-v2.png`; no artwork is regenerated or transformed. The 172,581-byte PNG is within the registry's 2,000,000-byte limit.
+
+Merging this branding alignment PR approves the canonical source for FOUNDRY (SUN-G003) registry synchronization. FOUNDRY's daily reconciliation or manual **Reconcile Approved SUN Symbols** run copies it into SUN Ecosystem's gallery through a protected squash-auto-merge PR. No separate digest-approval PR is required. Future canonical updates must follow the normal branding PR process.
