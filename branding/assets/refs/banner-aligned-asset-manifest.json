@@ -1,0 +1,89 @@
+{
+  "generator": "sun-foundry/scripts/prepare-assets.py",
+  "iconOverrides": {},
+  "outputs": {
+    "favicon.ico": {
+      "bytes": 6460,
+      "height": 48,
+      "sha256": "604edd6c18aa542ea3c6e1909a84721ad2053747cbebbab31d85f8333358c0b5",
+      "width": 48
+    },
+    "icons/icon-1024.png": {
+      "bytes": 390853,
+      "height": 1024,
+      "sha256": "d54b3f0437c1056a686bd80fdff53ec4dab67e4ff442a43adb2c4a78b6d94e2b",
+      "width": 1024
+    },
+    "icons/icon-128.png": {
+      "bytes": 12308,
+      "height": 128,
+      "sha256": "5b28f9ed94f628f47ee42fb3dcda6104cde6f83907b7de67bbac2bc9ef39e179",
+      "width": 128
+    },
+    "icons/icon-16.png": {
+      "bytes": 613,
+      "height": 16,
+      "sha256": "6fb14741b681f017fc5d65242324d20740218a98f97964dc4637d75e3362887f",
+      "width": 16
+    },
+    "icons/icon-24.png": {
+      "bytes": 1095,
+      "height": 24,
+      "sha256": "17ca29bb2582ee5fd8d5d094c6a3410024d38a8215f99579c0816c1c1e7e6614",
+      "width": 24
+    },
+    "icons/icon-256.png": {
+      "bytes": 35742,
+      "height": 256,
+      "sha256": "5ba0e18eccfa3ca7786993d185d6ded2057099cc5d62226d3b74a136d2f8121b",
+      "width": 256
+    },
+    "icons/icon-32.png": {
+      "bytes": 1650,
+      "height": 32,
+      "sha256": "9bde787b2c785ffad3b9ad81918f478db6ec77247c347ed11c10fd2bf72d3417",
+      "width": 32
+    },
+    "icons/icon-48.png": {
+      "bytes": 2920,
+      "height": 48,
+      "sha256": "ba64f106d1c2b965953577575494f2e771a15b93d4ab864c6e4e808b17f6c88c",
+      "width": 48
+    },
+    "icons/icon-512.png": {
+      "bytes": 113012,
+      "height": 512,
+      "sha256": "e5c11f35e664a08fe9c6fcda875a4b588b9caacc8e75fb16987eaf0acb13344b",
+      "width": 512
+    },
+    "icons/icon-64.png": {
+      "bytes": 4437,
+      "height": 64,
+      "sha256": "fd4d84e051a93e758d479920a9d2708ee550a9d1df60bcb1c834ca266fa0daf5",
+      "width": 64
+    },
+    "readme-banner.png": {
+      "bytes": 1344037,
+      "height": 900,
+      "sha256": "d4801d1caffd7e68f70e33fb1fd33654863b57edf3befaf6b21443134022e7b4",
+      "width": 1600
+    },
+    "symbol-transparent.png": {
+      "bytes": 530890,
+      "height": 1254,
+      "sha256": "17b6da5bf669e0a5ecc466a26c81c477c3981b2bed7e5d06be4d37ac32720938",
+      "width": 1254
+    }
+  },
+  "schemaVersion": 1,
+  "sources": {
+    "banner": {
+      "path": "branding/archive/originals/readme-banner-v1.png",
+      "sha256": "e3135efca4295d8ec06babc06748951f4b50dfb21521d80158a3b831e7858691"
+    },
+    "symbol": {
+      "path": "branding/assets/symbol.png",
+      "sha256": "af689d697e7cb0dca847006ba520e53bed3e546285182bfd9273eb5c528adbe3"
+    }
+  }
+}
