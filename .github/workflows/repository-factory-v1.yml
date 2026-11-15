@@ -145,6 +145,13 @@ jobs:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           REPO: ${{ steps.prepare.outputs.repository }}
         run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode verify --checks repository-validation,conventional-title
+      - name: Propose SUN ecosystem registration
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          TARGET: ${{ steps.prepare.outputs.repository }}
+          CONFIRM: ${{ steps.prepare.outputs.repository }}
+          MODE: apply
+        run: bash scripts/register-ecosystem-repository.sh
       - name: Completion summary
         env:
           REPO: ${{ steps.prepare.outputs.repository }}
