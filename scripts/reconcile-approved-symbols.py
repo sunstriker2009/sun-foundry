@@ -18,6 +18,27 @@ def api(path, raw=False):
     return subprocess.check_output(args, text=True)
 
 
+def read_png_blob(repo, source, meta):
+    """Read PNG bytes through Git blobs when Contents API omits >1 MB payloads."""
+    if meta.get("type") != "file" or not 0 < meta.get("size", 0) <= 2_000_000:
+        raise SystemExit(f"Canonical PNG missing or exceeds 2,000,000 bytes: {repo}/{source}")
+    if meta.get("encoding") == "base64" and meta.get("content"):
+        encoded = meta["content"]
+    else:
+        sha = meta.get("sha")
+        if not sha:
+            raise SystemExit("Canonical PNG response lacks blob SHA")
+        blob = json.loads(subprocess.check_output(
+            ["gh", "api", f"repos/{repo}/git/blobs/{sha}"], text=True))
+        if blob.get("encoding") != "base64" or not blob.get("content"):
+            raise SystemExit("Git blob API did not return base64 PNG content")
+        encoded = blob["content"]
+    data = base64.b64decode("".join(encoded.splitlines()), validate=True)
+    if len(data) != meta["size"] or not data.startswith(bytes.fromhex("89504e470d0a1a0a")):
+        raise SystemExit("Canonical PNG size or signature mismatch")
+    return data
+
+
 def main():
     approvals = json.loads(api(f"repos/{ECO}/contents/registry/symbol-approvals.json", True))
     catalog = json.loads(api(f"repos/{ECO}/contents/registry/repositories.json", True))
@@ -38,9 +59,7 @@ def main():
         if len(expected) != 64 or any(ch not in "0123456789abcdef" for ch in expected):
             raise SystemExit(f"Invalid digest: {repo}")
         meta = json.loads(api(f"repos/{repo}/contents/{SOURCE}?ref=main"))
-        if meta.get("type") != "file" or meta.get("size", 0) > 2_000_000:
-            raise SystemExit(f"Invalid symbol: {repo}")
-        content = base64.b64decode(meta["content"].replace("\n", ""), validate=True)
+        content = read_png_blob(repo, SOURCE, meta)
         actual = hashlib.sha256(content).hexdigest()
         if actual != expected:
             print(f"SKIP {repo}: changed symbol is not approved; update governance ledger through review")

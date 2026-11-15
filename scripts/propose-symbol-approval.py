@@ -18,6 +18,27 @@ def gh(*args):
     return subprocess.check_output(["gh", "api", *args], text=True).strip()
 
 
+def read_png_blob(repo, source, meta):
+    """Read PNG bytes through Git blobs when Contents API omits >1 MB payloads."""
+    if meta.get("type") != "file" or not 0 < meta.get("size", 0) <= 2_000_000:
+        raise SystemExit(f"Canonical PNG missing or exceeds 2,000,000 bytes: {repo}/{source}")
+    if meta.get("encoding") == "base64" and meta.get("content"):
+        encoded = meta["content"]
+    else:
+        sha = meta.get("sha")
+        if not sha:
+            raise SystemExit("Canonical PNG response lacks blob SHA")
+        blob = json.loads(subprocess.check_output(
+            ["gh", "api", f"repos/{repo}/git/blobs/{sha}"], text=True))
+        if blob.get("encoding") != "base64" or not blob.get("content"):
+            raise SystemExit("Git blob API did not return base64 PNG content")
+        encoded = blob["content"]
+    data = base64.b64decode("".join(encoded.splitlines()), validate=True)
+    if len(data) != meta["size"] or not data.startswith(bytes.fromhex("89504e470d0a1a0a")):
+        raise SystemExit("Canonical PNG size or signature mismatch")
+    return data
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--repository", required=True)
@@ -34,11 +55,7 @@ def main():
     if len(rows) != 1:
         raise SystemExit("Repository must have one confirmed SUN registry identity")
     meta = json.loads(gh(f"repos/{repo}/contents/{SOURCE}?ref=main"))
-    if meta.get("type") != "file" or not 0 < meta.get("size", 0) <= 2_000_000 or meta.get("encoding") != "base64":
-        raise SystemExit("Canonical PNG missing or exceeds 2 MB")
-    data = base64.b64decode(meta["content"].replace("\n", ""), validate=True)
-    if not data.startswith(b"\x89PNG\r\n\x1a\n"):
-        raise SystemExit("Invalid PNG signature")
+    data = read_png_blob(repo, SOURCE, meta)
     digest = hashlib.sha256(data).hexdigest()
     ledger = json.loads(gh(f"repos/{ECO}/contents/registry/symbol-approvals.json", "-H", "Accept: application/vnd.github.raw+json"))
     if ledger.get("schemaVersion") != 1:
