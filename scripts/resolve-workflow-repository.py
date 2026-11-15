@@ -46,6 +46,8 @@ def short_name(value):
 
 
 def resolve(selection, other, confirmation, profile, operation):
+    # Copy/pasted form values may carry surrounding spaces or line breaks.
+    selection, other, confirmation = (value.strip() for value in (selection, other, confirmation))
     if profile not in WORKFLOWS.values():
         raise ValueError("Unknown workflow profile")
     if operation not in OPERATIONS[profile]:
