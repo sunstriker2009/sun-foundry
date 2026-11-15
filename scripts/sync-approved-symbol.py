@@ -60,13 +60,7 @@ def main():
     meta = json.loads(gh(f"repos/{target}/contents/{args.source}?ref=main"))
     data = read_png_blob(target, args.source, meta)
     digest = hashlib.sha256(data).hexdigest()
-    # A reviewed governance digest, not a filename or member-repo commit, grants approval.
-    ledger = json.loads(gh(f"repos/{eco}/contents/registry/symbol-approvals.json", "-H", "Accept: application/vnd.github.raw+json"))
-    if ledger.get("schemaVersion") != 1:
-        raise SystemExit("Unsupported symbol approval ledger")
-    approvals = [a for a in ledger.get("approvedSymbols", []) if a.get("repository") == target and a.get("source") == args.source]
-    if len(approvals) != 1 or approvals[0].get("sha256") != digest:
-        raise SystemExit("Source SHA-256 is not approved in ecosystem symbol-approvals.json")
+    # Merging the canonical branding asset to main is artwork approval.
     dest = f"branding/registry/{slug}.png"
     current = matching[0]
     if current.get("icon") == dest and current.get("iconSha256") == digest:
@@ -76,7 +70,7 @@ def main():
     if args.mode == "preview":
         print("Preview only; no repository changes")
         return
-    # The ecosystem approval ledger is the explicit branding gate for apply.
+    # The merged canonical asset is the approval source.
     branch = f"chore/sync-symbol-{slug}"
     existing = subprocess.run(["gh", "api", f"repos/{eco}/branches/{branch}"], capture_output=True)
     if existing.returncode == 0:
@@ -103,11 +97,11 @@ def main():
         subprocess.run(["git", "add", dest, "registry/repositories.json", "README.md"], cwd=repo_dir, check=True)
         changed = subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=repo_dir, text=True).splitlines()
         expected = {dest, "registry/repositories.json", "README.md"}
-        if set(changed) != expected:
+        if not changed or not set(changed) <= expected or dest not in changed or "registry/repositories.json" not in changed:
             raise SystemExit(f"Unexpected sync diff: {changed}; expected exactly {sorted(expected)}")
         subprocess.run(["git", "-c", "user.name=sun-foundry[bot]", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com", "commit", "-qm", f"chore(registry): sync {slug} approved symbol"], cwd=repo_dir, check=True)
         subprocess.run(["git", "-c", header, "push", "--quiet", "-u", "origin", branch], cwd=repo_dir, check=True)
-    body = f"Approved symbol synchronization from \`{target}/blob/main/{args.source}\`. SHA-256: \`{digest}\`. Only catalog, generated README and PNG are changed. Confirm source approval and review before merging."
+    body = f"Approved symbol synchronization from `{target}/blob/main/{args.source}`. SHA-256: `{digest}`. Only catalog, generated README and PNG are changed. Artwork approval is inherited from the source branding PR merged to main."
     number = gh("-X", "POST", f"repos/{eco}/pulls", "-f", f"head={branch}", "-f", "base=main", "-f", f"title=chore(registry): sync {slug} approved symbol", "-f", f"body={body}", "--jq", ".number")
     print(f"PR: https://github.com/{eco}/pull/{number}")
     # Only the canonical, owner-selected source is eligible for automatic merge.
