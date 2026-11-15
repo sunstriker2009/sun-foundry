@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'scripts/sync-approved-symbol.py'
+      - 'scripts/reconcile-approved-symbols.py'
+      - '.github/workflows/reconcile-approved-symbols.yml'
       - '.github/workflows/sync-approved-sun-symbol.yml'
       - '.github/workflows/symbol-sync-validation.yml'
 permissions:
@@ -13,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Python syntax
-        run: python3 -m py_compile scripts/sync-approved-symbol.py
+        run: python3 -m py_compile scripts/sync-approved-symbol.py scripts/reconcile-approved-symbols.py
       - name: Validate safety invariants
         run: |
           python3 - <<'PY'
@@ -25,7 +27,14 @@ jobs:
           assert '"--auto", "--squash"' in script
           assert 'set(changed) != expected' in script
           assert 'args.source == "branding/assets/symbol.png"' in script
+          assert 'symbol-approvals.json' in script
           assert 'github.actor == ' in workflow
+          reconcile=Path('scripts/reconcile-approved-symbols.py').read_text()
+          assert 'actual != expected' in reconcile
+          assert 'symbol-approvals.json' in reconcile
+          scheduled=Path('.github/workflows/reconcile-approved-symbols.yml').read_text()
+          assert 'repository-symbol-sync' in scheduled
+          assert 'SUN_SYMBOL_SYNC_TOKEN' in scheduled
           assert 'repository-administration' in workflow
           assert 'options: [preview, apply]' in workflow
           PY
