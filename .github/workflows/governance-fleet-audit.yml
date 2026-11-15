@@ -10,7 +10,7 @@ jobs:
   audit:
     if: ${{ github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' && github.actor == 'sunstriker2009' }}
     runs-on: ubuntu-latest
-    environment: repository-audit
+    environment: repository-administration
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
         run: dotnet build src/Sun.RepoBootstrap/Sun.RepoBootstrap.csproj --configuration Release
       - name: Audit explicit allowlist (read only)
         env:
-          GH_TOKEN: ${{ secrets.SUN_REPO_AUDIT_TOKEN }}
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
         run: python3 scripts/audit-governance-fleet.py --workers 2
       - name: Publish readable summary
         if: ${{ always() }}

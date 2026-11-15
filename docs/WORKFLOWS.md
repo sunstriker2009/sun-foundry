@@ -52,7 +52,7 @@ A temporary public repository, `sunstriker2009/sun-foundry-validation`, was crea
 
 The manual-only fleet audit is implemented for an explicit five-repository allowlist, with two concurrent strict verifier processes and a per-repository JSON report. It invokes only `verify`, never Apply or provisioning. Missing check policy, drift, private-plan limits and access errors cannot be reported as compliance.
 
-See [fleet audit setup and result meanings](GOVERNANCE-FLEET-AUDIT.md) and [milestone status](ROADMAP.md). The first live report remains pending until the read-only environment credential is configured and the merged workflow is dispatched. No audit schedule or remediation is enabled.
+See [fleet audit setup and result meanings](GOVERNANCE-FLEET-AUDIT.md) and [milestone status](ROADMAP.md). The first live report remains pending until the merged workflow is dispatched through the existing administration environment. No audit schedule or remediation is enabled.
 
 ## SUN ecosystem registration (phase 2)
 
