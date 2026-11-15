@@ -43,6 +43,13 @@ def main():
     if not data.startswith(b"\x89PNG\r\n\x1a\n"):
         raise SystemExit("Invalid PNG signature")
     digest = hashlib.sha256(data).hexdigest()
+    # A reviewed governance digest, not a filename or member-repo commit, grants approval.
+    ledger = json.loads(gh(f"repos/{eco}/contents/registry/symbol-approvals.json", "-H", "Accept: application/vnd.github.raw+json"))
+    if ledger.get("schemaVersion") != 1:
+        raise SystemExit("Unsupported symbol approval ledger")
+    approvals = [a for a in ledger.get("approvedSymbols", []) if a.get("repository") == target and a.get("source") == args.source]
+    if len(approvals) != 1 or approvals[0].get("sha256") != digest:
+        raise SystemExit("Source SHA-256 is not approved in ecosystem symbol-approvals.json")
     dest = f"branding/registry/{slug}.png"
     current = matching[0]
     if current.get("icon") == dest and current.get("iconSha256") == digest:
@@ -52,7 +59,7 @@ def main():
     if args.mode == "preview":
         print("Preview only; no repository changes")
         return
-    # A human must explicitly approve source branding before running apply.
+    # The ecosystem approval ledger is the explicit branding gate for apply.
     branch = f"chore/sync-symbol-{slug}"
     existing = subprocess.run(["gh", "api", f"repos/{eco}/branches/{branch}"], capture_output=True)
     if existing.returncode == 0:
