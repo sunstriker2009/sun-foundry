@@ -16,11 +16,12 @@ WORKFLOWS = {
     "sync-approved-sun-symbol.yml": "symbol",
     "propose-symbol-approval.yml": "symbol",
     "governance-alignment.yml": "alignment",
+    "branding-zip-install.yml": "branding",
 }
 OPERATIONS = {
     "factory": ("create", "resume"), "maintenance": ("diagnose", "plan", "apply", "verify"),
     "registration": ("preview", "apply"), "symbol": ("preview", "apply"),
-    "alignment": ("plan", "apply", "verify"),
+    "alignment": ("plan", "apply", "verify"), "branding": ("preview", "apply"),
 }
 
 
@@ -34,7 +35,7 @@ def choices(profile):
     names = config["symbolRepositories" if profile == "symbol" else "repositories"]
     if len(set(names)) != len(names):
         raise ValueError("Duplicate repository choices")
-    return [*names, OTHER]
+    return names if profile == "branding" else [*names, OTHER]
 
 
 def short_name(value):
@@ -53,7 +54,7 @@ def resolve(selection, other, confirmation, profile, operation):
     if operation not in OPERATIONS[profile]:
         raise ValueError("Unknown workflow operation")
     if selection == OTHER:
-        if profile == "alignment" or not other:
+        if profile in ("alignment", "branding") or not other:
             raise ValueError("Select an allowed repository or supply its short name")
         name = short_name(other)
     else:

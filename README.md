@@ -27,6 +27,7 @@ Create consistent GitHub repositories, initialize required CI, enforce supported
 | **Recover** | Resume interrupted provisioning without creating a duplicate repository. |
 | **Maintain** | Diagnose, plan, apply and verify governance on existing repositories. |
 | **Audit** | Report strict governance compliance and drift across an explicit repository allowlist without changing settings. |
+| **Install branding** | Validate an uploaded branding ZIP, create numbered asset revisions and propose installation or rollback through a PR. |
 | **Align** | Plan and apply reviewed changes to an explicitly identified existing ruleset, then verify the result. |
 
 ## Get started
@@ -39,6 +40,10 @@ Create consistent GitHub repositories, initialize required CI, enforce supported
 For existing repositories, use **[Repository Maintenance](https://github.com/sunstriker2009/sun-foundry/actions/workflows/repository-factory-resume.yml)** with `diagnose`, `plan`, `apply` or `verify`.
 
 See [docs/WORKFLOWS.md](docs/WORKFLOWS.md) for operational details and [repository selection](docs/WORKFLOW-INPUTS.md) for short-name dropdowns and confirmations.
+
+## Branding ZIP installer
+
+Upload a package to the target repository’s `branding/inbox/`, then run the manual [Branding ZIP Installer](https://github.com/sunstriker2009/sun-foundry/actions/workflows/branding-zip-install.yml). Preview validates without writing; Apply proposes a reviewed PR with `branding/revisions/v1.zip` as the initial backup and `v2.zip` onward as complete asset snapshots. See the [installation and rollback guide](docs/BRANDING-ZIP-INSTALLER.md).
 
 ## Shared asset preparation (v1)
 

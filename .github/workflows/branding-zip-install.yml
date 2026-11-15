@@ -1,0 +1,72 @@
+name: SUN Branding ZIP Installer
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Target repository (owner is implicit)'
+        type: choice
+        required: true
+        default: sun-foundry
+        options:
+          - sun-foundry
+          - sun-strata
+          - sun-ecosystem
+          - sun-oryva
+          - sun-astelvo
+      operation:
+        description: 'Preview or open an installation/rollback PR'
+        type: choice
+        required: true
+        default: preview
+        options: [preview, apply]
+      filename:
+        description: 'ZIP basename already uploaded to target branding/inbox/'
+        type: string
+        required: false
+        default: branding.zip
+      rollback_revision:
+        description: 'Optional: restore an existing revision, e.g. v1.zip; ignores filename'
+        type: string
+        required: false
+        default: ''
+      confirm_repository:
+        description: 'Leave empty for Preview; Apply needs the short target name'
+        type: string
+        required: false
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: sun-branding-zip
+  cancel-in-progress: false
+jobs:
+  branding:
+    if: ${{ github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' && github.actor == 'sunstriker2009' }}
+    runs-on: ubuntu-latest
+    environment: repository-administration
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve repository selection
+        id: target
+        env:
+          SELECTION: ${{ inputs.repository }}
+          CONFIRM_SHORT: ${{ inputs.confirm_repository }}
+          OPERATION: ${{ inputs.operation }}
+        run: python3 scripts/resolve-workflow-repository.py --profile branding
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -r assets/requirements.txt
+      - name: Preview or propose branding installation
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          TARGET: ${{ steps.target.outputs.repository }}
+          CONFIRM: ${{ steps.target.outputs.confirmation }}
+          OPERATION: ${{ inputs.operation }}
+          ZIP_FILENAME: ${{ inputs.filename }}
+          ROLLBACK_REVISION: ${{ inputs.rollback_revision }}
+        run: >-
+          python3 scripts/propose-branding-install.py
+          --repository "$TARGET" --confirm "$CONFIRM" --operation "$OPERATION"
+          --filename "$ZIP_FILENAME" --rollback-revision "$ROLLBACK_REVISION"
