@@ -1,0 +1,38 @@
+name: Propose SUN Symbol Approval
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Confirmed SUN repository (owner/name)'
+        required: true
+        type: string
+      confirm_repository:
+        description: 'Repeat repository exactly'
+        required: true
+        type: string
+      mode:
+        description: 'Preview fingerprint or open manual-approval PR'
+        required: true
+        type: choice
+        options: [preview, apply]
+        default: preview
+permissions:
+  contents: read
+concurrency:
+  group: sun-symbol-approval-proposals
+  cancel-in-progress: false
+jobs:
+  propose:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: repository-administration
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preview or propose symbol approval
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REPOSITORY: ${{ inputs.repository }}
+          CONFIRM: ${{ inputs.confirm_repository }}
+          MODE: ${{ inputs.mode }}
+        run: python3 scripts/propose-symbol-approval.py --repository "$REPOSITORY" --confirm "$CONFIRM" --mode "$MODE"
