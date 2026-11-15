@@ -33,8 +33,8 @@ def read_png_blob(repo, source, meta):
         if blob.get("encoding") != "base64" or not blob.get("content"):
             raise SystemExit("Git blob API did not return base64 PNG content")
         encoded = blob["content"]
-    data = base64.b64decode(encoded.replace("\\n", ""), validate=True)
-    if len(data) != meta["size"] or not data.startswith(b"\\x89PNG\\r\\n\\x1a\\n"):
+    data = base64.b64decode("".join(encoded.splitlines()), validate=True)
+    if len(data) != meta["size"] or not data.startswith(bytes.fromhex("89504e470d0a1a0a")):
         raise SystemExit("Canonical PNG size or signature mismatch")
     return data
 
