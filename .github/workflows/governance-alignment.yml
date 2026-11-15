@@ -6,6 +6,7 @@ on:
         description: 'Repository (owner is implicit)'
         required: true
         type: choice
+        default: sun-foundry
         options:
           - sun-foundry
           - sun-strata
@@ -18,13 +19,15 @@ on:
         default: plan
         options: [plan, apply, verify]
       plan_run_id:
-        description: 'Apply only: successful Plan workflow run ID whose artifact you reviewed'
+        description: 'Leave empty for Plan/Verify; Apply needs the reviewed Plan run ID'
         type: string
         required: false
+        default: ''
       confirm_repository:
-        description: 'Apply only: repeat short repository name'
+        description: 'Leave empty for Plan/Verify; Apply needs the short repository name'
         type: string
         required: false
+        default: ''
 permissions:
   contents: read
   actions: read
