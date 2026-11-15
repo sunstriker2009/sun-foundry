@@ -11,9 +11,10 @@ on:
         required: true
         type: string
       source:
-        description: 'Approved PNG source path on main'
+        description: 'Canonical approved PNG on main (override for legacy repositories)'
         required: true
         type: string
+        default: 'branding/assets/symbol.png'
       mode:
         description: 'Preview or open ecosystem symbol-sync PR'
         required: true
