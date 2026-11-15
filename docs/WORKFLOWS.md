@@ -62,32 +62,18 @@ The script refuses to overwrite an existing registration branch, rejects mismatc
 
 **Limits:** This milestone does not synchronize PNG icons, install branding hooks in member repositories, or auto-merge any PR. The factory registration step is deliberately after governance Verify: if it fails, the repository may already be successfully provisioned; rerun `resume` or use manual registration to recover.
 
-## Approved symbol synchronization (phase 3, manual gate)
+## Branding merge approval and automatic registry synchronization
 
-Run [Sync Approved SUN Symbol](https://github.com/sunstriker2009/sun-foundry/actions/workflows/sync-approved-sun-symbol.yml) on `main`. Supply a confirmed, already registered repository, repeat its full name, select an **owner-approved** PNG source path on its `main` branch, and start with `preview`. Use `apply` only after verifying the brand guide explicitly approves that symbol.
+Merging a branding PR that publishes or updates `branding/assets/symbol.png` on a confirmed SUN repository's `main` branch approves that artwork for the ecosystem registry. There is no second approval-ledger PR or SHA-256 allowlist. The historical `registry/symbol-approvals.json` ledger is no longer consumed.
 
-The workflow fetches the source PNG, checks size/signature, computes SHA-256, and opens a SUN Ecosystem PR updating the copied PNG, `registry/repositories.json`, and the generated README gallery. It does not assign IDs, change product names, or auto-merge. It refuses existing sync branches and avoids no-op updates. Requires `SUN_REPO_ADMIN_TOKEN` read access to source and contents/PR write access to `sun-ecosystem`.
+FOUNDRY scans confirmed entries in `registry/repositories.json` hourly at minute 17 (UTC). Pending identities and repositories without the canonical asset are skipped. Changed symbols produce an ecosystem PR containing only the copied PNG, catalog metadata and generated gallery changes. Native squash auto-merge is requested; required GitHub checks and protections remain enforced. Unchanged symbols produce no PR or CI run. This is scheduled reconciliation, not an immediate cross-repository merge webhook; GitHub may delay scheduled runs.
 
-**Current branding:** ASTELVO's `branding/assets/symbol-canonical-v1.png` is documented as approved. ORYVA's icon exports are documented as proposals, so do not sync them until separately approved. No automatic member-repository event hooks or restricted auto-merge are active yet; those require additional credential and trust-boundary design.
+SHA-256 remains as change-detection metadata (`iconSha256`), never as an approval restriction. PNG signature, decoded byte count, the 2,000,000-byte limit, registered identity checks, and the large-file Git Blobs API fallback remain enforced. Legacy source-path overrides require manual synchronization and manual merge.
 
-### Canonical SUN symbol path
+Use **Reconcile Approved SUN Symbols** with manual dispatch to scan immediately, or **Sync Approved SUN Symbol** with a confirmed repository and preview/apply mode for a single target. The old approval-proposal entry point now delegates to canonical synchronization and no longer creates approval-ledger PRs.
 
-New SUN repositories should publish the explicitly approved raster mark at `branding/assets/symbol.png`. The workflow defaults to this path; the editable source input temporarily supports legacy versioned paths for migration. A file at this path **does not itself imply approval**: the owner must approve the artwork, the product brand guide must record the decision and provenance, and the normal protected-main PR/CI policy must be satisfied. Never substitute an unapproved export or inherited template artwork. Existing ASTELVO uses `branding/assets/symbol-canonical-v1.png` until a reviewed alias/copy is committed. ORYVA's current PNG icon exports remain proposals according to its brand guide.
+### Credentials and prerequisites
 
-### Restricted symbol-sync auto-merge
+The unattended workflow uses the `repository-symbol-sync` environment on `main` with secret `SUN_SYMBOL_SYNC_TOKEN`, requiring member-repository read and ecosystem contents/PR write access. Configure it without a reviewer gate for unattended execution. Owner-dispatched single-target workflows retain `repository-administration` and `SUN_REPO_ADMIN_TOKEN`.
 
-When an owner explicitly runs `apply` with the canonical `branding/assets/symbol.png`, FOUNDRY verifies the proposed diff contains **exactly** the copied PNG, `registry/repositories.json`, and the generated `README.md`. It then requests GitHub native **squash auto-merge** on the resulting ecosystem PR. Required checks, reviews and branch protection still apply; failures block merging. Legacy source overrides remain manual-only. New repository registrations, product identity decisions and initial artwork approval are never auto-merged by this feature.
-
-**Important:** An owner-dispatched apply is the approval gate for the selected canonical asset; simply naming a file `symbol.png` does not grant approval. GitHub must permit auto-merge for the ecosystem repository and the token must be authorized to request it. If those prerequisites are missing, the workflow fails after creating the PR, which remains available for manual resolution. This change does not yet trigger synchronization automatically on upstream file changes.
-
-### Phase 4: unattended approved-symbol reconciliation
-
-A daily reconciliation (08:17 UTC) compares each explicitly approved digest in SUN Ecosystem `registry/symbol-approvals.json` with the canonical `branding/assets/symbol.png` on the member repository's `main` branch. An unapproved symbol change is **skipped**; neither the filename nor merging into a member repo constitutes gallery approval. Only when the bytes match the governance-approved SHA-256 and the gallery differs does FOUNDRY open a PR and request protected squash auto-merge. A no-op requires no CI. Use the manual dispatch on the reconciliation workflow to run immediately.
-
-**One-time operator setup:** create a GitHub Actions environment named `repository-symbol-sync` in FOUNDRY with **no required reviewers**, restricted to `main`, and add environment secret `SUN_SYMBOL_SYNC_TOKEN` with read access to member repos and contents/PR write permission for `sun-ecosystem`. Prefer a dedicated least-privilege fine-grained token. The existing `repository-administration` secret is intentionally **not** reused for unattended runs. Until the new environment and secret are configured, the schedule is not operational.
-
-**Approval:** a reviewed SUN Ecosystem PR must update the digest in `registry/symbol-approvals.json` before a changed image is eligible. Do not auto-merge approval-ledger PRs. This requires one human approval per new artwork, not per synchronization. This schedule runs once per day to minimize GitHub Actions usage.
-
-### Phase 5: owner-gated symbol approval proposals
-
-Use **Propose SUN Symbol Approval** on FOUNDRY Actions, with the confirmed repository entered twice. `preview` reports the current canonical PNG SHA-256 without mutation. `apply` creates a **manual-only** ecosystem PR changing exactly `registry/symbol-approvals.json`; it does not approve artwork or merge the PR. Open the linked PNG and inspect it visually, confirm provenance and ownership, then manually merge the proposal to record approval. The existing daily reconciler subsequently syncs the approved bytes and requests protected squash auto-merge on the gallery PR. Unapproved changes remain excluded. This workflow reuses the owner-gated `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN` for proposals, not the unattended sync environment.
+Repositories must adopt the canonical path through their normal branding PR process. Product identity registration and governance controls are unchanged. Existing sync branches are preserved for inspection rather than overwritten; resolve a stale branch before retrying that repository. An error for one repository does not prevent subsequent sync attempts.
