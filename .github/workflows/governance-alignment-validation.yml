@@ -1,0 +1,20 @@
+name: Governance alignment validation
+on:
+  pull_request:
+    paths:
+      - 'scripts/align-governance.py'
+      - 'tests/test_governance_alignment.py'
+      - 'config/governance-alignment.json'
+      - 'config/governance-fleet.json'
+      - '.github/workflows/governance-alignment*.yml'
+permissions:
+  contents: read
+jobs:
+  alignment-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m unittest discover -s tests -p 'test_governance_alignment.py' -v

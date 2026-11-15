@@ -27,6 +27,7 @@ Create consistent GitHub repositories, initialize required CI, enforce supported
 | **Recover** | Resume interrupted provisioning without creating a duplicate repository. |
 | **Maintain** | Diagnose, plan, apply and verify governance on existing repositories. |
 | **Audit** | Report strict governance compliance and drift across an explicit repository allowlist without changing settings. |
+| **Align** | Plan and apply reviewed changes to an explicitly identified existing ruleset, then verify the result. |
 
 ## Get started
 
@@ -72,3 +73,5 @@ FOUNDRY is the standardized repository provisioning tool for the [SUN product ec
 ## Milestones and fleet audit
 
 See the [FOUNDRY roadmap](docs/ROADMAP.md) for implemented milestones and outstanding validation gates. The next live validation is the [manual governance fleet audit](docs/GOVERNANCE-FLEET-AUDIT.md), using the existing `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`. It produces per-repository results and JSON evidence; it does not remediate findings or run on a schedule.
+
+Use [Controlled Governance Alignment](docs/GOVERNANCE-ALIGNMENT.md) to address reviewed audit findings through manual Plan → Apply → Verify, using the existing protected administration environment.

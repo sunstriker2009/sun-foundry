@@ -6,7 +6,8 @@
 | Shared raster asset preparation | Implemented; FOUNDRY pilot and regression checks present | Product adoption remains explicit. |
 | Ecosystem registration and gallery | Implemented | New product identities and IDs require review. |
 | Canonical symbol reconciliation | Implemented; daily schedule and manual dispatch | Monitor registry PRs and required checks. |
-| Governance fleet audit v1 | Implementation prepared | Merge, use the existing administration credential and inspect the first live report. |
-| Governance remediation planning | Next after first fleet report | Review drift, effective protections and per-repository profiles before any mutation. |
+| Governance fleet audit v1 | Implemented; first live report completed | ASTELVO passed; FOUNDRY, STRATA and ORYVA reported drift; Ecosystem check policy remains unconfigured. |
+| Controlled governance alignment | Implementation prepared | Merge and run reviewed Plan → Apply → Verify for one explicit target; rerun the fleet audit. |
+| Ecosystem universal check policy | Pending | Establish a check that runs on every relevant PR before requiring it. |
 
-Fleet audit scope and operator instructions: [Governance Fleet Audit](GOVERNANCE-FLEET-AUDIT.md). The first audit is manual-only; adding a schedule or automatic remediation is a separate decision.
+Fleet audit scope: [Governance Fleet Audit](GOVERNANCE-FLEET-AUDIT.md). Drift remediation: [Controlled Governance Alignment](GOVERNANCE-ALIGNMENT.md). Both are manual-only; scheduling and automatic fleet-wide remediation remain separate decisions.
