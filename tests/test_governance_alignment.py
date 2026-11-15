@@ -156,9 +156,12 @@ class AlignmentTests(unittest.TestCase):
             align.verify(api, POLICY)
         self.assertEqual(api.writes(), [])
 
-    def test_ecosystem_is_not_an_alignment_target(self):
+    def test_ecosystem_uses_explicit_existing_ruleset_and_universal_check(self):
+        policy = align.target_policy('sunstriker2009/sun-ecosystem')
+        self.assertEqual(policy['rulesetId'], 26217070)
+        self.assertEqual(policy['requiredChecks'], ['gallery'])
         with self.assertRaises(ValueError):
-            align.target_policy('sunstriker2009/sun-ecosystem')
+            align.target_policy('sunstriker2009/unlisted-repository')
 
 
 if __name__ == '__main__':

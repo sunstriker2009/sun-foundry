@@ -7,7 +7,7 @@ The runner cannot select Apply or an arbitrary command. It does not create repos
 ## Setup and use
 
 1. Review the allowlist and expected checks in this PR. These are expected policy, not certification of current protection. ORYVA includes the existing `backend`, `frontend`, and `reservation` contexts. FOUNDRY expects `build`; STRATA and ASTELVO expect `repository-validation` and `conventional-title`.
-2. SUN Ecosystem is deliberately `not_configured`: its known `gallery` job is path-filtered, so making it a universal required check could block unrelated PRs. Establish its intended universal check policy separately, then update the allowlist. Do not infer policy by copying existing live rules.
+2. SUN Ecosystem expects `gallery`. Merge its paired workflow change first: the existing job must run without path filters on every PR and on `main` pushes. Confirm a green run before using alignment to require it.
 3. Use FOUNDRY's existing `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`. The token must have access to the allowlisted repositories and their governance metadata. No separate environment or audit token is required. Keep the existing `main` restriction and approval gates. The runner remains fixed to read-only `verify` mode even though the shared credential also supports administrative workflows.
 4. Run **SUN Governance Fleet Audit** on `main`. The workflow is owner-only and manual-only.
 5. Inspect the job summary and download `governance-fleet-report` for `report.json` and `summary.md`. Artifacts expire after seven days. Resolve findings through separately reviewed changes.

@@ -9,7 +9,7 @@ The owner is always `sunstriker2009`; workflow forms use short repository names.
 | Repository Maintenance | Choose a listed repository or another existing short name; confirmation is required for Apply. |
 | Register SUN Repository | Choose a listed repository or another existing short name; repeat the short name. Registration still validates live access and registry identity. |
 | Sync Approved SUN Symbol / legacy approval entry | Choose a listed symbol repository or another registered short name; repeat the short name. Backend registry and PNG checks still apply. |
-| SUN Governance Alignment | Restricted dropdown of four configured repositories. Apply needs the short-name confirmation and reviewed Plan run ID. |
+| SUN Governance Alignment | Restricted dropdown of five configured repositories. Apply needs the short-name confirmation and reviewed Plan run ID. |
 | Governance Fleet Audit / reconciliation / asset validation | No repository input; existing configured scope is unchanged. |
 
 For example, alignment Plan uses `repository: sun-foundry`, `operation: plan`, with the Apply fields empty. Apply uses `repository: sun-foundry`, the successful Plan run ID and `confirm_repository: sun-foundry`. Plan artifacts retain fully qualified repository identities, so reviewed-plan matching is unchanged.
