@@ -77,8 +77,14 @@ if (mode == "apply")
     if (confirmation != repo) throw new InvalidOperationException("Apply requires --confirm equal to target repository");
     if (checks.Length == 0) throw new InvalidOperationException("Apply requires --checks with exact CI check names");
     if (main != "main") throw new InvalidOperationException("Expected default branch main; review repository before applying");
-    // Do not overwrite existing rulesets: human review required to avoid weakening established controls.
-    if (rulePresent) throw new InvalidOperationException("SUN Main Protection already exists. Refusing to overwrite: audit existing ruleset manually before applying.");
+    // Existing rulesets are never overwritten. The common verification below
+    // must prove exact policy compliance before apply can succeed.
+    if (rulePresent)
+    {
+        Console.WriteLine("SUN Main Protection exists; verifying exact governance without mutations.");
+    }
+    else
+    {
     // GitHub's check names must already exist; validate against check runs for latest main commit.
     var sha = info["default_branch"] is null ? null : (await Api("GET", $"repos/{repo}/branches/{main}"))?["commit"]?["sha"]?.GetValue<string>();
     var runs = await Api("GET", $"repos/{repo}/commits/{sha}/check-runs?per_page=100");
@@ -113,6 +119,7 @@ if (mode == "apply")
     Console.WriteLine("Created active SUN Main Protection ruleset.");
     await Api("PATCH", $"repos/{repo}", settings);
     Console.WriteLine("Applied merge and branch-cleanup settings.");
+    }
 }
 var updated = await Api("GET", $"repos/{repo}");
 var remaining = settings.Where(kv => updated?[kv.Key]?.ToJsonString() != JsonSerializer.Serialize(kv.Value)).Select(kv => kv.Key).ToArray();
