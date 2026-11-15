@@ -77,11 +77,22 @@ def main():
         subprocess.run(["python3", "scripts/render-repository-gallery.py"], cwd=repo_dir, check=True)
         subprocess.run(["python3", "scripts/render-repository-gallery.py", "--check"], cwd=repo_dir, check=True)
         subprocess.run(["git", "add", dest, "registry/repositories.json", "README.md"], cwd=repo_dir, check=True)
+        changed = subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=repo_dir, text=True).splitlines()
+        expected = {dest, "registry/repositories.json", "README.md"}
+        if set(changed) != expected:
+            raise SystemExit(f"Unexpected sync diff: {changed}; expected exactly {sorted(expected)}")
         subprocess.run(["git", "-c", "user.name=sun-foundry[bot]", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com", "commit", "-qm", f"chore(registry): sync {slug} approved symbol"], cwd=repo_dir, check=True)
         subprocess.run(["git", "-c", header, "push", "--quiet", "-u", "origin", branch], cwd=repo_dir, check=True)
     body = f"Approved symbol synchronization from \`{target}/blob/main/{args.source}\`. SHA-256: \`{digest}\`. Only catalog, generated README and PNG are changed. Confirm source approval and review before merging."
     number = gh("-X", "POST", f"repos/{eco}/pulls", "-f", f"head={branch}", "-f", "base=main", "-f", f"title=chore(registry): sync {slug} approved symbol", "-f", f"body={body}", "--jq", ".number")
     print(f"PR: https://github.com/{eco}/pull/{number}")
+    # Only the canonical, owner-selected source is eligible for automatic merge.
+    # Native auto-merge continues to enforce GitHub's required checks and reviews.
+    if args.source == "branding/assets/symbol.png":
+        subprocess.run(["gh", "pr", "merge", number, "--repo", eco, "--auto", "--squash", "--delete-branch"], check=True)
+        print("Protected squash auto-merge requested")
+    else:
+        print("Legacy source path: manual merge required")
 
 
 if __name__ == "__main__":
