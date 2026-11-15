@@ -24,26 +24,49 @@ jobs:
           from pathlib import Path
           script=Path('scripts/sync-approved-symbol.py').read_text()
           workflow=Path('.github/workflows/sync-approved-sun-symbol.yml').read_text()
-          for token in ('"preview"', '"apply"', 'args.confirm', 'meta.get("size", 0) > 2_000_000', 'sha256(data)', 'render-repository-gallery.py', 'Existing symbol-sync branch', 'classification"] == "pending"'):
+          for token in ('"preview"', '"apply"', 'args.confirm', 'sha256(data)', 'render-repository-gallery.py', 'Existing symbol-sync branch', 'classification"] == "pending"'):
               assert token in script, token
           assert '"--auto", "--squash"' in script
-          assert 'set(changed) != expected' in script
+          assert 'set(changed) <= expected' in script
           assert 'args.source == "branding/assets/symbol.png"' in script
-          assert 'symbol-approvals.json' in script
+          assert 'symbol-approvals.json' not in script
           assert 'github.actor == ' in workflow
           reconcile=Path('scripts/reconcile-approved-symbols.py').read_text()
-          assert 'actual != expected' in reconcile
-          assert 'symbol-approvals.json' in reconcile
+          assert 'iconSha256' in reconcile
+          assert 'symbol-approvals.json' not in reconcile
           scheduled=Path('.github/workflows/reconcile-approved-symbols.yml').read_text()
           assert 'repository-symbol-sync' in scheduled
           assert 'SUN_SYMBOL_SYNC_TOKEN' in scheduled
           proposal=Path('scripts/propose-symbol-approval.py').read_text()
           approval_workflow=Path('.github/workflows/propose-symbol-approval.yml').read_text()
-          assert 'registry/symbol-approvals.json' in proposal
-          assert 'changed != ["registry/symbol-approvals.json"]' in proposal
+          assert 'sync-approved-symbol.py' in proposal
           assert '"--auto"' not in proposal
           assert 'github.actor == ' in approval_workflow
           assert 'repository-administration' in approval_workflow
           assert 'repository-administration' in workflow
           assert 'options: [preview, apply]' in workflow
+          PY
+      - name: Validate PNG reading behavior
+        run: |
+          python3 - <<'PY'
+          import base64, importlib.util, json
+          from unittest.mock import patch
+          for path in ('scripts/sync-approved-symbol.py', 'scripts/reconcile-approved-symbols.py'):
+              spec = importlib.util.spec_from_file_location('subject', path)
+              module = importlib.util.module_from_spec(spec)
+              spec.loader.exec_module(module)
+              data = bytes.fromhex('89504e470d0a1a0a') + b'x' * 1_100_000
+              encoded = base64.b64encode(data).decode()
+              meta = dict(type='file', size=len(data), encoding='none', sha='blob-id')
+              with patch.object(module.subprocess, 'check_output', return_value=json.dumps(dict(encoding='base64', content=encoded))) as api:
+                  assert module.read_png_blob('owner/repo', 'symbol.png', meta) == data
+                  assert api.call_args.args[0] == ['gh', 'api', 'repos/owner/repo/git/blobs/blob-id']
+              for bad in (dict(meta, size=2_000_001), dict(meta, size=0),
+                          dict(meta, encoding='base64', content=base64.b64encode(b'bad').decode(), size=3)):
+                  try:
+                      module.read_png_blob('owner/repo', 'symbol.png', bad)
+                  except SystemExit:
+                      pass
+                  else:
+                      raise AssertionError('Invalid PNG accepted')
           PY
