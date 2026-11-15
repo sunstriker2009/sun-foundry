@@ -1,0 +1,30 @@
+name: Ecosystem registration validation
+on:
+  pull_request:
+    paths:
+      - 'scripts/register-ecosystem-repository.sh'
+      - '.github/workflows/register-sun-repository.yml'
+      - '.github/workflows/repository-factory-v1.yml'
+      - '.github/workflows/ecosystem-registration-validation.yml'
+permissions:
+  contents: read
+jobs:
+  registration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell syntax
+        run: bash -n scripts/register-ecosystem-repository.sh
+      - name: Verify fail-closed boundaries
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          script=Path('scripts/register-ecosystem-repository.sh').read_text()
+          factory=Path('.github/workflows/repository-factory-v1.yml').read_text()
+          manual=Path('.github/workflows/register-sun-repository.yml').read_text()
+          for required in ('"classification":"pending"', '"registryId":None', 'Repository confirmation mismatch', 'Existing registration branch', 'python3 scripts/render-repository-gallery.py'):
+              assert required in script, required
+          assert factory.index('Strict verify governance') < factory.index('Propose SUN ecosystem registration')
+          assert 'options: [preview, apply]' in manual
+          assert 'github.actor == ' in manual
+          PY
