@@ -1,4 +1,4 @@
-name: Propose SUN Symbol Approval
+name: Sync Merged SUN Branding (legacy approval entry)
 on:
   workflow_dispatch:
     inputs:
@@ -11,7 +11,7 @@ on:
         required: true
         type: string
       mode:
-        description: 'Preview fingerprint or open manual-approval PR'
+        description: 'Preview or sync canonical branding already merged to main'
         required: true
         type: choice
         options: [preview, apply]
@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Preview or propose symbol approval
+      - name: Sync merged canonical symbol
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           REPOSITORY: ${{ inputs.repository }}
