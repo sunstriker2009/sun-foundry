@@ -61,7 +61,7 @@ class RepositoryInputTests(unittest.TestCase):
 
     def test_alignment_scope_cannot_be_expanded_using_custom_input(self):
         for args in [(inputs.OTHER, 'sun-other', '', 'alignment', 'plan'),
-                     ('sun-ecosystem', '', '', 'alignment', 'plan')]:
+                     ('unlisted-repository', '', '', 'alignment', 'plan')]:
             with self.assertRaises(ValueError):
                 inputs.resolve(*args)
 

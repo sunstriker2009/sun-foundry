@@ -10,8 +10,9 @@
 | STRATA | 27252100 | protected main |
 | ORYVA | 26219449 | Protected main |
 | ASTELVO | 27170810 | SUN Main Protection |
+| SUN Ecosystem | 26217070 | pull request only |
 
-IDs are explicit in `config/governance-alignment.json`; expected required checks come from `config/governance-fleet.json`. Renamed canonical rulesets remain eligible at the same ID. A missing, conflicting, replaced or unexpectedly renamed ruleset stops the operation. No rulesets are created or deleted. SUN Ecosystem is excluded until its universal check policy is established.
+IDs are explicit in `config/governance-alignment.json`; expected required checks come from `config/governance-fleet.json`. Renamed canonical rulesets remain eligible at the same ID. A missing, conflicting, replaced or unexpectedly renamed ruleset stops the operation. No rulesets are created or deleted. SUN Ecosystem expects the universal `gallery` check. Merge its paired workflow change and confirm a green run before merging this policy update and applying alignment.
 
 ## Plan → Apply → Verify
 

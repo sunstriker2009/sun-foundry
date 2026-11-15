@@ -12,6 +12,7 @@ on:
           - sun-strata
           - sun-oryva
           - sun-astelvo
+          - sun-ecosystem
       operation:
         description: 'Plan changes, apply a reviewed plan, or verify'
         type: choice
