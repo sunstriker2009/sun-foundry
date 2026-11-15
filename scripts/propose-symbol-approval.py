@@ -74,7 +74,7 @@ def main():
             "repository": repo,
             "source": SOURCE,
             "sha256": digest,
-            "approval": f"Owner review required: {repo} canonical symbol proposal"
+            "approval": f"Owner approval recorded by merging this manually reviewed proposal for {repo}"
         }
         if matches:
             approved[matches[0]] = entry
