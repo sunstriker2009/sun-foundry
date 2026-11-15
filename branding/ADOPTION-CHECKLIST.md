@@ -11,11 +11,11 @@ Use this checklist when migrating ASTELVO, ORYVA or any SUN product to the [SUN 
 
 ## 2. Normalize production assets
 
-- [ ] Keep the active panoramic image at `branding/assets/readme-banner-v1.png` (increment version on replacement).
-- [ ] Place transparent master at `branding/assets/symbol-canonical-vN.png`.
-- [ ] Place reviewed optical-size vector master at `branding/assets/symbol-small-master.svg`, if applicable.
+- [ ] Keep the active panoramic image at `branding/assets/readme-banner.png` (retain versioned references under `refs/`).
+- [ ] Place transparent master at `branding/assets/symbol.png`.
+- [ ] Place reviewed optical-size vector master at `branding/assets/refs/symbol-small-master.svg`, if applicable.
 - [ ] Use `branding/assets/icons/icon-{size}.png` for reviewed PNG sizes; do not assume all sizes are downscales.
-- [ ] Keep approved `symbol-*.svg` and `lockup-*.svg` variants in `branding/assets/`.
+- [ ] Keep approved `symbol-*.svg` and `lockup-*.svg` variants in `branding/assets/refs/`.
 - [ ] Remove product-name prefixes from generic asset filenames, updating all consumers in the same PR.
 
 ## 3. Separate history
@@ -37,8 +37,8 @@ Use this checklist when migrating ASTELVO, ORYVA or any SUN product to the [SUN 
 ## FOUNDRY baseline (verified)
 
 - Banner and exact archived original: `dbfba49871e4a27b7d72dfd62fd026973cec3be5`.
-- Canonical transparent V2 symbol: `branding/assets/symbol-canonical-v2.png`.
+- Canonical transparent V2 symbol: `branding/assets/refs/symbol-canonical-v2.png`.
 - V3 PNG icons: 16, 24, 32, 48, 64, 128, 256, 512, 1024.
-- Optical vector master: `branding/assets/symbol-small-master.svg`.
+- Optical vector master: `branding/assets/refs/symbol-small-master.svg`.
 - Retired older app icon: `branding/archive/retired/app-icon.svg`.
 - **Still provisional:** formally approved palette color values and family typography.

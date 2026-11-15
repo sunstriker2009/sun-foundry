@@ -13,7 +13,7 @@ The symbol expresses modular repository creation and standardization. The F is n
 
 ## Canonical symbol extraction policy
 
-**Source of truth:** the exact owner-approved second-treatment panoramic PNG at `branding/assets/readme-banner-v1.png`. Preserve its original F and SUN arc (including the distinctive disconnected arms, glass-like luminosity, gradients and material). Do not recreate the high-resolution symbol from the compact SVG.
+**Source of truth:** the exact owner-approved second-treatment panoramic PNG at `branding/assets/readme-banner.png`. Preserve its original F and SUN arc (including the distinctive disconnected arms, glass-like luminosity, gradients and material). Do not recreate the high-resolution symbol from the compact SVG.
 
 **Production sequence:** (1) archive the original approved concept unchanged when available; (2) obtain a layered/transparent source if possible, otherwise carefully isolate the F and arc from the committed banner; (3) export a transparent high-resolution standalone PNG with documented crop/mask and visual inspection; (4) derive raster app icons from that extraction, validating at 16–32 px; (5) retain the reviewed compact SVGs for scalable, monochrome and small-size needs.
 
@@ -36,13 +36,13 @@ These are **working vector approximation values**, not sampled or formally appro
 
 | Asset | Purpose |
 | --- | --- |
-| `branding/assets/readme-banner-v1.png` | Approved panoramic README banner, unchanged |
+| `branding/assets/readme-banner.png` | Approved panoramic README banner, unchanged |
 | `branding/assets/symbol.png` | Stable registry source: byte-identical copy of the approved transparent canonical V2 F and SUN arc |
-| `branding/assets/symbol-canonical-v2.png` | Retained versioned approved transparent canonical master |
-| `branding/assets/symbol-small-master.svg` | Approved optical small-icon vector source |
+| `branding/assets/refs/symbol-canonical-v2.png` | Retained versioned approved transparent canonical master |
+| `branding/assets/refs/symbol-small-master.svg` | Approved optical small-icon vector source |
 | `branding/assets/icons/icon-{size}.png` | Approved V3 PNGs, sizes 16, 24, 32, 48, 64, 128, 256, 512 and 1024 |
-| `branding/assets/symbol-{dark,light,mono,small}.svg` | Purpose-built compact vector adaptations |
-| `branding/assets/lockup-{dark,light,mono}.svg` | Full product lockup variants |
+| `branding/assets/refs/symbol-{dark,light,mono,small}.svg` | Purpose-built compact vector adaptations |
+| `branding/assets/refs/lockup-{dark,light,mono}.svg` | Full product lockup variants |
 
 ## Archive manifest (nonproduction)
 
@@ -62,7 +62,7 @@ The canonical transparent symbol remains version 2. V3 small PNG icons (16–48 
 
 - Keep the original concept separately from production assets.
 - Use the exact approved second-treatment panoramic image for the README, preserving aspect ratio and legibility.
-- Use locally committed, versioned banner filenames for cache-safe replacement.
+- Use the stable production banner and symbol paths; retain versioned reference artwork under `branding/assets/refs/`.
 - Do not distort, recolor or substitute the approved identity without review.
 - Update the asset manifest and README references together in a feature-branch PR.
 
@@ -72,7 +72,7 @@ The canonical transparent symbol remains version 2. V3 small PNG icons (16–48 
 - [x] SUN arc, purpose-led F and distinct warm/cool palette defined.
 - [x] Initial compact SVG lockup and symbol variants prepared.
 - [x] Approved original archived unchanged under `branding/archive/originals/`.
-- [x] Approved panoramic PNG committed as `branding/assets/readme-banner-v1.png`.
+- [x] Approved panoramic PNG committed as `branding/assets/readme-banner.png`.
 - [x] README updated to reference the approved panoramic PNG.
 - [x] Revised compact SVG direction reviewed (disconnected F arms and glass-like arc).
 - [x] Owner-approved transparent canonical V2 symbol delivered and validated against the approved asset package (not a claim of pixel-perfect extraction from a layered source).
@@ -90,3 +90,7 @@ See [migration notes](archive/MIGRATION-NOTES.md) for old-to-new paths and verif
 The stable canonical path is `branding/assets/symbol.png`. It reuses the exact Git blob `06ad4f6a79eef95ae04ae439c9ff44ba088eccba` from the approved `symbol-canonical-v2.png`; no artwork is regenerated or transformed. The 172,581-byte PNG is within the registry's 2,000,000-byte limit.
 
 Merging this branding alignment PR approves the canonical source for FOUNDRY (SUN-G003) registry synchronization. FOUNDRY's daily reconciliation or manual **Reconcile Approved SUN Symbols** run copies it into SUN Ecosystem's gallery through a protected squash-auto-merge PR. No separate digest-approval PR is required. Future canonical updates must follow the normal branding PR process.
+
+## Active asset layout
+
+Only `readme-banner.png` and `symbol.png` remain as active files directly under `branding/assets/`. Versioned masters and SVG variants are retained unchanged under `branding/assets/refs/`. Production icon exports remain in `branding/assets/icons/`. The repository README stays at the repository root and uses the stable banner path. Historical import/archive records describe prior layouts.
