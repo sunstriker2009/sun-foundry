@@ -25,7 +25,7 @@ def main():
     target = args.repository
     if target != args.confirm or not re.fullmatch(r"sunstriker2009/[a-z0-9][a-z0-9._-]*", target):
         raise SystemExit("Invalid repository or confirmation mismatch")
-    if not re.fullmatch(r"branding/assets/(?:symbol-canonical-v[0-9]+|icons/icon-(?:128|256|512))\.png", args.source):
+    if not re.fullmatch(r"branding/assets/(?:symbol|symbol-canonical-v[0-9]+|icons/icon-(?:128|256|512))\.png", args.source):
         raise SystemExit("Source must be an explicitly approved canonical symbol or approved icon export")
     if not os.getenv("GH_TOKEN"):
         raise SystemExit("Missing GH_TOKEN")
