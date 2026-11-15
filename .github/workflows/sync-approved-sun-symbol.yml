@@ -1,0 +1,43 @@
+name: Sync Approved SUN Symbol
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Confirmed SUN repository (owner/name)'
+        required: true
+        type: string
+      confirm_repository:
+        description: 'Repeat repository exactly'
+        required: true
+        type: string
+      source:
+        description: 'Approved PNG source path on main'
+        required: true
+        type: string
+      mode:
+        description: 'Preview or open ecosystem symbol-sync PR'
+        required: true
+        type: choice
+        options: [preview, apply]
+        default: preview
+permissions:
+  contents: read
+concurrency:
+  group: sun-ecosystem-symbol-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: repository-administration
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preview or propose approved symbol synchronization
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REPOSITORY: ${{ inputs.repository }}
+          CONFIRM: ${{ inputs.confirm_repository }}
+          SOURCE: ${{ inputs.source }}
+          MODE: ${{ inputs.mode }}
+        run: python3 scripts/sync-approved-symbol.py --repository "$REPOSITORY" --confirm "$CONFIRM" --source "$SOURCE" --mode "$MODE"
