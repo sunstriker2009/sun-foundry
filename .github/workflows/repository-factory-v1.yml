@@ -3,8 +3,20 @@ on:
   workflow_dispatch:
     inputs:
       repository:
-        description: 'Target repository name (new) or owner/name (resume)'
+        description: 'Repository (owner is implicit)'
         required: true
+        type: choice
+        default: other-repository
+        options:
+          - sun-foundry
+          - sun-strata
+          - sun-ecosystem
+          - sun-oryva
+          - sun-astelvo
+          - other-repository
+      repository_name:
+        description: 'Only for other-repository: short name, e.g. sun-example'
+        required: false
         type: string
       mode:
         description: 'Create a new repository or resume an existing one'
@@ -19,13 +31,13 @@ on:
         options: [public, private]
         default: public
       confirm_repository:
-        description: 'Repeat the target name exactly'
+        description: 'Repeat short repository name'
         required: true
         type: string
 permissions:
   contents: read
 concurrency:
-  group: sun-factory-v1-${{ inputs.repository }}
+  group: sun-factory-v1
   cancel-in-progress: false
 jobs:
   factory:
@@ -35,6 +47,14 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Resolve repository selection
+        id: target
+        env:
+          SELECTION: ${{ inputs.repository }}
+          OTHER_REPOSITORY: ${{ inputs.repository_name }}
+          CONFIRM_SHORT: ${{ inputs.confirm_repository }}
+          OPERATION: ${{ inputs.mode }}
+        run: python3 scripts/resolve-workflow-repository.py --profile factory
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -43,8 +63,8 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
-          TARGET: ${{ inputs.repository }}
-          CONFIRM: ${{ inputs.confirm_repository }}
+          TARGET: ${{ steps.target.outputs.factory_target }}
+          CONFIRM: ${{ steps.target.outputs.factory_confirmation }}
           MODE: ${{ inputs.mode }}
           VISIBILITY: ${{ inputs.visibility }}
         run: |

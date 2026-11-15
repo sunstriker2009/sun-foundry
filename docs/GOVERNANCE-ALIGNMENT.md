@@ -17,7 +17,7 @@ IDs are explicit in `config/governance-alignment.json`; expected required checks
 
 1. Run **SUN Governance Alignment**, choose one repository, operation `plan`. Leave the Apply-only inputs empty. The environment may require approval.
 2. Read the job summary's before/after diff and download `governance-alignment-plan` for `plan.json` and `result.json`. Record the successful Plan run ID from its Actions URL. A Plan reads GitHub only; it changes no repository settings.
-3. Run the workflow again with the same repository, operation `apply`, that `plan_run_id`, and the full repository name repeated in `confirm_repository`.
+3. Run the workflow again with the same repository, operation `apply`, that `plan_run_id`, and the short repository name (for example `sun-foundry`) repeated in `confirm_repository`.
 4. Apply downloads the selected Plan artifact, checks that it was a successful Plan for that target, recomputes the plan from current policy/live state, and refuses any mismatch. It rechecks live governance immediately before writing.
 5. Apply strengthens the existing ruleset first, patches only changed merge settings second, then reads back both and verifies every planned value. The independent `verify` operation is read-only and checks the current alignment policy. Rerun the fleet audit afterward for the consolidated baseline report.
 
@@ -47,3 +47,5 @@ python3 -m unittest discover -s tests -p 'test_governance_alignment.py' -v
 ```
 
 Tests use a fake GitHub API and assert no writes during Plan/Verify, fixed ruleset identity, preservation of stronger protections and check app bindings, stale/tampered-plan rejection, no-op idempotency, failure recovery and expected write ordering. No live administrative settings have been changed by the implementation tests. Perform the first Plan/Apply/Verify on one selected repository after merge, then inspect the fleet audit before expanding usage.
+
+Workflow dropdowns and implicit owner behavior: [Repository input guide](WORKFLOW-INPUTS.md). Backend plans retain fully qualified repository identities.

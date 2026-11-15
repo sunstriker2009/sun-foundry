@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "repositories": ["sun-foundry", "sun-strata", "sun-ecosystem", "sun-oryva", "sun-astelvo"],
+  "symbolRepositories": ["sun-foundry", "sun-strata", "sun-oryva", "sun-astelvo"]
+}

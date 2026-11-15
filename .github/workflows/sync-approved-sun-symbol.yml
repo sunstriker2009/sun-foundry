@@ -3,11 +3,21 @@ on:
   workflow_dispatch:
     inputs:
       repository:
-        description: 'Confirmed SUN repository (owner/name)'
+        description: 'Repository (owner is implicit)'
         required: true
+        type: choice
+        options:
+          - sun-foundry
+          - sun-strata
+          - sun-oryva
+          - sun-astelvo
+          - other-repository
+      repository_name:
+        description: 'Only for other-repository: short name, e.g. sun-example'
+        required: false
         type: string
       confirm_repository:
-        description: 'Repeat repository exactly'
+        description: 'Repeat short repository name'
         required: true
         type: string
       source:
@@ -34,11 +44,19 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Resolve repository selection
+        id: target
+        env:
+          SELECTION: ${{ inputs.repository }}
+          OTHER_REPOSITORY: ${{ inputs.repository_name }}
+          CONFIRM_SHORT: ${{ inputs.confirm_repository }}
+          OPERATION: ${{ inputs.mode }}
+        run: python3 scripts/resolve-workflow-repository.py --profile symbol
       - name: Preview or propose approved symbol synchronization
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
-          REPOSITORY: ${{ inputs.repository }}
-          CONFIRM: ${{ inputs.confirm_repository }}
+          REPOSITORY: ${{ steps.target.outputs.repository }}
+          CONFIRM: ${{ steps.target.outputs.confirmation }}
           SOURCE: ${{ inputs.source }}
           MODE: ${{ inputs.mode }}
         run: python3 scripts/sync-approved-symbol.py --repository "$REPOSITORY" --confirm "$CONFIRM" --source "$SOURCE" --mode "$MODE"
