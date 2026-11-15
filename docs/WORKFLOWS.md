@@ -73,3 +73,9 @@ The workflow fetches the source PNG, checks size/signature, computes SHA-256, an
 ### Canonical SUN symbol path
 
 New SUN repositories should publish the explicitly approved raster mark at `branding/assets/symbol.png`. The workflow defaults to this path; the editable source input temporarily supports legacy versioned paths for migration. A file at this path **does not itself imply approval**: the owner must approve the artwork, the product brand guide must record the decision and provenance, and the normal protected-main PR/CI policy must be satisfied. Never substitute an unapproved export or inherited template artwork. Existing ASTELVO uses `branding/assets/symbol-canonical-v1.png` until a reviewed alias/copy is committed. ORYVA's current PNG icon exports remain proposals according to its brand guide.
+
+### Restricted symbol-sync auto-merge
+
+When an owner explicitly runs `apply` with the canonical `branding/assets/symbol.png`, FOUNDRY verifies the proposed diff contains **exactly** the copied PNG, `registry/repositories.json`, and the generated `README.md`. It then requests GitHub native **squash auto-merge** on the resulting ecosystem PR. Required checks, reviews and branch protection still apply; failures block merging. Legacy source overrides remain manual-only. New repository registrations, product identity decisions and initial artwork approval are never auto-merged by this feature.
+
+**Important:** An owner-dispatched apply is the approval gate for the selected canonical asset; simply naming a file `symbol.png` does not grant approval. GitHub must permit auto-merge for the ecosystem repository and the token must be authorized to request it. If those prerequisites are missing, the workflow fails after creating the PR, which remains available for manual resolution. This change does not yet trigger synchronization automatically on upstream file changes.
