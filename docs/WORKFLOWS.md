@@ -51,3 +51,13 @@ A temporary public repository, `sunstriker2009/sun-foundry-validation`, was crea
 ## Next milestone — SUN governance fleet audit
 
 Add a read-only, explicit-target governance audit for the SUN repository fleet. Start with a reviewed allowlist, bounded concurrency, per-repository results, and a machine-readable summary. Audit must never invoke Apply, create repositories, or change branch protection. Keep private-repository capability limits visible rather than treating missing enforcement as success. Prefer manual dispatch first; schedule only after the output and GitHub Actions cost are reviewed.
+
+## SUN ecosystem registration (phase 2)
+
+After strict governance Verify succeeds, Repository Factory proposes a **pending-only** registration PR in `sunstriker2009/sun-ecosystem`. This also runs on resume, allowing recovery if an earlier registration step failed. Registration does not assign SUN IDs, approve product identities, or auto-merge.
+
+For existing repositories, run [Register SUN Repository](https://github.com/sunstriker2009/sun-foundry/actions/workflows/register-sun-repository.yml) on `main` with the full `sunstriker2009/name` repository, matching confirmation, and `preview` (read-only) or `apply` (propose PR). The workflow uses the protected `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`, which must have repository read access and contents/PR write permissions on `sun-ecosystem`.
+
+The script refuses to overwrite an existing registration branch, rejects mismatched confirmations and duplicate catalog entries, and refuses to create a pending duplicate for a repository already assigned an approved ID. Resolve existing branches or reconcile approved identities manually. The resulting PR updates `registry/repositories.json` and the generated README gallery only; it requires review and CI before squash merge.
+
+**Limits:** This milestone does not synchronize PNG icons, install branding hooks in member repositories, or auto-merge any PR. The factory registration step is deliberately after governance Verify: if it fails, the repository may already be successfully provisioned; rerun `resume` or use manual registration to recover.
