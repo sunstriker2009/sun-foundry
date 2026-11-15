@@ -1,6 +1,6 @@
 # FOUNDRY by Sun — Brand Guide
 
-**Status:** Approved production V3 assets and canonical naming/archive migration complete; palette and typography specifications remain provisional  
+**Status:** Banner-aligned raster master approved by owner; consistent icon exports prepared for review; existing banner remains approved. Palette and typography specifications remain provisional  
 **Approved concept:** Foundry F — second panoramic treatment (2026-11-13)  
 **Tagline:** Build. Standardize. Launch.  
 **Canonical SUN standard:** [Product Repository Branding Standard](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/PRODUCT-BRANDING.md)
@@ -37,10 +37,10 @@ These are **working vector approximation values**, not sampled or formally appro
 | Asset | Purpose |
 | --- | --- |
 | `branding/assets/readme-banner.png` | Approved panoramic README banner, unchanged |
-| `branding/assets/symbol.png` | Stable registry source: byte-identical copy of the approved transparent canonical V2 F and SUN arc |
+| `branding/assets/symbol.png` | Active owner-approved banner-aligned transparent raster master |
 | `branding/assets/refs/symbol-canonical-v2.png` | Retained versioned approved transparent canonical master |
 | `branding/assets/refs/symbol-small-master.svg` | Approved optical small-icon vector source |
-| `branding/assets/icons/icon-{size}.png` | Approved V3 PNGs, sizes 16, 24, 32, 48, 64, 128, 256, 512 and 1024 |
+| `branding/assets/icons/icon-{size}.png` | Current consistent PNG exports, sizes 16, 24, 32, 48, 64, 128, 256, 512 and 1024 |
 | `branding/assets/refs/symbol-{dark,light,mono,small}.svg` | Purpose-built compact vector adaptations |
 | `branding/assets/refs/lockup-{dark,light,mono}.svg` | Full product lockup variants |
 
@@ -56,7 +56,7 @@ These are **working vector approximation values**, not sampled or formally appro
 
 The original approved concept **is the same image** as the production README banner, as confirmed by the owner. Both copies share Git blob SHA `dbfba49871e4a27b7d72dfd62fd026973cec3be5`. No independent concept was fabricated.
 
-The canonical transparent symbol remains version 2. V3 small PNG icons (16–48 px) are approved optical-size adaptations; the 64–1024 px sizes derive from the canonical raster. No binary artwork was regenerated in this naming migration.
+The historical canonical transparent symbol remains in refs as version 2. Historical V3 small PNG icons (16–48 px) are approved optical-size adaptations; the 64–1024 px sizes derive from the canonical raster. No binary artwork was regenerated in this naming migration.
 
 ## Usage and revision rules
 
@@ -87,10 +87,18 @@ See [migration notes](archive/MIGRATION-NOTES.md) for old-to-new paths and verif
 
 ## Ecosystem registry synchronization
 
-The stable canonical path is `branding/assets/symbol.png`. It reuses the exact Git blob `06ad4f6a79eef95ae04ae439c9ff44ba088eccba` from the approved `symbol-canonical-v2.png`; no artwork is regenerated or transformed. The 172,581-byte PNG is within the registry's 2,000,000-byte limit.
+The stable canonical path is `branding/assets/symbol.png`. The initial canonical-path adoption reused the exact Git blob `06ad4f6a79eef95ae04ae439c9ff44ba088eccba` from the earlier approved `symbol-canonical-v2.png` before the banner-aligned revision below. The active source remains within the registry's 2,000,000-byte limit.
 
 Merging this branding alignment PR approves the canonical source for FOUNDRY (SUN-G003) registry synchronization. FOUNDRY's daily reconciliation or manual **Reconcile Approved SUN Symbols** run copies it into SUN Ecosystem's gallery through a protected squash-auto-merge PR. No separate digest-approval PR is required. Future canonical updates must follow the normal branding PR process.
 
 ## Active asset layout
 
 Only `readme-banner.png` and `symbol.png` remain as active files directly under `branding/assets/`. Versioned masters and SVG variants are retained unchanged under `branding/assets/refs/`. Production icon exports remain in `branding/assets/icons/`. The repository README stays at the repository root and uses the stable banner path. Historical import/archive records describe prior layouts.
+
+## Banner-aligned raster revision
+
+The active `branding/assets/symbol.png` is a transparent raster adaptation made with image generation using the exact approved `readme-banner.png` as the editing reference. It follows the banner’s separated warm upper arm, cool lower arm and stem, sunrise arc and star. It is an image-assisted reconstruction, not a byte-exact cutout or layered original. The banner is unchanged. The owner approved this master in the continuation thread; merging the artwork PR publishes it and the reviewed icon family.
+
+All nine `branding/assets/icons/icon-{size}.png` files (16 through 1024) now derive from this one square RGBA master through `scripts/prepare-assets.py` with no optical overrides. Geometry, framing and colors are consistent across sizes; fine highlights naturally become less visible at small sizes. The square master supplies the padding for every export.
+
+Previous V3 icons remain under `branding/assets/refs/icons-v3/`; the earlier transparent master remains `branding/assets/refs/symbol-canonical-v2.png`. Those are historical references and must not override active icon generation. The configuration points to `branding/assets/symbol.png`; the new manifest is `branding/assets/refs/banner-aligned-asset-manifest.json`. Hashes record provenance/change detection, not a separate approval gate. Earlier V3 approval statements above describe the retained historical set.

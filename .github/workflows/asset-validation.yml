@@ -10,7 +10,7 @@ on:
       - 'assets/**'
       - 'branding/asset-config.json'
       - 'branding/archive/originals/readme-banner-v1.png'
-      - 'branding/assets/refs/symbol-canonical-v2.png'
+      - 'branding/assets/symbol.png'
       - 'branding/assets/icons/**'
       - 'docs/FOUNDRY-ASSET-PILOT.md'
       - '.github/workflows/asset-validation.yml'
@@ -24,7 +24,7 @@ on:
       - 'tests/test_asset_adoption.py'
       - 'branding/asset-config.json'
       - 'branding/archive/originals/readme-banner-v1.png'
-      - 'branding/assets/refs/symbol-canonical-v2.png'
+      - 'branding/assets/symbol.png'
       - '.github/workflows/asset-validation.yml'
 permissions:
   contents: read

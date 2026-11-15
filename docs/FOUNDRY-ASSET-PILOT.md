@@ -5,8 +5,8 @@
 ## Approved inputs
 
 - `branding/archive/originals/readme-banner-v1.png`: exact archived owner-approved banner; do not replace.
-- `branding/assets/refs/symbol-canonical-v2.png`: owner-approved transparent canonical symbol.
-- `branding/assets/icons/icon-{size}.png`: already approved production icons. Small 16–48 px icons are **optical adaptations**, not expected to match generic downscales.
+- `branding/assets/symbol.png`: banner-aligned transparent master proposed in the artwork PR.
+- `branding/assets/icons/icon-{size}.png`: consistent exports of the active master at all nine sizes; approval is recorded by merging the artwork PR.
 
 ## How to run
 
@@ -29,8 +29,8 @@ Output goes to `branding/generated/`, separate from approved production files. C
 
 ## Important limitation
 
-Generic icon resampling cannot reproduce reviewed optical variants. Passing automated checks does **not** mean generated icons are approved replacements.
+All current sizes deliberately share one master, rather than using optical variants. Automated checks verify reproducibility; visual review of the artwork PR establishes approval.
 
 ## Regression coverage
 
-Run `python -m unittest discover -s tests -p 'test_asset_pipeline.py' -v` locally. Tests cover valid manifest generation, transparent icon output, missing/corrupted source, altered or missing output, modified manifest, attempted upscaling, nontransparent symbol rejection and output path traversal. The 16–48 px approved optical variants remain authoritative and are never overwritten.
+Run `python -m unittest discover -s tests -p 'test_asset_pipeline.py' -v` locally. Tests cover valid manifest generation, transparent icon output, missing/corrupted source, altered or missing output, modified manifest, attempted upscaling, nontransparent symbol rejection and output path traversal. Legacy optical variants are retained under `branding/assets/refs/icons-v3/` and are no longer active overrides.
