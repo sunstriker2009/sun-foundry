@@ -20,7 +20,7 @@ on:
         default: preview
         options: [preview, apply]
       filename:
-        description: 'ZIP basename already uploaded to target branding/inbox/'
+        description: 'ZIP basename in target branding/revisions/ (legacy inbox supported)'
         type: string
         required: false
         default: branding.zip

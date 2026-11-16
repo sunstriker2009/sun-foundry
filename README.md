@@ -43,7 +43,7 @@ See [docs/WORKFLOWS.md](docs/WORKFLOWS.md) for operational details and [reposito
 
 ## Branding ZIP installer
 
-Upload a package to the target repository’s `branding/inbox/`, then run the manual [Branding ZIP Installer](https://github.com/sunstriker2009/sun-foundry/actions/workflows/branding-zip-install.yml). Preview validates without writing; Apply proposes a reviewed PR with `branding/revisions/v1.zip` as the initial backup and `v2.zip` onward as complete asset snapshots. See the [installation and rollback guide](docs/BRANDING-ZIP-INSTALLER.md).
+On an opted-in repository’s feature branch, commit a package to `branding/revisions/`; the push hook installs it in a follow-up commit on that branch. A manual fallback remains available through [Branding ZIP Installer](https://github.com/sunstriker2009/sun-foundry/actions/workflows/branding-zip-install.yml). In the fallback, Preview validates without writing; Apply proposes a reviewed PR with `branding/revisions/v1.zip` as the initial backup and `v2.zip` onward as complete asset snapshots. See the [installation and rollback guide](docs/BRANDING-ZIP-INSTALLER.md).
 
 ## Shared asset preparation (v1)
 

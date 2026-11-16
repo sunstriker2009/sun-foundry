@@ -1,0 +1,62 @@
+name: Install SUN branding ZIP on this branch
+description: Validate a pending revision ZIP and commit installed assets to the same feature branch
+inputs:
+  validation-workflows:
+    description: 'Comma-separated workflow basenames to dispatch if a PR is already open'
+    required: false
+    default: ''
+outputs:
+  installed:
+    description: Whether a follow-up installation commit was pushed
+    value: ${{ steps.install.outputs.installed }}
+runs:
+  using: composite
+  steps:
+    - name: Detect pending upload
+      id: detect
+      shell: bash
+      env:
+        INSTALLER_ROOT: ${{ github.action_path }}/../..
+      run: python3 "$INSTALLER_ROOT/scripts/install-branding-branch.py" --repository-root "$GITHUB_WORKSPACE" --detect
+    - uses: actions/setup-python@v5
+      if: steps.detect.outputs.has_upload == 'true'
+      with:
+        python-version: '3.12'
+    - name: Install image validator
+      if: steps.detect.outputs.has_upload == 'true'
+      shell: bash
+      env:
+        INSTALLER_ROOT: ${{ github.action_path }}/../..
+      run: python3 -m pip install -r "$INSTALLER_ROOT/assets/requirements.txt"
+    - name: Install and commit on this branch
+      id: install
+      if: steps.detect.outputs.has_upload == 'true'
+      shell: bash
+      env:
+        INSTALLER_ROOT: ${{ github.action_path }}/../..
+      run: python3 "$INSTALLER_ROOT/scripts/install-branding-branch.py" --repository-root "$GITHUB_WORKSPACE"
+    - name: Refresh checks for an existing PR
+      if: steps.install.outputs.installed == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VALIDATION_WORKFLOWS: ${{ inputs.validation-workflows }}
+      run: |
+        set -euo pipefail
+        count=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REF_NAME" --state open --base main --json number --jq 'length')
+        if [[ "$count" == 0 ]]; then
+          echo 'No open PR; opening it later will trigger normal PR checks.'
+          exit 0
+        fi
+        if [[ -z "$VALIDATION_WORKFLOWS" ]]; then
+          echo '::error::An open PR needs configured workflow_dispatch validation workflows for the new commit.'
+          exit 1
+        fi
+        IFS=',' read -ra workflows <<< "$VALIDATION_WORKFLOWS"
+        for workflow in "${workflows[@]}"; do
+          if [[ ! "$workflow" =~ ^[A-Za-z0-9_-]+\.ya?ml$ ]]; then
+            echo '::error::Invalid validation workflow basename'
+            exit 1
+          fi
+          gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
+        done

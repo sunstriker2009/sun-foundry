@@ -34,7 +34,7 @@ def validate(repository, confirmation, operation, filename, revision):
             raise ValueError('Rollback revision must be v1.zip, v2.zip, ...')
         return 'branding/revisions/' + revision
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,119}\.zip', filename):
-        raise ValueError('Supply a ZIP basename from branding/inbox, without directories')
+        raise ValueError('Supply a ZIP basename from branding/revisions (or legacy inbox), without directories')
     return 'branding/inbox/' + filename
 
 
@@ -60,6 +60,8 @@ def main():
         run('git', 'clone', '--quiet', '--single-branch', '--branch', 'main',
             f'https://github.com/{args.repository}.git', str(repo), env=git_env)
         base = run('git', 'rev-parse', 'HEAD', cwd=repo)
+        if not args.rollback_revision and (repo / 'branding/revisions' / args.filename).is_file():
+            relative = 'branding/revisions/' + args.filename
         report = installer.install(repo, repo / relative, bool(args.rollback_revision), apply=False)
         print(json.dumps(report, indent=2))
         summary = ['## SUN branding ZIP', f'Target: `{args.repository}`', f'Source: `{relative}`',

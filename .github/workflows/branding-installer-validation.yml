@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - 'scripts/install-branding.py'
+      - 'scripts/install-branding-branch.py'
+      - 'actions/install-branding-zip/**'
+      - 'tests/test_branding_branch.py'
       - 'scripts/propose-branding-install.py'
       - 'scripts/resolve-workflow-repository.py'
       - 'config/workflow-repositories.json'
@@ -22,4 +25,4 @@ jobs:
         with:
           python-version: '3.12'
       - run: python3 -m pip install -r assets/requirements.txt
-      - run: python3 -m unittest discover -s tests -p 'test_branding_installer.py' -v
+      - run: python3 -m unittest discover -s tests -p 'test_branding*.py' -v
