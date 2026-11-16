@@ -24,7 +24,7 @@ python scripts/prepare-assets.py --product-root /path/to/product --config brandi
 
 Adapt source paths, target sizes and `transparentSymbol` to the approved product masters. Do not use a flattened opaque banner as a symbol source. If no transparent symbol master exists, set `transparentSymbol: false`; a transparent icon canvas does **not** remove an opaque source background.
 
-**Pilot target:** FOUNDRY itself, using the checked-in `branding/asset-config.json`. See [self-pilot acceptance criteria](FOUNDRY-ASSET-PILOT.md). WORKBENCH and ORYVA are intentionally excluded while their automated development workflows are active.
+**Pilot target:** FOUNDRY itself, using the checked-in `branding/asset-config.json`. See [self-pilot acceptance criteria](FOUNDRY-ASSET-PILOT.md). WORKBENCH and OUTPOST are intentionally excluded while their automated development workflows are active.
 
 ## CI and GitHub minutes
 

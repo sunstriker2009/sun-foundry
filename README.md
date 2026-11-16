@@ -47,7 +47,7 @@ On an opted-in repository’s feature branch, commit a package to `branding/revi
 
 ## Shared asset preparation (v1)
 
-FOUNDRY includes a [validated local-first SUN asset-preparation tool](docs/ASSET-PIPELINE.md) for approved PNG artwork. It prepares proportional README banners, icon sizes, favicon, optional transparent symbol exports and a SHA-256 manifest in a separate generated directory. It does not invent artwork or overwrite approved production assets. A narrowly path-filtered CI smoke test covers the tool; the first pilot ran on FOUNDRY itself. See the [opt-in adoption guide](docs/ASSET-ADOPTION.md) for new SUN products; ORYVA and WORKBENCH are not modified.
+FOUNDRY includes a [validated local-first SUN asset-preparation tool](docs/ASSET-PIPELINE.md) for approved PNG artwork. It prepares proportional README banners, icon sizes, favicon, optional transparent symbol exports and a SHA-256 manifest in a separate generated directory. It does not invent artwork or overwrite approved production assets. A narrowly path-filtered CI smoke test covers the tool; the first pilot ran on FOUNDRY itself. See the [opt-in adoption guide](docs/ASSET-ADOPTION.md) for new SUN products; OUTPOST and WORKBENCH are not modified.
 
 Repository Factory v1 completed a controlled public-repository live test in November 2026, including repeat resume after an idempotency fix, strict governance verification, squash-merge integration, and disposable repository cleanup. See the [validation record and remaining boundaries](docs/WORKFLOWS.md#factory-v1-live-validation--november-2026).
 

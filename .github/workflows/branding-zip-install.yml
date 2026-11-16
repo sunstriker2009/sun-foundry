@@ -11,7 +11,7 @@ on:
           - sun-foundry
           - sun-strata
           - sun-ecosystem
-          - sun-oryva
+          - sun-outpost
           - sun-workbench
       operation:
         description: 'Preview or open an installation/rollback PR'
