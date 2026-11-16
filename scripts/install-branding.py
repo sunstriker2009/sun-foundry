@@ -158,6 +158,9 @@ def prepare(repository, source, rollback=False):
     old = files_under(branding / 'assets')
     if Path(source).stat().st_size > MAX_ZIP:
         raise ValueError("ZIP exceeds 20 MB")
+    if (not rollback and Path(source).resolve().parent == (branding / 'revisions').resolve()
+            and re.fullmatch(r'v[1-9][0-9]*\.zip', Path(source).name)):
+        raise ValueError('Numbered revisions are immutable; use rollback to restore one')
     incoming = Path(source).read_bytes()
     if rollback:
         new = restore_assets(incoming)
@@ -214,10 +217,10 @@ def install(repository, source, rollback=False, apply=False):
                 stream.write(content)
         (revisions / 'current.json').write_text(json.dumps(report, indent=2) + '\n')
         if not rollback:
-            # Consume only a ZIP from this repository's inbox; external local inputs stay put.
+            # Consume pending local uploads only; never remove numbered history.
             source_path = Path(source).resolve()
-            if source_path.parent == branding / 'inbox':
-                (stage / 'inbox' / source_path.name).unlink()
+            if source_path.parent in (branding / 'inbox', branding / 'revisions'):
+                (stage / source_path.relative_to(branding)).unlink()
         existed = branding.exists()
         if existed:
             os.replace(branding, previous)

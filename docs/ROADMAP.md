@@ -9,7 +9,7 @@
 | Governance fleet audit v1 | Implemented; final five-repository pass reported by the operator | Repeat manually after governance changes. |
 | Controlled governance alignment | Completed across the five-repository fleet; operator reports all good | Keep explicit ruleset mapping and Plan → Apply → Verify for future changes. |
 | Ecosystem universal check policy | Completed; universal `gallery` and alignment rollout finished | Preserve the stable required check on every PR. |
-| Branding ZIP installer v1 | Implemented with local regression coverage; live pilot pending | Merge installer + handbook PRs; preview a real upload, review the installation PR, then exercise rollback. |
+| Branding ZIP installer and branch hook | Shared installer plus opt-in same-branch push action implemented; merged live pilot pending | Branch-hook rollout and ASTELVO pilot: commit an unnumbered revision ZIP, review the follow-up commit, merge, then exercise rollback. |
 | Branding revision/archive migration | Asset snapshots and rollback implemented | Pilot first; legacy `branding/archive/` cleanup and broader adoption remain separate reviewed work. |
 
 Next: [Branding ZIP installer](BRANDING-ZIP-INSTALLER.md). Governance completion above reflects the operator’s final successful fleet report; it is not a continuously refreshed compliance claim.
