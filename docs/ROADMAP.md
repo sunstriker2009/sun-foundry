@@ -10,10 +10,15 @@
 | Controlled governance alignment | Completed across the five-repository fleet; operator reports all good | Keep explicit ruleset mapping and Plan → Apply → Verify for future changes. |
 | Ecosystem universal check policy | Completed; universal `gallery` and alignment rollout finished | Preserve the stable required check on every PR. |
 | Branding ZIP installer and branch hook | Shared installer and same-branch action merged; WORKBENCH installation pilot merged in #39 | Live rollback remains pending; additional repositories require their own opt-in review. See GOVERNANCE-HANDOFF.md for evidence. |
-| Repository rename and reference migration | Implemented in proposed workflow; local mock/Git validation | Merge workflow, review a target-specific Plan, then explicitly Apply; no live rename performed. See [rename guide](REPOSITORY-RENAME.md). |
+| Repository rename and reference migration | Automatic workflow merged; WORKBENCH repository rename pilot completed with reference-PR recovery | Preserve early content-write checks and bounded target/governance scope; automatic live execution remains to be exercised. See [rename guide](REPOSITORY-RENAME.md). |
 | Branding revision/archive migration | Asset snapshots and rollback implemented | Pilot first; legacy `branding/archive/` cleanup and broader adoption remain separate reviewed work. |
 
 Next: [Branding ZIP installer](BRANDING-ZIP-INSTALLER.md). Governance completion above reflects the operator’s final successful fleet report; it is not a continuously refreshed compliance claim.
 
 Fleet audit scope: [Governance Fleet Audit](GOVERNANCE-FLEET-AUDIT.md). Drift remediation: [Controlled Governance Alignment](GOVERNANCE-ALIGNMENT.md). Both are manual-only; scheduling and automatic fleet-wide remediation remain separate decisions.
+
+
+## Product rename pipeline
+
+Implemented in the proposed workflow: public-name registry/reference migration with optional same-run repository rename. Scope is the target plus governance repositories only. Local validation covers the shared engine and product flow; live pipeline execution is pending. See [operator guide](PRODUCT-RENAME.md). No product rename or paused schedule is started by this milestone.
 

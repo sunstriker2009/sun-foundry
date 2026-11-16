@@ -15,7 +15,7 @@ A Plan-only run makes no external writes. Choosing Execute later generates a fre
 
 ## Reference scope
 
-Tracked regular UTF-8 files on configured default branches are scanned for exact owner/repository references, quoted short-name values/keys and whole YAML scalar/dropdown values. Generated Ecosystem gallery tiles are reordered as repository URLs change. FOUNDRY allowlists, ruleset mappings, workflow guards, registry mappings and documentation links are proposed together.
+Tracked regular UTF-8 files on the target and deduplicated STRATA/FOUNDRY/Ecosystem default branches are scanned for exact owner/repository references, quoted short-name values/keys and whole YAML scalar/dropdown values. Generated Ecosystem gallery tiles are reordered as repository URLs change. FOUNDRY allowlists, ruleset mappings, workflow guards, registry mappings and documentation links are proposed together.
 
 Product display names, SUN IDs, namespaces, asset names and binary artwork are not renamed by this repository workflow. A package identifier exactly equal to the repository short name is mechanically matched; inspect resulting PRs. Public-product renaming remains an explicitly authorized migration.
 
@@ -48,4 +48,9 @@ Reference: https://docs.github.com/en/repositories/creating-and-managing-reposit
 The live ASTELVO → WORKBENCH repository rename preserved repository ID 1456026269. Its Apply subsequently received a 403 preparing the FOUNDRY tree; reference PRs were recovered through the connected GitHub integration. The automatic path now prepares content writes before renaming and refreshes gallery ordering to cover the failures observed in that pilot.
 
 Local mock/API and temporary-Git tests cover automatic execution, Plan-only immutability, failed content writes before rename, head drift, collisions, retries and gallery ordering. The automatic execution path itself has not yet been exercised in a live rename. No disposable repository or paused schedule is started by this change.
+
+
+## Bounded product/governance scope
+
+Reference scanning now uses the selected target plus `sun-strata`, `sun-foundry` and `sun-ecosystem`, deduplicating a governance target. It does not scan other product or owner repositories. The [product rename pipeline](PRODUCT-RENAME.md) uses this same scope and can reuse this engine for an optional repository rename, producing a single combined PR per affected repository.
 
