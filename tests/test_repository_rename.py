@@ -3,6 +3,7 @@ import importlib.util
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -74,6 +75,17 @@ class FakeAPI:
 
 
 class RenameTests(unittest.TestCase):
+    def test_repository_rename_refreshes_generated_gallery_order(self):
+        source = ('header\n<!-- SUN-REPOSITORY-GALLERY:START -->\n<table>\n<tr>\n'
+                  '<td><a href="https://github.com/sunstriker2009/sun-alpha">Product</a></td>\n'
+                  '<td><a href="https://github.com/sunstriker2009/sun-middle">Other</a></td>\n'
+                  '</tr>\n</table>\n<!-- SUN-REPOSITORY-GALLERY:END -->\nfooter')
+        result = rename.refresh_gallery(rename.rewrite(source, 'sun-alpha', 'sun-zeta'))
+        self.assertLess(result.index('sun-middle'), result.index('sun-zeta'))
+        self.assertEqual(rename.refresh_gallery(result), result)
+        self.assertTrue(result.startswith('header\n'))
+        self.assertTrue(result.endswith('\nfooter'))
+
     def test_reference_boundaries(self):
         text = 'https://github.com/sunstriker2009/sun-old.git\nuses: sunstriker2009/sun-old/actions/install@abc\nrepository: "sun-old"\n  - sun-old\nbranding/registry/sun-old.png\nhttps://github.com/sunstriker2009/sun-old-extra\n'
         updated = rename.rewrite(text, 'sun-old', 'sun-new')
@@ -189,6 +201,60 @@ class RenameTests(unittest.TestCase):
             rename.apply_plan(api, p, {})
         self.assertTrue(all(method == 'GET' for method, _, _ in api.calls))
 
+    def test_all_content_writes_are_checked_before_rename(self):
+        class Denied(FakeAPI):
+            def call(self, endpoint, method='GET', data=None, missing=False):
+                if endpoint == 'repos/sunstriker2009/sun-ecosystem/git/trees' and method == 'POST':
+                    self.calls.append((method, endpoint, data))
+                    raise rename.ApiError(403, endpoint)
+                return super().call(endpoint, method, data, missing)
+        api = Denied()
+        with self.assertRaises(rename.ApiError):
+            rename.apply_plan(api, plan(), {})
+        self.assertFalse(api.renamed)
+        self.assertFalse(any(method == 'PATCH' or endpoint.endswith('/git/refs')
+                             for method, endpoint, _ in api.calls))
+
+    def test_head_drift_during_object_preparation_stops_rename(self):
+        class Drift(FakeAPI):
+            def call(self, endpoint, method='GET', data=None, missing=False):
+                result = super().call(endpoint, method, data, missing)
+                if endpoint.endswith('/git/commits') and method == 'POST':
+                    self.head = 'changed'
+                return result
+        api = Drift()
+        with self.assertRaises(ValueError):
+            rename.apply_plan(api, plan(), {})
+        self.assertFalse(api.renamed)
+
+    @patch.dict(os.environ, {'GITHUB_SHA': ''})
+    def test_execute_uses_generated_plan_without_confirmation_or_run_id(self):
+        p = plan()
+        for entry in p['repositories']:
+            entry.update(retained=[], skipped=[])
+            for change in entry['changes']:
+                change['diff'] = 'fixture diff\n'
+        for operation in ['execute', 'plan']:
+            api = FakeAPI()
+            with tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                (root / 'config').mkdir()
+                (root / 'config/workflow-repositories.json').write_text(
+                    rename.json.dumps({'repositories': p['scope']}))
+                output = root / 'output'
+                argv = ['rename-repository.py', '--operation', operation, '--repository', p['old'],
+                        '--new-name', p['new'], '--output', str(output)]
+                with patch.object(rename, 'ROOT', root), patch.object(rename, 'GitHub', return_value=api), \
+                     patch.object(rename, 'make_plan', return_value=p), patch.object(sys, 'argv', argv):
+                    self.assertEqual(rename.main(), 0)
+                self.assertEqual(rename.json.loads((output / 'plan.json').read_text()), p)
+                result = rename.json.loads((output / 'result.json').read_text())
+                self.assertEqual(result['status'], 'proposed' if operation == 'execute' else 'planned')
+                self.assertEqual(api.renamed, operation == 'execute')
+                if operation == 'plan':
+                    self.assertEqual(api.calls, [])
+
 
 if __name__ == '__main__':
     unittest.main()
+

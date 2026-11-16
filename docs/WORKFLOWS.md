@@ -86,5 +86,6 @@ Use [SUN Governance Alignment](GOVERNANCE-ALIGNMENT.md) for reviewed in-place ch
 
 ## Repository rename and reference migration
 
-Use **SUN Rename Repository** for a reviewed Plan → Apply operation. Apply renames the repository and proposes reference updates across configured SUN repositories through normal PRs. It does not merge those PRs or change product identity. See [rename operating guide](REPOSITORY-RENAME.md) for inputs, non-atomic migration windows, permissions, recovery and external follow-ups. FOUNDRY self-renames are excluded while it hosts shared Actions. Live rename validation remains pending.
+Use **SUN Rename Repository** with operation `execute` for automatic Plan → validate → Apply in one job. No separate plan review, Plan run ID or confirmation input is needed. Operation `plan` remains read-only. Apply prepares content writes before renaming and proposes reference updates through normal PRs; default branches and merge policy remain protected. The existing administration environment may require upfront approval to access its credential. See [rename guide](REPOSITORY-RENAME.md) for scope, recovery, live pilot evidence and external follow-ups. FOUNDRY self-renames remain excluded while it hosts shared Actions.
+
 
