@@ -6,8 +6,12 @@
 | Shared raster asset preparation | Implemented; FOUNDRY pilot and regression checks present | Product adoption remains explicit. |
 | Ecosystem registration and gallery | Implemented | New product identities and IDs require review. |
 | Canonical symbol reconciliation | Implemented; daily schedule and manual dispatch | Monitor registry PRs and required checks. |
-| Governance fleet audit v1 | Implemented; first live report completed | User reports all four product/infrastructure targets now pass; Ecosystem remains the final alignment target. |
-| Controlled governance alignment | Live Apply succeeded for FOUNDRY, STRATA and ORYVA | Align Ecosystem after universal-check rollout; rerun fleet audit. |
-| Ecosystem universal check policy | Paired rollout prepared | Merge Ecosystem universal `gallery` workflow first, then FOUNDRY policy; Plan → Apply → Verify remains pending. |
+| Governance fleet audit v1 | Implemented; final five-repository pass reported by the operator | Repeat manually after governance changes. |
+| Controlled governance alignment | Completed across the five-repository fleet; operator reports all good | Keep explicit ruleset mapping and Plan → Apply → Verify for future changes. |
+| Ecosystem universal check policy | Completed; universal `gallery` and alignment rollout finished | Preserve the stable required check on every PR. |
+| Branding ZIP installer v1 | Implemented with local regression coverage; live pilot pending | Merge installer + handbook PRs; preview a real upload, review the installation PR, then exercise rollback. |
+| Branding revision/archive migration | Asset snapshots and rollback implemented | Pilot first; legacy `branding/archive/` cleanup and broader adoption remain separate reviewed work. |
+
+Next: [Branding ZIP installer](BRANDING-ZIP-INSTALLER.md). Governance completion above reflects the operator’s final successful fleet report; it is not a continuously refreshed compliance claim.
 
 Fleet audit scope: [Governance Fleet Audit](GOVERNANCE-FLEET-AUDIT.md). Drift remediation: [Controlled Governance Alignment](GOVERNANCE-ALIGNMENT.md). Both are manual-only; scheduling and automatic fleet-wide remediation remain separate decisions.

@@ -75,6 +75,14 @@ class RepositoryInputTests(unittest.TestCase):
                                 'sunstriker2009/sun-foundry', 'maintenance', 'apply')
         self.assertEqual(result['name'], 'sun-foundry')
 
+    def test_branding_preview_defaults_and_mutation_confirmation(self):
+        result = inputs.resolve('sun-foundry', '', '', 'branding', 'preview')
+        self.assertEqual(result['confirmation'], '')
+        with self.assertRaises(ValueError):
+            inputs.resolve('sun-foundry', '', '', 'branding', 'apply')
+        with self.assertRaises(ValueError):
+            inputs.resolve(inputs.OTHER, 'sun-other', '', 'branding', 'preview')
+
     def test_alignment_scope_cannot_be_expanded_using_custom_input(self):
         for args in [(inputs.OTHER, 'sun-other', '', 'alignment', 'plan'),
                      ('unlisted-repository', '', '', 'alignment', 'plan')]:
