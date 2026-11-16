@@ -1,24 +1,17 @@
 # FOUNDRY milestones
 
-| Milestone | Status | Remaining gate |
+Checkpoint: 2026-11-16. Read [the handoff](GOVERNANCE-HANDOFF.md) before resuming; use [issues and gaps](ISSUES-AND-GAPS.md) for unfinished work.
+
+| Milestone | Verified status | Next work |
 | --- | --- | --- |
-| Repository Factory v1 and maintenance | Implemented; controlled public-repository create/resume test completed | Broader interruption and private-plan boundaries remain documented. |
-| Shared raster asset preparation | Implemented; FOUNDRY pilot and regression checks present | Product adoption remains explicit. |
-| Ecosystem registration and gallery | Implemented | New product identities and IDs require review. |
-| Canonical symbol reconciliation | Implemented; daily schedule and manual dispatch | Monitor registry PRs and required checks. |
-| Governance fleet audit v1 | Implemented; final five-repository pass reported by the operator | Repeat manually after governance changes. |
-| Controlled governance alignment | Completed across the five-repository fleet; operator reports all good | Keep explicit ruleset mapping and Plan → Apply → Verify for future changes. |
-| Ecosystem universal check policy | Completed; universal `gallery` and alignment rollout finished | Preserve the stable required check on every PR. |
-| Branding ZIP installer and branch hook | Shared installer and same-branch action merged; WORKBENCH installation pilot merged in #39 | Live rollback remains pending; additional repositories require their own opt-in review. See GOVERNANCE-HANDOFF.md for evidence. |
-| Repository rename and reference migration | Automatic workflow merged; WORKBENCH repository rename pilot completed with reference-PR recovery | Preserve early content-write checks and bounded target/governance scope; automatic live execution remains to be exercised. See [rename guide](REPOSITORY-RENAME.md). |
-| Branding revision/archive migration | Asset snapshots and rollback implemented | Pilot first; legacy `branding/archive/` cleanup and broader adoption remain separate reviewed work. |
+| Repository Factory and maintenance | Public create/resume pilot completed; safety checks retained | Broader interruption/private-plan testing when authorized |
+| Governance alignment and fleet audit | Five-repository completion operator-reported; current FOUNDRY `build` and Ecosystem `gallery` rules read back | Manual audit after material governance changes; no schedule |
+| Registration and gallery | Implemented; OUTPOST/WORKBENCH identities now current | Explicit review for new identities |
+| Canonical PNG reconciliation | Daily 08:17 UTC and manual dispatch; merge is artwork approval | Monitor actual failures; no separate digest gate |
+| Branding ZIP installation | Shared installer/action merged; WORKBENCH real same-branch pilot succeeded; OUTPOST opted in | Resolve OUTPOST open-PR reservation dispatch gap, then pilot; rollback/restore remains pending |
+| Branding revision folders | Present in all five core repositories, including STRATA | Folder alone does not enable automatic installation |
+| Product and repository rename | Automatic combined ORYVA → OUTPOST run succeeded; three migration PRs merged | Review retained display/packaging/artwork references and non-atomic recovery limits |
+| Workflow cleanup | Redundant rename validator, legacy sync alias and historical ledger validator retired by cleanup PRs | Merge cleanup PRs and retain current handoff |
+| Branding archive migration / further hook adoption | Separate work | Preserve archives and immutable revisions; require explicit opt-in |
 
-Next: [Branding ZIP installer](BRANDING-ZIP-INSTALLER.md). Governance completion above reflects the operator’s final successful fleet report; it is not a continuously refreshed compliance claim.
-
-Fleet audit scope: [Governance Fleet Audit](GOVERNANCE-FLEET-AUDIT.md). Drift remediation: [Controlled Governance Alignment](GOVERNANCE-ALIGNMENT.md). Both are manual-only; scheduling and automatic fleet-wide remediation remain separate decisions.
-
-
-## Product rename pipeline
-
-Implemented in the proposed workflow: public-name registry/reference migration with optional same-run repository rename. Scope is the target plus governance repositories only. Local validation covers the shared engine and product flow; live pipeline execution is pending. See [operator guide](PRODUCT-RENAME.md). No product rename or paused schedule is started by this milestone.
-
+Functional development and recurring product schedules remain paused. No new rename, live rollback, fleet-wide rollout or automatic governance remediation is started by this roadmap.

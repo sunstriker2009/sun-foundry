@@ -52,7 +52,7 @@ A temporary public repository, `sunstriker2009/sun-foundry-validation`, was crea
 
 The manual-only fleet audit is implemented for an explicit five-repository allowlist, with two concurrent strict verifier processes and a per-repository JSON report. It invokes only `verify`, never Apply or provisioning. Missing check policy, drift, private-plan limits and access errors cannot be reported as compliance.
 
-See [fleet audit setup and result meanings](GOVERNANCE-FLEET-AUDIT.md) and [milestone status](ROADMAP.md). The first live report remains pending until the merged workflow is dispatched through the existing administration environment. No audit schedule or remediation is enabled.
+See [fleet audit setup and result meanings](GOVERNANCE-FLEET-AUDIT.md) and [milestone status](ROADMAP.md). The operator reported the final five-repository audit successful; this is historical evidence, not a fresh compliance claim. No audit schedule or remediation is enabled.
 
 ## SUN ecosystem registration (phase 2)
 
@@ -72,7 +72,7 @@ FOUNDRY scans confirmed entries in `registry/repositories.json` daily at 08:17 U
 
 SHA-256 remains as change-detection metadata (`iconSha256`), never as an approval restriction. PNG signature, decoded byte count, the 2,000,000-byte limit, registered identity checks, and the large-file Git Blobs API fallback remain enforced. Legacy source-path overrides require manual synchronization and manual merge.
 
-Use **Reconcile Approved SUN Symbols** with manual dispatch to scan immediately, or **Sync Approved SUN Symbol** with a confirmed repository and preview/apply mode for a single target. The old approval-proposal entry point now delegates to canonical synchronization and no longer creates approval-ledger PRs.
+Use **Reconcile Approved SUN Symbols** with manual dispatch to scan immediately, or **Sync Approved SUN Symbol** with a confirmed repository and preview/apply mode for a single target. The compatibility approval entry point is retired; use the canonical sync or reconciliation workflow. See the [cleanup record](WORKFLOW-CLEANUP.md).
 
 ### Credentials and prerequisites
 
@@ -94,3 +94,6 @@ Use **SUN Rename Repository** with operation `execute` for automatic Plan → va
 
 Use **SUN Rename Product** to rename a registered public product identity, optionally chaining the existing repository rename engine. It scans only the target plus STRATA, FOUNDRY and Ecosystem, deduplicates governance targets, preserves SUN IDs/technical compatibility and opens combined PRs. Default Execute is automatic; read-only Plan remains available. No owner-wide scan or separate plan review is introduced. See [product rename guide](PRODUCT-RENAME.md).
 
+## Current checkpoint
+
+See the [resumption handoff](GOVERNANCE-HANDOFF.md), [issues and gaps](ISSUES-AND-GAPS.md), and [workflow cleanup record](WORKFLOW-CLEANUP.md). The automatic combined ORYVA → OUTPOST product/repository pilot succeeded and its three migration PRs are merged. Product development and its recurring schedules remain paused.
