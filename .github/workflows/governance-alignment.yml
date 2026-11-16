@@ -11,7 +11,7 @@ on:
           - sun-foundry
           - sun-strata
           - sun-oryva
-          - sun-astelvo
+          - sun-workbench
           - sun-ecosystem
       operation:
         description: 'Plan changes, apply a reviewed plan, or verify'

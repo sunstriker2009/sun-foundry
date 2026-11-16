@@ -38,7 +38,7 @@ class BranchInstallerTests(unittest.TestCase):
         self.sha = branch.git(self.repo, 'rev-parse', 'HEAD')
 
     def apply(self):
-        return branch.install_branch(self.repo, 'sunstriker2009/sun-astelvo', 'branding/pilot', self.sha)
+        return branch.install_branch(self.repo, 'sunstriker2009/sun-workbench', 'branding/pilot', self.sha)
 
     def test_follow_up_commit_on_same_branch_consumes_upload_and_ignores_versions(self):
         result = self.apply()
@@ -50,7 +50,7 @@ class BranchInstallerTests(unittest.TestCase):
         self.assertTrue((self.revisions / 'v1.zip').exists())
         self.assertTrue((self.revisions / 'v2.zip').exists())
         self.assertIsNone(branch.pending(self.repo))
-        self.assertFalse(branch.install_branch(self.repo, 'sunstriker2009/sun-astelvo',
+        self.assertFalse(branch.install_branch(self.repo, 'sunstriker2009/sun-workbench',
                                                'branding/pilot', result['commit'])['installed'])
         self.assertEqual((self.repo / 'README.md').read_text(), 'Keep product introduction')
 
@@ -71,9 +71,9 @@ class BranchInstallerTests(unittest.TestCase):
         self.assertFalse((self.revisions / 'v1.zip').exists())
 
     def test_rejects_main_unknown_repository_dirty_checkout_and_wrong_tip(self):
-        for repository, name, sha in [('sunstriker2009/sun-astelvo', 'main', self.sha),
+        for repository, name, sha in [('sunstriker2009/sun-workbench', 'main', self.sha),
                                      ('other/sun-astelvo', 'branding/pilot', self.sha),
-                                     ('sunstriker2009/sun-astelvo', 'branding/pilot', '0' * 40)]:
+                                     ('sunstriker2009/sun-workbench', 'branding/pilot', '0' * 40)]:
             with self.assertRaises(ValueError):
                 branch.install_branch(self.repo, repository, name, sha)
         (self.repo / 'unrelated.txt').write_text('uncommitted')
@@ -109,7 +109,7 @@ class BranchInstallerTests(unittest.TestCase):
         gh.chmod(0o755)
         log = tool / 'calls'
         env = dict(os.environ, PATH=str(tool) + ':' + os.environ['PATH'], CALL_LOG=str(log),
-                   GITHUB_REPOSITORY='sunstriker2009/sun-astelvo', GITHUB_REF_NAME='branding/pilot',
+                   GITHUB_REPOSITORY='sunstriker2009/sun-workbench', GITHUB_REF_NAME='branding/pilot',
                    VALIDATION_WORKFLOWS='ci.yml,pr-title.yml')
         for count, expected in [('0', 0), ('1', 2)]:
             log.write_text('')

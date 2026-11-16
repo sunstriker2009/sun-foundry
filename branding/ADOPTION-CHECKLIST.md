@@ -1,6 +1,6 @@
 # SUN product branding adoption checklist
 
-Use this checklist when migrating ASTELVO, ORYVA or any SUN product to the [SUN branding standard](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/PRODUCT-BRANDING.md). FOUNDRY is the reference for **file organization and process**, not for other products' imagery or palette.
+Use this checklist when migrating WORKBENCH, ORYVA or any SUN product to the [SUN branding standard](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/PRODUCT-BRANDING.md). FOUNDRY is the reference for **file organization and process**, not for other products' imagery or palette.
 
 ## 1. Identify approved sources
 

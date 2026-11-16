@@ -11,7 +11,7 @@ Start with [roadmap](ROADMAP.md), [workflow operations](WORKFLOWS.md), [branding
 - Factory v1, recovery/maintenance, raster preparation, registration and canonical-symbol synchronization are implemented. Existing documentation records the controlled public-repository factory test and its limits.
 - Five-repository governance alignment and final audit were reported successful by the operator. This review did not rerun an administrative audit or independently inspect all live rulesets. Preserve that evidence distinction.
 - [FOUNDRY #62](https://github.com/sunstriker2009/sun-foundry/pull/62) merged the reversible ZIP installer; [#63](https://github.com/sunstriker2009/sun-foundry/pull/63) merged the same-branch action.
-- [ASTELVO #39](https://github.com/sunstriker2009/sun-astelvo/pull/39) is merged. Current main contains the opt-in hook, `branding/revisions/v1.zip`, `v2.zip` and `current.json` recording installation from `workbench-w2-assets-v1.zip`. The hook pins FOUNDRY commit `c1680fc22fb35f9542b65dfb1b79449c0970a154`. The prior operator handoff reports successful follow-up installation and uploaded-symbol verification; this review independently checked the merged PR, workflow and revision metadata, not a new byte comparison or installation run.
+- [WORKBENCH #39](https://github.com/sunstriker2009/sun-workbench/pull/39) is merged. Current main contains the opt-in hook, `branding/revisions/v1.zip`, `v2.zip` and `current.json` recording installation from `workbench-w2-assets-v1.zip`. The hook pins FOUNDRY commit `c1680fc22fb35f9542b65dfb1b79449c0970a154`. The prior operator handoff reports successful follow-up installation and uploaded-symbol verification; this review independently checked the merged PR, workflow and revision metadata, not a new byte comparison or installation run.
 - Live rollback remains unverified. No hook is present in the reviewed Foundry, STRATA or ecosystem trees. Do not describe broader adoption as complete.
 
 ## Durable installer decisions
@@ -24,7 +24,7 @@ The hook uses repository GITHUB_TOKEN and explicitly dispatches required validat
 
 ## Next work, when explicitly resumed
 
-1. Inspect current PRs/runs and ASTELVO's current revision state. If a failure is reported, inspect branch and commit evidence before retrying; an accepted push can coexist with a failed network response.
+1. Inspect current PRs/runs and WORKBENCH's current revision state. If a failure is reported, inspect branch and commit evidence before retrying; an accepted push can coexist with a failed network response.
 2. Select and authorize a live rollback pilot; preview a chosen snapshot, review the restore PR, run required checks and visually inspect before squash merge. Record PR/run/commit evidence afterward. Do not perform it during this documentation handoff.
 3. Review opt-in separately for each additional repository, pin a reviewed action commit and ensure dispatched CI/title workflows validate the same rules. Do not enable it fleet-wide implicitly.
 4. Plan legacy archive migration separately. Preserve original artwork, concepts and provenance that asset snapshots do not cover.
@@ -33,10 +33,14 @@ The hook uses repository GITHUB_TOKEN and explicitly dispatches required validat
 
 Unsupported private-plan enforcement must fail closed; never silently change visibility. Stronger approval counts must be preserved even if a strict baseline verifier flags them. Alignment uses explicitly mapped existing ruleset IDs, reviewed Plan artifact and current-state checks; plans expire after seven days. There is no scheduled fleet mutation. Existing daily symbol reconciliation is distinct from manual fleet governance.
 
-ASTELVO development has a merged paused-work handoff in [#40](https://github.com/sunstriker2009/sun-astelvo/pull/40); consult its current documentation and do not resume product work from this governance note. Workbench-named artwork does not by itself establish a registry/repository rename; naming reconciliation needs explicit owner direction.
+WORKBENCH development has a merged paused-work handoff in [#40](https://github.com/sunstriker2009/sun-workbench/pull/40); consult its current documentation and do not resume product work from this governance note. The owner has now explicitly approved WORKBENCH and sun-workbench; earlier artwork-only naming uncertainty is superseded.
 
 ## Resume rules
 
 Read current repository documentation and live GitHub state before acting; this snapshot is not a standing authorization to resume implementation or administrative changes. Preserve explicit pauses. Use feature branches and PRs, required checks, applicable human review and squash merges; never push directly to protected main or weaken protection to make a verifier pass. Batch related fixes, avoid duplicate CI and unnecessary reruns, and stay within the owner's free GitHub Actions budget. Never store tokens in documentation.
 
 Before continuing, inspect open PRs, branch tips and latest workflow results. Distinguish implementation, operator-reported live validation and independently verified evidence. Re-run read-only checks when needed; do not infer current compliance from an old green report. Do not create disposable repositories, change settings, roll out hooks, migrate archives or resume paused product work just because it appears in a next-step list.
+
+## Owner-approved product rename
+
+The owner approved ASTELVO → WORKBENCH by Sun and repository `sunstriker2009/sun-workbench`. This supersedes earlier notes treating Workbench naming as unverified. SUN-002 and `Sun.Workspace` stay unchanged. The historical ASTELVO Development schedule and product feature development remain paused. See [naming decision](https://github.com/sunstriker2009/sun-ecosystem/blob/main/decisions/0004-workbench-rename.md).

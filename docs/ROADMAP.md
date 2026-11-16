@@ -9,7 +9,7 @@
 | Governance fleet audit v1 | Implemented; final five-repository pass reported by the operator | Repeat manually after governance changes. |
 | Controlled governance alignment | Completed across the five-repository fleet; operator reports all good | Keep explicit ruleset mapping and Plan → Apply → Verify for future changes. |
 | Ecosystem universal check policy | Completed; universal `gallery` and alignment rollout finished | Preserve the stable required check on every PR. |
-| Branding ZIP installer and branch hook | Shared installer and same-branch action merged; ASTELVO installation pilot merged in #39 | Live rollback remains pending; additional repositories require their own opt-in review. See GOVERNANCE-HANDOFF.md for evidence. |
+| Branding ZIP installer and branch hook | Shared installer and same-branch action merged; WORKBENCH installation pilot merged in #39 | Live rollback remains pending; additional repositories require their own opt-in review. See GOVERNANCE-HANDOFF.md for evidence. |
 | Repository rename and reference migration | Implemented in proposed workflow; local mock/Git validation | Merge workflow, review a target-specific Plan, then explicitly Apply; no live rename performed. See [rename guide](REPOSITORY-RENAME.md). |
 | Branding revision/archive migration | Asset snapshots and rollback implemented | Pilot first; legacy `branding/archive/` cleanup and broader adoption remain separate reviewed work. |
 
