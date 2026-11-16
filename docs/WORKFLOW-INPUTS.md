@@ -22,5 +22,6 @@ Factory runs are serialized to avoid different selections or aliases provisionin
 
 ## Rename inputs
 
-**SUN Rename Repository** uses two short-name text inputs: `repository` (must be in the configured repository allowlist) and `new_name` (an unused lowercase name). The scanner handles curated dropdown updates in its proposed PRs. It does not use the dropdown resolver because the replacement name is intentionally not registered yet. Plan leaves Apply fields empty. Apply requires `plan_run_id` and exact `confirm_rename: old-name -> new-name`. Owner remains implicit; transfers are unsupported. See [rename guide](REPOSITORY-RENAME.md).
+**SUN Rename Repository** takes `repository` and `new_name` as short-name text inputs. The source must be configured; the destination must be an unused lowercase name. Operation `execute` is the default: Plan, validate and Apply automatically in one job. Operation `plan` is read-only. No Plan run ID or typed confirmation is required by the form. Existing administration-environment access controls still apply before the job starts. See [rename guide](REPOSITORY-RENAME.md).
+
 

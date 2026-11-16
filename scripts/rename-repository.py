@@ -62,6 +62,23 @@ def rewrite(text, old, new):
                   lambda m: m[1] + new + m[2], text)
 
 
+def refresh_gallery(text):
+    """Keep generated tile ordering valid when repository URLs change."""
+    start, end = '<!-- SUN-REPOSITORY-GALLERY:START -->', '<!-- SUN-REPOSITORY-GALLERY:END -->'
+    if text.count(start) != 1 or text.count(end) != 1 or text.index(start) > text.index(end):
+        return text
+    first, last = text.index(start), text.index(end)
+    def table(match):
+        cells = re.findall(r'<td\b[^>]*>.*?</td>', match[1], re.S)
+        if not cells:
+            return match[0]
+        rows = ['<tr>\n' + '\n'.join(sorted(cells)[i:i + 3]) + '\n</tr>'
+                for i in range(0, len(cells), 3)]
+        return '<table>\n' + '\n'.join(rows) + '\n</table>'
+    gallery = re.sub(r'<table>\n(.*?)\n</table>', table, text[first:last], flags=re.S)
+    return text[:first] + gallery + text[last:]
+
+
 def scan_checkout(root, old, new):
     records = subprocess.check_output(['git', 'ls-tree', '-rz', 'HEAD'], cwd=root).split(b'\0')
     changes, retained, skipped = [], [], []
@@ -86,6 +103,8 @@ def scan_checkout(root, old, new):
         if '\0' in text:
             continue
         updated = rewrite(text, old, new)
+        if path == 'README.md':
+            updated = refresh_gallery(updated)
         if updated != text:
             changes.append({'path': path, 'mode': mode, 'before': sha, 'content': updated,
                             'diff': ''.join(difflib.unified_diff(text.splitlines(True),
@@ -192,6 +211,7 @@ def preflight(api, plan):
 
 def apply_plan(api, plan, report):
     renamed, live = preflight(api, plan)
+    report['renamed'] = renamed
     old, new = plan['old'], plan['new']
     branch = f'chore/rename-{old}-to-{new}'
     # Refuse unrelated existing branches across the fleet before renaming.
@@ -219,6 +239,28 @@ def apply_plan(api, plan, report):
             if leaves(commit['tree']['sha']) != expected:
                 raise ValueError(f'{name}: proposal contents differ; inspect before retrying')
         trees[name] = existing
+    # Exercise real content/workflow writes in every affected repository before
+    # renaming. These are unattached Git objects, never branch/default-ref writes.
+    prepared = {}
+    for entry, name in live:
+        if not entry['changes']:
+            continue
+        repo = f'{OWNER}/{name}'
+        entries = [{'path': c['path'], 'mode': c['mode'], 'type': 'blob', 'content': c['content']}
+                   for c in entry['changes']]
+        tree = api.call(f'repos/{repo}/git/trees', 'POST', {'base_tree': entry['tree'], 'tree': entries})
+        if trees[name]:
+            commit = api.call(f'repos/{repo}/git/commits/{trees[name]["object"]["sha"]}')
+            if commit['tree']['sha'] != tree['sha']:
+                raise ValueError(f'{name}: rename branch contents changed; refusing overwrite')
+            commit['sha'] = trees[name]['object']['sha']
+        else:
+            commit = api.call(f'repos/{repo}/git/commits', 'POST', {'tree': tree['sha'],
+                'parents': [entry['head']], 'message': f'chore: update references for {old} -> {new}'})
+        prepared[name] = commit
+    # Object preparation can take time; refuse head/identity changes before rename.
+    preflight(api, plan)
+    report['writePreflightCompleted'] = True
     if not renamed:
         result = api.call(f'repos/{OWNER}/{old}', 'PATCH', {'name': new})
         if result['id'] != plan['sourceId'] or result['full_name'] != f'{OWNER}/{new}':
@@ -232,17 +274,9 @@ def apply_plan(api, plan, report):
         head = api.call(f'repos/{repo}/git/ref/heads/{entry["branch"]}')['object']['sha']
         if head != entry['head']:
             raise ValueError(f'{name}: default branch changed after rename; stop and replan')
-        entries = [{'path': c['path'], 'mode': c['mode'], 'type': 'blob', 'content': c['content']}
-                   for c in entry['changes']]
-        tree = api.call(f'repos/{repo}/git/trees', 'POST', {'base_tree': entry['tree'], 'tree': entries})
         existing = trees[original_name]
-        if existing:
-            commit = api.call(f'repos/{repo}/git/commits/{existing["object"]["sha"]}')
-            if commit['tree']['sha'] != tree['sha']:
-                raise ValueError(f'{name}: rename branch contents changed; refusing overwrite')
-        else:
-            commit = api.call(f'repos/{repo}/git/commits', 'POST', {'tree': tree['sha'],
-                'parents': [entry['head']], 'message': f'chore: update references for {old} -> {new}'})
+        commit = prepared[original_name]
+        if not existing:
             api.call(f'repos/{repo}/git/refs', 'POST', {'ref': f'refs/heads/{branch}', 'sha': commit['sha']})
         # Existing matching branch/PR can be reused after an interrupted Apply.
         prs = api.call(f'repos/{repo}/pulls?state=all&head={OWNER}:{branch}&base={entry["branch"]}')
@@ -262,7 +296,7 @@ def apply_plan(api, plan, report):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--operation', choices=['plan', 'apply'], required=True)
+    parser.add_argument('--operation', choices=['plan', 'apply', 'execute'], required=True)
     parser.add_argument('--repository', required=True)
     parser.add_argument('--new-name', required=True)
     parser.add_argument('--confirm', default='')
@@ -277,13 +311,15 @@ def main():
         if len(scope) != len(set(scope)) or any(short(name) != name for name in scope):
             raise ValueError('Invalid configured scope')
         api = GitHub()
-        if args.operation == 'plan':
+        if args.operation in ('plan', 'execute'):
             plan = make_plan(api, old, new, scope)
             encoded = json.dumps(plan, indent=2)
             if len(encoded.encode()) > MAX_PLAN:
                 raise ValueError('Plan too large; reduce scope through reviewed configuration')
             (args.output / 'plan.json').write_text(encoded + '\n')
-            summary = [f'# Repository rename: {old} → {new}', '', 'Plan only: no external changes.', '']
+            description = ('Automatic Plan → Apply; no separate plan review.' if args.operation == 'execute'
+                           else 'Plan only: no external changes.')
+            summary = [f'# Repository rename: {old} → {new}', '', description, '']
             for entry in plan['repositories']:
                 summary += [f'## {entry["name"]}', f'Base: `{entry["head"]}`',
                             f'Files to update: {len(entry["changes"])}',
@@ -298,6 +334,10 @@ def main():
                 f'\n# {entry["name"]}\n' + ''.join(c['diff'] for c in entry['changes'])
                 for entry in plan['repositories']))
             report['status'] = 'planned'
+            if args.operation == 'execute':
+                validate_plan(plan, old, new, scope, f'{old} -> {new}')
+                apply_plan(api, plan, report)
+                report['status'] = 'proposed'
         else:
             if args.reviewed_plan is None or args.reviewed_plan.stat().st_size > MAX_PLAN:
                 raise ValueError('Apply requires a reviewed Plan')
@@ -307,6 +347,7 @@ def main():
             report['status'] = 'proposed'
         return 0
     except (ValueError, RuntimeError, OSError, KeyError, subprocess.TimeoutExpired) as error:
+        report['status'] = 'failed'
         report['error'] = str(error)
         print(str(error))
         return 1
@@ -316,3 +357,4 @@ def main():
 
 if __name__ == '__main__':
     raise SystemExit(main())
+
