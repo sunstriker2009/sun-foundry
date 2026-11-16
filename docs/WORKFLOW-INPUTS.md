@@ -19,3 +19,8 @@ Known choices are versioned in `config/workflow-repositories.json` and the workf
 The shared resolver trims surrounding whitespace from selections, other-repository names and confirmations, then rejects foreign owners, slashes in short names, embedded whitespace, mismatched confirmation and stale custom fields. Whitespace-only optional confirmation stays empty and cannot authorize Apply. Same-owner fully qualified values remain accepted by the resolver for compatibility, but operators no longer need to enter them. Existing direct CLI commands continue to use fully qualified repository names. No administrative permissions, environment gates, backend allowlists or source validation checks are changed.
 
 Factory runs are serialized to avoid different selections or aliases provisioning the same repository concurrently. The other-repository name field never accepts an owner override.
+
+## Rename inputs
+
+**SUN Rename Repository** uses two short-name text inputs: `repository` (must be in the configured repository allowlist) and `new_name` (an unused lowercase name). The scanner handles curated dropdown updates in its proposed PRs. It does not use the dropdown resolver because the replacement name is intentionally not registered yet. Plan leaves Apply fields empty. Apply requires `plan_run_id` and exact `confirm_rename: old-name -> new-name`. Owner remains implicit; transfers are unsupported. See [rename guide](REPOSITORY-RENAME.md).
+
