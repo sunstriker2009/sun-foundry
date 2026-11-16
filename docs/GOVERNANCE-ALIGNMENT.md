@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | FOUNDRY | 27158357 | main |
 | STRATA | 27252100 | protected main |
-| ORYVA | 26219449 | Protected main |
+| OUTPOST | 26219449 | Protected main |
 | WORKBENCH | 27170810 | SUN Main Protection |
 | SUN Ecosystem | 26217070 | pull request only |
 

@@ -10,7 +10,7 @@ on:
         options:
           - sun-foundry
           - sun-strata
-          - sun-oryva
+          - sun-outpost
           - sun-workbench
           - sun-ecosystem
       operation:

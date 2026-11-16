@@ -1,5 +1,5 @@
 {
   "schemaVersion": 1,
-  "repositories": ["sun-foundry", "sun-strata", "sun-ecosystem", "sun-oryva", "sun-workbench"],
-  "symbolRepositories": ["sun-foundry", "sun-strata", "sun-oryva", "sun-workbench"]
+  "repositories": ["sun-foundry", "sun-strata", "sun-ecosystem", "sun-outpost", "sun-workbench"],
+  "symbolRepositories": ["sun-foundry", "sun-strata", "sun-outpost", "sun-workbench"]
 }

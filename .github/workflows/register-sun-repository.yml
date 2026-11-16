@@ -10,7 +10,7 @@ on:
           - sun-foundry
           - sun-strata
           - sun-ecosystem
-          - sun-oryva
+          - sun-outpost
           - sun-workbench
           - other-repository
       repository_name:
