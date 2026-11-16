@@ -1,4 +1,4 @@
-name: Product rename validation
+name: Rename pipeline validation
 on:
   pull_request:
     paths:
@@ -7,6 +7,7 @@ on:
       - 'tests/test_product_rename.py'
       - 'tests/test_repository_rename.py'
       - '.github/workflows/rename-product.yml'
+      - '.github/workflows/rename-repository.yml'
       - '.github/workflows/product-rename-validation.yml'
   push:
     branches: [main]
@@ -16,6 +17,7 @@ on:
       - 'tests/test_product_rename.py'
       - 'tests/test_repository_rename.py'
       - '.github/workflows/rename-product.yml'
+      - '.github/workflows/rename-repository.yml'
       - '.github/workflows/product-rename-validation.yml'
 permissions:
   contents: read

@@ -47,10 +47,15 @@ Reference: https://docs.github.com/en/repositories/creating-and-managing-reposit
 
 The live ASTELVO → WORKBENCH repository rename preserved repository ID 1456026269. Its Apply subsequently received a 403 preparing the FOUNDRY tree; reference PRs were recovered through the connected GitHub integration. The automatic path now prepares content writes before renaming and refreshes gallery ordering to cover the failures observed in that pilot.
 
-Local mock/API and temporary-Git tests cover automatic execution, Plan-only immutability, failed content writes before rename, head drift, collisions, retries and gallery ordering. The automatic execution path itself has not yet been exercised in a live rename. No disposable repository or paused schedule is started by this change.
+Local mock/API and temporary-Git tests cover automatic execution, Plan-only immutability, failed content writes before rename, head drift, collisions, retries and gallery ordering. The automatic shared-engine path subsequently passed the combined OUTPOST pilot described below. The standalone workflow was not separately rerun during cleanup. No disposable repository or paused schedule is started by this change.
 
 
 ## Bounded product/governance scope
 
 Reference scanning now uses the selected target plus `sun-strata`, `sun-foundry` and `sun-ecosystem`, deduplicating a governance target. It does not scan other product or owner repositories. The [product rename pipeline](PRODUCT-RENAME.md) uses this same scope and can reuse this engine for an optional repository rename, producing a single combined PR per affected repository.
 
+
+
+## Combined automatic pilot checkpoint — 2026-11-16
+
+The product pipeline reused this engine successfully for ORYVA → OUTPOST in [run 43934714433](https://github.com/sunstriker2009/sun-foundry/actions/runs/43934714433). OUTPOST #175, FOUNDRY #70 and Ecosystem #37 are merged; STRATA needed no change. This supersedes earlier automatic-execution-pending notes for the shared engine. See [issues and recovery limits](ISSUES-AND-GAPS.md) and the [handoff](GOVERNANCE-HANDOFF.md). The standalone workflow was not separately rerun during cleanup.

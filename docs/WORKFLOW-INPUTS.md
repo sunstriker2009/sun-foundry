@@ -8,7 +8,7 @@ The owner is always `sunstriker2009`; workflow forms use short repository names.
 | Repository Factory — resume | Choose a listed repository, or `other-repository` plus its short name; repeat the short name. |
 | Repository Maintenance | Choose a listed repository or another existing short name; confirmation is required for Apply. |
 | Register SUN Repository | Choose a listed repository or another existing short name; repeat the short name. Registration still validates live access and registry identity. |
-| Sync Approved SUN Symbol / legacy approval entry | Choose a listed symbol repository or another registered short name; repeat the short name. Backend registry and PNG checks still apply. |
+| Sync Approved SUN Symbol | Choose a listed symbol repository or another registered short name; repeat the short name. Backend registry and PNG checks still apply. |
 | SUN Governance Alignment | Restricted dropdown of five configured repositories. Apply needs the short-name confirmation and reviewed Plan run ID. |
 | Governance Fleet Audit / reconciliation / asset validation | No repository input; existing configured scope is unchanged. |
 
@@ -29,4 +29,3 @@ Factory runs are serialized to avoid different selections or aliases provisionin
 ## Product rename inputs
 
 **SUN Rename Product** accepts `repository`, `new_product_name`, optional `rename_repository`/`new_repository_name`, and `operation` (Execute or Plan). The existing name/ID come from the Ecosystem registry; no old-name guessing or new ID assignment is allowed. Repository rename defaults off. Its reference scope and the standalone rename workflow are bounded to the target plus STRATA/FOUNDRY/Ecosystem. See [product rename guide](PRODUCT-RENAME.md).
-

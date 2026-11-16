@@ -14,7 +14,6 @@ WORKFLOWS = {
     "repository-factory-resume.yml": "maintenance",
     "register-sun-repository.yml": "registration",
     "sync-approved-sun-symbol.yml": "symbol",
-    "propose-symbol-approval.yml": "symbol",
     "governance-alignment.yml": "alignment",
     "branding-zip-install.yml": "branding",
 }
