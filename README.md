@@ -77,6 +77,10 @@ FOUNDRY is the standardized repository provisioning tool for the [SUN product ec
 
 ## Milestones and fleet audit
 
-See the [FOUNDRY roadmap](docs/ROADMAP.md) for implemented milestones and outstanding validation gates. The next live validation is the [manual governance fleet audit](docs/GOVERNANCE-FLEET-AUDIT.md), using the existing `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`. It produces per-repository results and JSON evidence; it does not remediate findings or run on a schedule.
+See the [FOUNDRY roadmap](docs/ROADMAP.md) for implemented milestones and outstanding validation gates. The operator reported the final five-repository audit successful; this is not a continuously refreshed compliance claim. Repeat the [manual governance fleet audit](docs/GOVERNANCE-FLEET-AUDIT.md), using the existing `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`. It produces per-repository results and JSON evidence; it does not remediate findings or run on a schedule.
 
 Use [Controlled Governance Alignment](docs/GOVERNANCE-ALIGNMENT.md) to address reviewed audit findings through manual Plan → Apply → Verify, using the existing protected administration environment.
+
+## Resuming governance work
+
+Read the [governance handoff](docs/GOVERNANCE-HANDOFF.md) for verified evidence, pending validation, cross-repository responsibilities and resume boundaries before continuing after thread archival.
