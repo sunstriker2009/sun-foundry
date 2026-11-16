@@ -83,3 +83,8 @@ Repositories must adopt the canonical path through their normal branding PR proc
 ## Controlled governance alignment
 
 Use [SUN Governance Alignment](GOVERNANCE-ALIGNMENT.md) for reviewed in-place changes to the explicitly mapped existing ruleset IDs. Run Plan, review the artifact, then Apply using its run ID and exact repository confirmation. Apply rechecks state and policy, strengthens the selected ruleset, updates merge settings and verifies the readback. This is separate from Factory Apply, which still refuses to overwrite an existing ruleset. The workflow uses `repository-administration` and `SUN_REPO_ADMIN_TOKEN`; no schedule or automatic fleet-wide Apply is enabled.
+
+## Repository rename and reference migration
+
+Use **SUN Rename Repository** for a reviewed Plan → Apply operation. Apply renames the repository and proposes reference updates across configured SUN repositories through normal PRs. It does not merge those PRs or change product identity. See [rename operating guide](REPOSITORY-RENAME.md) for inputs, non-atomic migration windows, permissions, recovery and external follow-ups. FOUNDRY self-renames are excluded while it hosts shared Actions. Live rename validation remains pending.
+

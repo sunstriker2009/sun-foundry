@@ -1,0 +1,117 @@
+name: SUN Rename Repository
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Current short repository name (must be configured)'
+        type: string
+        required: true
+      new_name:
+        description: 'New short repository name; does not change product identity'
+        type: string
+        required: true
+      operation:
+        description: 'Plan first, review the artifact, then Apply'
+        type: choice
+        options: [plan, apply]
+        default: plan
+        required: true
+      plan_run_id:
+        description: 'Apply only: successful reviewed Plan run ID'
+        type: string
+        default: ''
+      confirmation:
+        description: 'Apply only: old-name -> new-name (exactly)'
+        type: string
+        default: ''
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: sun-repository-rename
+  cancel-in-progress: false
+jobs:
+  rename:
+    if: ${{ github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' && github.actor == 'sunstriker2009' }}
+    environment: repository-administration
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate Plan provenance
+        id: reviewed
+        if: inputs.operation == 'apply'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLAN_RUN_ID: ${{ inputs.plan_run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          value = os.environ['PLAN_RUN_ID'].strip()
+          if not value.isascii() or not value.isdigit() or int(value) <= 0:
+              raise SystemExit('Apply requires a positive Plan run ID')
+          run = json.loads(subprocess.check_output([
+              'gh', 'api', f'repos/{os.environ["GITHUB_REPOSITORY"]}/actions/runs/{int(value)}']))
+          if (run['path'] != '.github/workflows/rename-repository.yml'
+                  or run['event'] != 'workflow_dispatch' or run['head_branch'] != 'main'
+                  or run['conclusion'] != 'success' or run['head_sha'] != os.environ['GITHUB_SHA']
+                  or run['repository']['full_name'] != os.environ['GITHUB_REPOSITORY']):
+              raise SystemExit('Use a successful Plan from this workflow on the current main commit')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'run_id={int(value)}\n')
+          PY
+      - uses: actions/download-artifact@v4
+        if: inputs.operation == 'apply'
+        with:
+          name: repository-rename-plan
+          path: reviewed-plan
+          run-id: ${{ steps.reviewed.outputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: Plan or apply repository rename
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          OPERATION: ${{ inputs.operation }}
+          SOURCE: ${{ inputs.repository }}
+          DESTINATION: ${{ inputs.new_name }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          args=(--operation "$OPERATION" --repository "$SOURCE" --new-name "$DESTINATION")
+          if [[ "$OPERATION" == apply ]]; then
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('reviewed-plan/result.json').read_text())
+          if result.get('operation') != 'plan' or result.get('status') != 'planned':
+              raise SystemExit('Artifact must contain a successful Plan')
+          PY
+            args+=(--reviewed-plan reviewed-plan/plan.json --confirm "$CONFIRMATION")
+          fi
+          python3 scripts/rename-repository.py "${args[@]}"
+      - name: Publish outcome
+        if: always()
+        run: |
+          if [[ -f artifacts/repository-rename/summary.md ]]; then
+            cat artifacts/repository-rename/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ -f artifacts/repository-rename/result.json ]]; then
+            cat artifacts/repository-rename/result.json >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.operation == 'plan'
+        with:
+          name: repository-rename-plan
+          path: artifacts/repository-rename/
+          retention-days: 7
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.operation == 'apply'
+        with:
+          name: repository-rename-result
+          path: artifacts/repository-rename/
+          retention-days: 7
+          if-no-files-found: warn
