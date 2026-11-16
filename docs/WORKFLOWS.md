@@ -1,6 +1,6 @@
 # Repository automation
 
-Use two supported workflows:
+For repository provisioning and maintenance, use these two workflows:
 
 - **Repository Factory** (`.github/workflows/repository-factory-v1.yml`): create a repository or resume interrupted provisioning. Initializes a seed PR, waits for CI, applies and strictly verifies governance.
 - **Repository Maintenance** (`.github/workflows/repository-factory-resume.yml`): diagnose, plan, apply, or verify governance on an existing repository without creating or seeding it.
@@ -88,4 +88,9 @@ Use [SUN Governance Alignment](GOVERNANCE-ALIGNMENT.md) for reviewed in-place ch
 
 Use **SUN Rename Repository** with operation `execute` for automatic Plan → validate → Apply in one job. No separate plan review, Plan run ID or confirmation input is needed. Operation `plan` remains read-only. Apply prepares content writes before renaming and proposes reference updates through normal PRs; default branches and merge policy remain protected. The existing administration environment may require upfront approval to access its credential. See [rename guide](REPOSITORY-RENAME.md) for scope, recovery, live pilot evidence and external follow-ups. FOUNDRY self-renames remain excluded while it hosts shared Actions.
 
+
+
+## Product rename with optional repository rename
+
+Use **SUN Rename Product** to rename a registered public product identity, optionally chaining the existing repository rename engine. It scans only the target plus STRATA, FOUNDRY and Ecosystem, deduplicates governance targets, preserves SUN IDs/technical compatibility and opens combined PRs. Default Execute is automatic; read-only Plan remains available. No owner-wide scan or separate plan review is introduced. See [product rename guide](PRODUCT-RENAME.md).
 

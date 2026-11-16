@@ -25,3 +25,8 @@ Factory runs are serialized to avoid different selections or aliases provisionin
 **SUN Rename Repository** takes `repository` and `new_name` as short-name text inputs. The source must be configured; the destination must be an unused lowercase name. Operation `execute` is the default: Plan, validate and Apply automatically in one job. Operation `plan` is read-only. No Plan run ID or typed confirmation is required by the form. Existing administration-environment access controls still apply before the job starts. See [rename guide](REPOSITORY-RENAME.md).
 
 
+
+## Product rename inputs
+
+**SUN Rename Product** accepts `repository`, `new_product_name`, optional `rename_repository`/`new_repository_name`, and `operation` (Execute or Plan). The existing name/ID come from the Ecosystem registry; no old-name guessing or new ID assignment is allowed. Repository rename defaults off. Its reference scope and the standalone rename workflow are bounded to the target plus STRATA/FOUNDRY/Ecosystem. See [product rename guide](PRODUCT-RENAME.md).
+

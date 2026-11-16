@@ -75,6 +75,12 @@ class FakeAPI:
 
 
 class RenameTests(unittest.TestCase):
+    def test_reference_scope_is_bounded_and_deduplicated(self):
+        self.assertEqual(rename.reference_scope('sun-product'),
+                         ['sun-product', 'sun-strata', 'sun-foundry', 'sun-ecosystem'])
+        self.assertEqual(rename.reference_scope('sun-foundry'),
+                         ['sun-foundry', 'sun-strata', 'sun-ecosystem'])
+
     def test_repository_rename_refreshes_generated_gallery_order(self):
         source = ('header\n<!-- SUN-REPOSITORY-GALLERY:START -->\n<table>\n<tr>\n'
                   '<td><a href="https://github.com/sunstriker2009/sun-alpha">Product</a></td>\n'
@@ -245,7 +251,8 @@ class RenameTests(unittest.TestCase):
                 argv = ['rename-repository.py', '--operation', operation, '--repository', p['old'],
                         '--new-name', p['new'], '--output', str(output)]
                 with patch.object(rename, 'ROOT', root), patch.object(rename, 'GitHub', return_value=api), \
-                     patch.object(rename, 'make_plan', return_value=p), patch.object(sys, 'argv', argv):
+                     patch.object(rename, 'make_plan', return_value=p), \
+                     patch.object(rename, 'reference_scope', return_value=p['scope']), patch.object(sys, 'argv', argv):
                     self.assertEqual(rename.main(), 0)
                 self.assertEqual(rename.json.loads((output / 'plan.json').read_text()), p)
                 result = rename.json.loads((output / 'result.json').read_text())
@@ -257,4 +264,5 @@ class RenameTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
 

@@ -1,0 +1,75 @@
+name: SUN Rename Product
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Current short product repository name (registered in Ecosystem)'
+        type: string
+        required: true
+      new_product_name:
+        description: 'New public product name, without by Sun'
+        type: string
+        required: true
+      rename_repository:
+        description: 'Also run the repository rename engine in this same operation'
+        type: boolean
+        default: false
+      new_repository_name:
+        description: 'Only when selected above: new short repository name'
+        type: string
+        default: ''
+      operation:
+        description: 'Execute automatically plans and proposes changes; Plan is read-only'
+        type: choice
+        options: [execute, plan]
+        default: execute
+        required: true
+permissions:
+  contents: read
+concurrency:
+  # Share the lock with SUN Rename Repository to prevent overlapping migrations.
+  group: sun-repository-rename
+  cancel-in-progress: false
+jobs:
+  rename:
+    if: ${{ github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' && github.actor == 'sunstriker2009' }}
+    environment: repository-administration
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Rename product and optionally its repository
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          TARGET: ${{ inputs.repository }}
+          NEW_PRODUCT: ${{ inputs.new_product_name }}
+          RENAME_REPOSITORY: ${{ inputs.rename_repository }}
+          NEW_REPOSITORY: ${{ inputs.new_repository_name }}
+          OPERATION: ${{ inputs.operation }}
+        run: |
+          args=(--repository "$TARGET" --new-name "$NEW_PRODUCT" --operation "$OPERATION" --new-repository "$NEW_REPOSITORY")
+          if [[ "$RENAME_REPOSITORY" == true ]]; then
+            args+=(--rename-repository)
+          fi
+          python3 scripts/rename-product.py "${args[@]}"
+      - name: Publish plan and outcome
+        if: always()
+        run: |
+          if [[ -f artifacts/product-rename/summary.md ]]; then
+            cat artifacts/product-rename/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ -f artifacts/product-rename/result.json ]]; then
+            cat artifacts/product-rename/result.json >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-rename-run
+          path: artifacts/product-rename/
+          retention-days: 7
+          if-no-files-found: warn

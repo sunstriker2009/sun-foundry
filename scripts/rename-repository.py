@@ -17,6 +17,13 @@ CONTROLLER = 'sun-foundry'
 ROOT = Path(__file__).resolve().parents[1]
 MAX_TEXT = 1_000_000
 MAX_PLAN = 12_000_000
+GOVERNANCE = ('sun-strata', 'sun-foundry', 'sun-ecosystem')
+
+
+def reference_scope(target):
+    """Explicit target plus SUN governance only; never enumerate owner repositories."""
+    short(target)
+    return list(dict.fromkeys([target, *GOVERNANCE]))
 
 
 def short(value):
@@ -192,7 +199,11 @@ def validate_plan(plan, old, new, scope, confirmation, now=None):
 def preflight(api, plan):
     """Read every identity and head before the first mutation; also permits partial retries."""
     old, new = plan['old'], plan['new']
-    destination = api.call(f'repos/{OWNER}/{new}', missing=True)
+    source_entries = [entry for entry in plan['repositories'] if entry['name'] == old]
+    if len(source_entries) != 1 or source_entries[0]['id'] != plan['sourceId']:
+        raise ValueError('Plan source identity mismatch')
+    destination = (api.call(f'repos/{OWNER}/{new}', missing=True)
+                   if plan.get('renameRepository', True) else None)
     renamed = destination is not None
     if renamed and (destination['id'] != plan['sourceId'] or destination['full_name'] != f'{OWNER}/{new}'):
         raise ValueError('Destination identity mismatch')
@@ -213,7 +224,8 @@ def apply_plan(api, plan, report):
     renamed, live = preflight(api, plan)
     report['renamed'] = renamed
     old, new = plan['old'], plan['new']
-    branch = f'chore/rename-{old}-to-{new}'
+    branch = plan.get('proposalBranch', f'chore/rename-{old}-to-{new}')
+    message = plan.get('proposalMessage', f'chore: update references for {old} -> {new}')
     # Refuse unrelated existing branches across the fleet before renaming.
     trees = {}
     for entry, name in live:
@@ -222,7 +234,7 @@ def apply_plan(api, plan, report):
         existing = api.call(f'repos/{OWNER}/{name}/git/ref/heads/{branch}', missing=True)
         if existing:
             commit = api.call(f'repos/{OWNER}/{name}/git/commits/{existing["object"]["sha"]}')
-            if (commit['message'] != f'chore: update references for {old} -> {new}' or
+            if (commit['message'] != message or
                     [p['sha'] for p in commit['parents']] != [entry['head']]):
                 raise ValueError(f'{name}: rename branch already exists; inspect it before retrying')
             def leaves(tree_sha):
@@ -256,16 +268,16 @@ def apply_plan(api, plan, report):
             commit['sha'] = trees[name]['object']['sha']
         else:
             commit = api.call(f'repos/{repo}/git/commits', 'POST', {'tree': tree['sha'],
-                'parents': [entry['head']], 'message': f'chore: update references for {old} -> {new}'})
+                'parents': [entry['head']], 'message': message})
         prepared[name] = commit
     # Object preparation can take time; refuse head/identity changes before rename.
     preflight(api, plan)
     report['writePreflightCompleted'] = True
-    if not renamed:
+    if not renamed and plan.get('renameRepository', True):
         result = api.call(f'repos/{OWNER}/{old}', 'PATCH', {'name': new})
         if result['id'] != plan['sourceId'] or result['full_name'] != f'{OWNER}/{new}':
             raise ValueError('Rename readback mismatch; inspect live state before retrying')
-    report['renamed'] = True
+    report['renamed'] = renamed or plan.get('renameRepository', True)
     for entry, original_name in live:
         name = new if entry['name'] == old else original_name
         if not entry['changes']:
@@ -286,11 +298,11 @@ def apply_plan(api, plan, report):
             pr = prs[0]
         else:
             pr = api.call(f'repos/{repo}/pulls', 'POST', {'head': branch, 'base': entry['branch'],
-                'title': f'chore: update repository references to {new}',
-                'body': f'Repository ID {plan["sourceId"]} renamed from {OWNER}/{old} to {OWNER}/{new}. '
+                'title': plan.get('proposalTitle', f'chore: update repository references to {new}'),
+                'body': plan.get('proposalBody', f'Repository ID {plan["sourceId"]} renamed from {OWNER}/{old} to {OWNER}/{new}. '
                         'Update reviewed text references only; product identity and asset paths are unchanged. '
                         'Review the diff and required checks, then squash merge. No auto-merge requested. '
-                        'Retained references and external follow-ups are listed in the rename run artifact.'})
+                        'Retained references and external follow-ups are listed in the rename run artifact.')})
         report.setdefault('pullRequests', []).append(pr['html_url'])
 
 
@@ -307,9 +319,12 @@ def main():
     report = {'operation': args.operation, 'status': 'failed', 'renamed': False}
     try:
         old, new = short(args.repository.strip()), short(args.new_name.strip())
-        scope = json.loads((ROOT / 'config/workflow-repositories.json').read_text())['repositories']
-        if len(scope) != len(set(scope)) or any(short(name) != name for name in scope):
+        configured = json.loads((ROOT / 'config/workflow-repositories.json').read_text())['repositories']
+        if len(configured) != len(set(configured)) or any(short(name) != name for name in configured):
             raise ValueError('Invalid configured scope')
+        if old not in configured:
+            raise ValueError('Source repository must be configured')
+        scope = reference_scope(old)
         api = GitHub()
         if args.operation in ('plan', 'execute'):
             plan = make_plan(api, old, new, scope)
@@ -357,4 +372,5 @@ def main():
 
 if __name__ == '__main__':
     raise SystemExit(main())
+
 
