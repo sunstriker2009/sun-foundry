@@ -4,7 +4,7 @@ The manual **SUN Branding ZIP Installer** lives in FOUNDRY. The owner is implici
 
 ## Preferred: install on the upload branch
 
-Repositories opt in with `.github/workflows/branding-auto-install.yml`, which invokes the shared FOUNDRY `actions/install-branding-zip` action pinned to a reviewed commit. ASTELVO is the first adopter; other repositories are unchanged until their own opt-in PRs are reviewed.
+Repositories opt in with `.github/workflows/branding-auto-install.yml`, which invokes the shared FOUNDRY `actions/install-branding-zip` action pinned to a reviewed commit. WORKBENCH is the first adopter; other repositories are unchanged until their own opt-in PRs are reviewed.
 
 1. On any feature branch containing that workflow, upload **one** ZIP under its original name to `branding/revisions/`, for example `branding/revisions/workbench-w2-assets-v1.zip`. Commit the upload to that branch. No inbox or manual Preview dispatch is needed.
 2. The push workflow validates the package, backs up current assets as `v1.zip` if needed, installs assets, records `v2.zip` (then `v3.zip`, etc.) and removes the original upload in a **follow-up commit on the same branch**. Existing repository text, legacy archives and non-asset configuration are untouched.
@@ -66,4 +66,4 @@ Local use: install `assets/requirements.txt`, then run `python3 scripts/install-
 
 ## Validation and rollout gate
 
-Regression coverage exercises preview immutability, exact initial backup, monotonic versions, rollback, no-op behavior, rejected archives, symlinks, dimension failures and interrupted replacement. A local read-only check also accepted the existing Workbench export layout. The first live installation pilot merged in [ASTELVO #39](https://github.com/sunstriker2009/sun-workbench/pull/39); its main records the original asset backup as v1.zip and the installed Workbench package as v2.zip. The same-branch hook and revision metadata were checked during the governance handoff. Live rollback remains pending; validate it on one explicitly selected repository before broad adoption. See [handoff evidence and resume boundaries](GOVERNANCE-HANDOFF.md).
+Regression coverage exercises preview immutability, exact initial backup, monotonic versions, rollback, no-op behavior, rejected archives, symlinks, dimension failures and interrupted replacement. A local read-only check also accepted the existing Workbench export layout. The first live installation pilot merged in [WORKBENCH #39](https://github.com/sunstriker2009/sun-workbench/pull/39); its main records the original asset backup as v1.zip and the installed Workbench package as v2.zip. The same-branch hook and revision metadata were checked during the governance handoff. Live rollback remains pending; validate it on one explicitly selected repository before broad adoption. See [handoff evidence and resume boundaries](GOVERNANCE-HANDOFF.md).

@@ -1,6 +1,6 @@
 # SUN asset preparation: opt-in adoption kit
 
-FOUNDRY owns the shared generator. **STRATA provides repository structure**, not an approval to replace product branding. No ORYVA/ASTELVO changes are made by this kit.
+FOUNDRY owns the shared generator. **STRATA provides repository structure**, not an approval to replace product branding. No ORYVA/WORKBENCH changes are made by this kit.
 
 ## New product or existing repository
 
@@ -28,7 +28,7 @@ python scripts/prepare-assets.py --product-root . --config branding/asset-config
 
 ## STRATA integration contract
 
-A future STRATA adoption PR may include a *disabled-by-default* asset workflow and a link to this guide. Do not ship FOUNDRY-specific masters or hardcoded symbol versions in STRATA. Product-local configuration is created only after artwork approval. Keep product setup optional and do not modify active hourly workflows in ORYVA or ASTELVO.
+A future STRATA adoption PR may include a *disabled-by-default* asset workflow and a link to this guide. Do not ship FOUNDRY-specific masters or hardcoded symbol versions in STRATA. Product-local configuration is created only after artwork approval. Keep product setup optional and do not modify active hourly workflows in ORYVA or WORKBENCH.
 
 ## CI / free-tier cost
 
