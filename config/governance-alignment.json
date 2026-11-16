@@ -4,7 +4,7 @@
     {"repository": "sunstriker2009/sun-foundry", "rulesetId": 27158357, "legacyName": "main"},
     {"repository": "sunstriker2009/sun-strata", "rulesetId": 27252100, "legacyName": "protected main"},
     {"repository": "sunstriker2009/sun-oryva", "rulesetId": 26219449, "legacyName": "Protected main"},
-    {"repository": "sunstriker2009/sun-astelvo", "rulesetId": 27170810, "legacyName": "SUN Main Protection"},
+    {"repository": "sunstriker2009/sun-workbench", "rulesetId": 27170810, "legacyName": "SUN Main Protection"},
     {"repository": "sunstriker2009/sun-ecosystem", "rulesetId": 26217070, "legacyName": "pull request only"}
   ]
 }

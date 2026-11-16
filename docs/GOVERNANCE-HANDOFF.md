@@ -11,7 +11,7 @@ Start with [roadmap](ROADMAP.md), [workflow operations](WORKFLOWS.md), [branding
 - Factory v1, recovery/maintenance, raster preparation, registration and canonical-symbol synchronization are implemented. Existing documentation records the controlled public-repository factory test and its limits.
 - Five-repository governance alignment and final audit were reported successful by the operator. This review did not rerun an administrative audit or independently inspect all live rulesets. Preserve that evidence distinction.
 - [FOUNDRY #62](https://github.com/sunstriker2009/sun-foundry/pull/62) merged the reversible ZIP installer; [#63](https://github.com/sunstriker2009/sun-foundry/pull/63) merged the same-branch action.
-- [ASTELVO #39](https://github.com/sunstriker2009/sun-astelvo/pull/39) is merged. Current main contains the opt-in hook, `branding/revisions/v1.zip`, `v2.zip` and `current.json` recording installation from `workbench-w2-assets-v1.zip`. The hook pins FOUNDRY commit `c1680fc22fb35f9542b65dfb1b79449c0970a154`. The prior operator handoff reports successful follow-up installation and uploaded-symbol verification; this review independently checked the merged PR, workflow and revision metadata, not a new byte comparison or installation run.
+- [ASTELVO #39](https://github.com/sunstriker2009/sun-workbench/pull/39) is merged. Current main contains the opt-in hook, `branding/revisions/v1.zip`, `v2.zip` and `current.json` recording installation from `workbench-w2-assets-v1.zip`. The hook pins FOUNDRY commit `c1680fc22fb35f9542b65dfb1b79449c0970a154`. The prior operator handoff reports successful follow-up installation and uploaded-symbol verification; this review independently checked the merged PR, workflow and revision metadata, not a new byte comparison or installation run.
 - Live rollback remains unverified. No hook is present in the reviewed Foundry, STRATA or ecosystem trees. Do not describe broader adoption as complete.
 
 ## Durable installer decisions
@@ -33,7 +33,7 @@ The hook uses repository GITHUB_TOKEN and explicitly dispatches required validat
 
 Unsupported private-plan enforcement must fail closed; never silently change visibility. Stronger approval counts must be preserved even if a strict baseline verifier flags them. Alignment uses explicitly mapped existing ruleset IDs, reviewed Plan artifact and current-state checks; plans expire after seven days. There is no scheduled fleet mutation. Existing daily symbol reconciliation is distinct from manual fleet governance.
 
-ASTELVO development has a merged paused-work handoff in [#40](https://github.com/sunstriker2009/sun-astelvo/pull/40); consult its current documentation and do not resume product work from this governance note. Workbench-named artwork does not by itself establish a registry/repository rename; naming reconciliation needs explicit owner direction.
+ASTELVO development has a merged paused-work handoff in [#40](https://github.com/sunstriker2009/sun-workbench/pull/40); consult its current documentation and do not resume product work from this governance note. Workbench-named artwork does not by itself establish a registry/repository rename; naming reconciliation needs explicit owner direction.
 
 ## Resume rules
 

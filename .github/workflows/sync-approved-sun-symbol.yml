@@ -10,7 +10,7 @@ on:
           - sun-foundry
           - sun-strata
           - sun-oryva
-          - sun-astelvo
+          - sun-workbench
           - other-repository
       repository_name:
         description: 'Only for other-repository: short name, e.g. sun-example'

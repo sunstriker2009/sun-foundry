@@ -12,7 +12,7 @@ on:
           - sun-strata
           - sun-ecosystem
           - sun-oryva
-          - sun-astelvo
+          - sun-workbench
       operation:
         description: 'Preview or open an installation/rollback PR'
         type: choice
