@@ -37,6 +37,15 @@ base_tree=$(gh api "repos/$REPO/git/commits/$sha" --jq .tree.sha)
 tree=$(gh api "repos/$REPO/git/trees/$base_tree?recursive=1")
 mapfile -t paths < <(jq -r '.tree[] | select(.type == "blob") | .path | select(startswith("branding/"))' <<< "$tree")
 if (( ${#paths[@]} > 0 )); then
+  if printf '%s\n' "${paths[@]}" | grep -Fxq branding/assets/readme-banner.png; then
+    # Exact reviewed STRATA raster baseline; refuse changed or extra product files.
+    template_fingerprint='{"branding/BRAND-GUIDE.md":"03ff5795a2e104fee3d273578f96a14af580b808","branding/archive/README.md":"373abf3692a99321acca376b499f6d5658721bb1","branding/archive/concepts/concept-banner-v1.png":"a07559cb4394e12ca5055485b8f4382f4a877768","branding/archive/originals/readme-banner-v1.png":"c2b9bc2c6c6f47c893d113279c9dfed7fa3f5d2f","branding/archive/originals/symbol-reference-v1.png":"895d2df59291d4b9a84fbeda71c66d6ccd09d5bc","branding/assets/icons/icon-1024.png":"a502ccae1c5268eaf26afc792a7894e5b6426f21","branding/assets/icons/icon-128.png":"779ec539db9cabf1c3bbbb08355392c1fa71759a","branding/assets/icons/icon-16.png":"5b1c315b2694203afd233166750aca744f1c2c7b","branding/assets/icons/icon-24.png":"9691cb5b31847443c60469acbd36b45e6cf5e2ff","branding/assets/icons/icon-256.png":"cc71c20851669a72ce0aeb31c37ecdedfe08808b","branding/assets/icons/icon-32.png":"854e0d998f4d55ad46daf87a7395f6cd086c625e","branding/assets/icons/icon-48.png":"3bf2af1534d3ff52bf8d1b87d8af0daa39792f45","branding/assets/icons/icon-512.png":"d44603ab15025f85d9f8f374262dd2148b5e87ee","branding/assets/icons/icon-64.png":"8f001b6d5485e602acab4b2576d83fbed9978eea","branding/assets/readme-banner.png":"c2b9bc2c6c6f47c893d113279c9dfed7fa3f5d2f","branding/assets/refs/lockup-dark.svg":"b316564654c88afefa648d10dae3d511a50749b2","branding/assets/refs/symbol-dark.svg":"a114ef82426fd69261302b9ba64b2ff4973f4be2","branding/assets/refs/symbol-light.svg":"bdb79aad023afb002fe73eebc6862c3a35decd70","branding/assets/refs/symbol-small.svg":"8f2f4f8db6edfc0eaef19523e4692fd862650d38","branding/assets/symbol.png":"cd4f051c65f3a6e8915929a5f291954dd591aba2","branding/revisions/.gitkeep":"e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"}'
+    for path in "${paths[@]}"; do
+      actual=$(jq -r --arg path "$path" '.tree[] | select(.path == $path) | .sha' <<< "$tree")
+      expected=$(jq -r --arg path "$path" '.[$path] // empty' <<< "$template_fingerprint")
+      [[ -n "$expected" && "$actual" == "$expected" ]] || { echo "::error::Unexpected or modified branding file $path; refusing cleanup"; exit 1; }
+    done
+  else
   allowed=(branding/BRAND-GUIDE.md branding/archive/README.md branding/archive/concepts/concept-banner-v1.png branding/archive/originals/readme-banner-v1.png branding/archive/originals/symbol-reference-v1.png branding/assets/lockup-dark.svg branding/assets/readme-banner-v1.png branding/assets/symbol-dark.svg branding/assets/symbol-light.svg branding/assets/symbol-small.svg)
   for path in "${paths[@]}"; do
     printf '%s\n' "${allowed[@]}" | grep -Fxq "$path" || { echo "::error::Unexpected branding file $path; refusing to remove potentially approved product artwork"; exit 1; }
@@ -44,6 +53,7 @@ if (( ${#paths[@]} > 0 )); then
   for required in branding/BRAND-GUIDE.md branding/assets/readme-banner-v1.png; do
     printf '%s\n' "${paths[@]}" | grep -Fxq "$required" || { echo "::error::Missing STRATA branding fingerprint: $required"; exit 1; }
   done
+  fi
   payload=$(printf '%s\n' "${paths[@]}" | jq -R '{path:.,mode:"100644",type:"blob",sha:null}' | jq -sc --arg base "$base_tree" '{base_tree:$base,tree:.}')
   new_tree=$(gh api -X POST "repos/$REPO/git/trees" --input - --jq .sha <<< "$payload")
   new_commit=$(gh api -X POST "repos/$REPO/git/commits" -f message="chore: remove inherited STRATA artwork" -f tree="$new_tree" -f parents[]="$sha" --jq .sha)
@@ -68,7 +78,7 @@ guide_text=$(cat <<'EOF'
 This is a product-neutral scaffold, **not** an approved visual identity.
 
 - Confirm the product name, tagline and SUN product ID in the ecosystem registry.
-- Obtain owner-approved panoramic artwork; save as `branding/assets/readme-banner-v1.png`.
+- Obtain owner-approved panoramic artwork; save as `branding/assets/readme-banner.png`.
 - Keep byte-identical approved originals under `branding/archive/originals/`.
 - Prepare compact symbol/lockup/icon exports in appropriate SVG/PNG variants.
 - Document provenance and palette; never reuse STRATA artwork as the new product's identity.

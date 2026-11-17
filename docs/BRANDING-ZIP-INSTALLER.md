@@ -67,3 +67,9 @@ Local use: install `assets/requirements.txt`, then run `python3 scripts/install-
 ## Validation and rollout gate
 
 Regression coverage exercises preview immutability, exact initial backup, monotonic versions, rollback, no-op behavior, rejected archives, symlinks, dimension failures and interrupted replacement. A local read-only check also accepted the existing Workbench export layout. The first live installation pilot merged in [WORKBENCH #39](https://github.com/sunstriker2009/sun-workbench/pull/39); its main records the original asset backup as v1.zip and the installed Workbench package as v2.zip. The same-branch hook and revision metadata were checked during the governance handoff. Live rollback remains pending; validate it on one explicitly selected repository before broad adoption. See [handoff evidence and resume boundaries](GOVERNANCE-HANDOFF.md).
+
+## Factory default adoption
+
+FOUNDRY includes the same upload hook as WORKBENCH. STRATA supplies an owner-scoped hook plus dispatch-capable baseline CI/title workflows, so future template-generated repositories inherit it without a per-product repository-name edit. The installer implementation remains pinned in FOUNDRY. No new secrets or scheduled runs are required. Existing repositories and old branches do not inherit template changes retroactively.
+
+For the existing FOUNDRY branding PR #72: merge the hook PR, then merge main into branding/v2 and make an owner-authored push touching the pending ZIP. Merely merging the hook into main does not replay the old upload event. Keep the artwork PR separate and visually review its installation before merging.
