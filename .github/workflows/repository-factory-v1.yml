@@ -178,4 +178,5 @@ jobs:
           PR: ${{ steps.prepare.outputs.pr }}
         run: |
           echo "Governance applied and strictly verified for $REPO." >> "$GITHUB_STEP_SUMMARY"
+          echo "Confirm the registration in Ecosystem main before using the branding upload hook." >> "$GITHUB_STEP_SUMMARY"
           echo "Final manual smoke test: squash merge https://github.com/$REPO/pull/$PR and confirm automatic branch deletion." >> "$GITHUB_STEP_SUMMARY"

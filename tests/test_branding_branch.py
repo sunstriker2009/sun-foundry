@@ -17,6 +17,14 @@ SPEC.loader.exec_module(branch)
 
 class BranchInstallerTests(unittest.TestCase):
     def setUp(self):
+        registry = patch.object(branch, 'read_registry', return_value={
+            'schemaVersion': 1, 'repositories': [{
+                'repository': 'sunstriker2009/sun-workbench', 'registryId': 'SUN-002',
+                'classification': 'product',
+            }],
+        })
+        self.addCleanup(registry.stop)
+        registry.start()
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         root = Path(self.temp.name)
@@ -79,6 +87,14 @@ class BranchInstallerTests(unittest.TestCase):
         (self.repo / 'unrelated.txt').write_text('uncommitted')
         with self.assertRaises(ValueError):
             self.apply()
+
+    def test_pending_registration_leaves_upload_and_branch_untouched(self):
+        branch.read_registry.return_value['repositories'][0].update(
+            classification='pending', registryId=None)
+        with self.assertRaisesRegex(ValueError, 'confirmed registration'):
+            self.apply()
+        self.assertTrue(self.upload.exists())
+        self.assertEqual(branch.git(self.repo, 'rev-parse', 'HEAD'), self.sha)
 
     def test_advanced_remote_never_overwritten(self):
         original = branch.git

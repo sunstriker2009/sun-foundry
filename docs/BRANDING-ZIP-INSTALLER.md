@@ -12,6 +12,8 @@ Repositories opt in with `.github/workflows/branding-auto-install.yml`, which in
 
 `v1.zip`, `v2.zip`, etc. are immutable snapshots, not upload names. Numbered snapshots are ignored by automatic detection, so the follow-up commit cannot recursively reinstall them. Invalid or ambiguous uploads (more than one pending ZIP) leave remote assets and the original filenames unchanged. Fix/remove the invalid package and commit again, or rerun the workflow after fixing an infrastructure failure. Already-identical packages remain under their original names and create no version or commit.
 
+With the runtime-registry action pin, a pending upload requires a confirmed repository entry on Ecosystem main. Merge registration or rename proposals before uploading. An unavailable registry or pending identity leaves the upload intact. Ecosystem is the registry authority and is intentionally absent from its gallery catalog.
+
 The hook runs for owner pushes to feature branches. It deliberately does not write directly to protected `main`; branches created before adoption must include the workflow before an upload can trigger it. The target branch must still be at the triggering commit when installation pushes. Concurrent updates fail without force-pushing; retry at the new tip. A failed network response after an accepted push may report failure despite a completed follow-up commit, so inspect the branch before retrying.
 
 ### Token and CI behavior

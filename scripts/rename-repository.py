@@ -343,7 +343,8 @@ def main():
             summary += ['', '## External follow-ups',
                         'Review Pages/custom domains, packages/container image paths, webhooks, OIDC trust, '
                         'secrets/variables, local remotes, other repositories and open branches. '
-                        'These are not changed by this workflow. Archive ZIPs and binary assets are preserved.']
+                        'These are not changed by this workflow. Archive ZIPs and binary assets are preserved.',
+                        'Merge the Ecosystem migration PR and verify the current name under the existing SUN ID before using the branding upload hook.']
             (args.output / 'summary.md').write_text('\n\n'.join(summary) + '\n')
             (args.output / 'references.diff').write_text(''.join(
                 f'\n# {entry["name"]}\n' + ''.join(c['diff'] for c in entry['changes'])
