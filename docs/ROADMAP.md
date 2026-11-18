@@ -8,7 +8,7 @@ Checkpoint: 2026-11-16. Read [the handoff](GOVERNANCE-HANDOFF.md) before resumin
 | Governance alignment and fleet audit | Five-repository completion operator-reported; current FOUNDRY `build` and Ecosystem `gallery` rules read back | Manual audit after material governance changes; no schedule |
 | Registration and gallery | Implemented; OUTPOST/WORKBENCH identities now current | Explicit review for new identities |
 | Canonical PNG reconciliation | Daily 08:17 UTC and manual dispatch; merge is artwork approval | Monitor actual failures; no separate digest gate |
-| Branding ZIP installation | OUTPOST existing-PR checks passed after automated installation. Branch rollback and restore verified. OUTPOST main pin fixed in #178. | Verify adopter pins and dispatch coverage before individual opt-in. |
+| Branding ZIP installation | OUTPOST existing-PR checks passed after automated installation. Branch rollback and restore verified. OUTPOST main pin fixed in #178. | All five hooks now use the live Ecosystem catalog. Next validate the registration handoff during an authorized new-repository run. |
 | Branding revision folders | Present in all five core repositories, including STRATA | Folder alone does not enable automatic installation |
 | Product and repository rename | Automatic combined ORYVA → OUTPOST run succeeded; three migration PRs merged | Review retained display/packaging/artwork references and non-atomic recovery limits |
 | Workflow cleanup | Redundant rename validator, legacy sync alias and historical ledger validator retired by cleanup PRs | Merge cleanup PRs and retain current handoff |
