@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = re.compile(r'v[1-9][0-9]*\.zip')
@@ -30,13 +31,34 @@ def pending(root):
 
 
 def guard(repository, branch, expected):
-    names = json.loads((ROOT / 'config/workflow-repositories.json').read_text())['repositories']
-    if repository not in [f'sunstriker2009/{name}' for name in names]:
-        raise ValueError('Repository is outside the configured SUN scope')
+    if not re.fullmatch(r'sunstriker2009/[a-z0-9][a-z0-9._-]*', repository):
+        raise ValueError('Repository is outside the SUN owner scope')
     if not branch or branch == 'main' or branch.startswith('-') or '\n' in branch:
         raise ValueError('Use a feature branch; protected main stays PR-only')
     if not re.fullmatch(r'[0-9a-f]{40}', expected):
         raise ValueError('Expected an exact triggering commit SHA')
+
+
+REGISTRY_OWNER = 'sunstriker2009/sun-ecosystem'
+REGISTRY_URL = f'https://raw.githubusercontent.com/{REGISTRY_OWNER}/main/registry/repositories.json'
+
+
+def read_registry():
+    with urllib.request.urlopen(REGISTRY_URL, timeout=15) as response:
+        return json.loads(response.read(1_000_001))
+
+
+def require_registration(repository):
+    registry = read_registry()
+    if registry.get('schemaVersion') != 1 or not isinstance(registry.get('repositories'), list):
+        raise ValueError('Unsupported SUN repository registry schema')
+    # The registry authority is intentionally omitted from its own gallery catalog.
+    if repository == REGISTRY_OWNER:
+        return
+    matches = [row for row in registry['repositories'] if row.get('repository') == repository]
+    if (len(matches) != 1 or matches[0].get('classification') not in ('product', 'infrastructure')
+            or not re.fullmatch(r'SUN-(?:G)?[0-9]+', matches[0].get('registryId') or '')):
+        raise ValueError('Repository needs a confirmed registration in the SUN Ecosystem registry')
 
 
 def output(**values):
@@ -54,6 +76,7 @@ def install_branch(root, repository, branch, expected):
     source = pending(root)
     if source is None:
         return {'installed': False, 'reason': 'No unnumbered revision ZIP; snapshots are ignored'}
+    require_registration(repository)
     # Load Pillow and the shared validator only once a candidate is present.
     spec = importlib.util.spec_from_file_location('installer', ROOT / 'scripts/install-branding.py')
     installer = importlib.util.module_from_spec(spec)
