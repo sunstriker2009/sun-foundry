@@ -15,6 +15,13 @@ Checkpoint: 2026-11-16. This file records work remaining after the merged OUTPOS
 | GAP-09 | Factory live testing covers normal public create/resume, not every interruption/private-plan boundary. Rename tests cover logic, not all native/interactive display surfaces. | Expand integration coverage only for a concrete change or authorized pilot; avoid mutation-heavy repeated tests. |
 | GAP-10 | Cleanup PRs must merge to become the default-branch handoff. Retired workflows may remain visible in Actions history. | Merge the paired cleanup/doc PRs after checks; no run-history deletion is needed. |
 
+## New-repository branding pilot
+
+- [Factory run 44258089909](https://github.com/sunstriker2009/sun-foundry/actions/runs/44258089909) succeeded for `sun-foundry-pilot`. The governance Apply, strict Verify, and Ecosystem proposal steps passed. GitHub reports the owner account as the dispatch actor.
+- [Seed PR #1](https://github.com/sunstriker2009/sun-foundry-pilot/pull/1) is open. `repository-validation` and `conventional-title` both passed on `a33830ca011ffe9b6adbb50f80649e9330ba71ec`.
+- [Ecosystem PR #44](https://github.com/sunstriker2009/sun-ecosystem/pull/44) proposes a pending registration. Ecosystem `main` had no pilot entry at this checkpoint. The owner must approve the identity and classification before installer verification.
+- The [inherited hook](https://github.com/sunstriker2009/sun-foundry-pilot/blob/main/.github/workflows/branding-auto-install.yml) pins `8d8c0d908ad7d242c34ab4c2f28a43ce18ee79ae`. The owner-push ZIP test, installer run, and checks on the resulting revision commit are pending.
+
 ## Operational boundaries
 
 FOUNDRY repository self-rename is blocked while it hosts shared Actions. Rename reference scope is the target + STRATA + FOUNDRY + Ecosystem only, deduplicated; never enumerate every owner repository. The rename pipelines automatically Plan → validate → Apply/propose in one job; any existing upfront administration-environment credential gate remains. Governance alignment is a different controlled workflow and still requires a reviewed Plan run ID.
