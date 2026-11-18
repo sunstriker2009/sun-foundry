@@ -28,15 +28,15 @@ Governance alignment across five core repos was operator-reported complete. This
 
 Feature branch → PR → required checks/review → squash merge; no direct protected-main writes. Branding PRs do not auto-merge. Commit one originally named, unnumbered ZIP directly under `branding/revisions/` on a feature branch containing the hook. The action appends a same-branch installation commit, keeps immutable vN ZIP history, and removes upload only after success. Invalid/multiple uploads fail without consuming a version; identical assets make no install commit/version and retain upload; concurrent changes cause refusal. Initial assets become v1; first installed tree v2. Rollback creates another revision. Icons stay in `branding/assets/icons/`, references in `branding/assets/refs/`; approved raster PNGs stay canonical. Do not reconstruct them as SVG.
 
-Hooks use repository GITHUB_TOKEN, not a new PAT. Token-authored commits require explicit equivalent validation dispatches for already-open PRs; OUTPOST's reservation gap is the first follow-up. Manual installer remains supported through `repository-administration` / `SUN_REPO_ADMIN_TOKEN`. Manual fallback supports revisions and legacy inbox uploads; it proposes a separate PR. Repository intro text, app copies/configuration, product identity and archive cleanup are outside automatic branding scope.
+Hooks use repository GITHUB_TOKEN, not a new PAT. Token-authored commits require explicit equivalent validation dispatches for already-open PRs; OUTPOST verified these dispatches in pilot #177. Manual installer remains supported through `repository-administration` / `SUN_REPO_ADMIN_TOKEN`. Manual fallback supports revisions and legacy inbox uploads; it proposes a separate PR. Repository intro text, app copies/configuration, product identity and archive cleanup are outside automatic branding scope.
 
 Merged canonical branding approves daily/manual gallery synchronization. Daily reconciliation stays at 08:17 UTC, not hourly; SHA metadata is not a second approval gate. Retain the historical ledger and legacy archives. Renames scan target + governance only and preserve stable compatibility identifiers. Automatic rename Execute has no separate Plan review; controlled governance alignment still does.
 
 ## Resume sequence
 
 1. Verify cleanup PRs are merged and read current registry, guides and [gap list](ISSUES-AND-GAPS.md). Recheck external state rather than trusting this timestamp.
-2. Address GAP-01: OUTPOST reservation dispatch coverage, then a controlled existing-open-PR branding pilot. Do not infer complete dispatch coverage from the successful installation-before-PR pilot.
-3. When authorized, perform rollback/restore pilot preserving history, then consider individual opt-in adoption PRs.
+2. OUTPOST existing-PR install and branch rollback/restore passed in [OUTPOST #177](https://github.com/sunstriker2009/sun-outpost/pull/177), which was closed. [OUTPOST #178](https://github.com/sunstriker2009/sun-outpost/pull/178) merged the tested Foundry pin. The rollback pilot used the installer CLI on the draft branch.
+3. Audit adopter pins and required-check dispatch coverage before proposing individual opt-in changes.
 4. Review retained OUTPOST/WORKBENCH display/packaging/artwork names only where needed; do not globally replace namespaces or scan owner-wide.
 5. Update roadmap and central handbook with verified results, keep quota discipline, and leave functional development/recurring product schedules paused until explicitly resumed.
 
