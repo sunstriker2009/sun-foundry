@@ -88,6 +88,21 @@ class BranchInstallerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.apply()
 
+    def test_registry_id_series_for_existing_and_migrated_repositories(self):
+        entry = branch.read_registry.return_value['repositories'][0]
+        for classification, ident in [('product', 'SUN-002'), ('product', 'SUN-P001'),
+                                      ('product', 'SUN-C001'), ('infrastructure', 'SUN-G004')]:
+            with self.subTest(classification=classification, ident=ident):
+                entry.update(classification=classification, registryId=ident)
+                branch.require_registration(entry['repository'])
+
+        for classification, ident in [('product', 'SUN-G001'), ('infrastructure', 'SUN-P001'),
+                                      ('product', 'SUN-P01'), ('product', 'SUN-X001')]:
+            with self.subTest(classification=classification, ident=ident):
+                entry.update(classification=classification, registryId=ident)
+                with self.assertRaisesRegex(ValueError, 'confirmed registration'):
+                    branch.require_registration(entry['repository'])
+
     def test_pending_registration_leaves_upload_and_branch_untouched(self):
         branch.read_registry.return_value['repositories'][0].update(
             classification='pending', registryId=None)

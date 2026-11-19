@@ -56,8 +56,11 @@ def require_registration(repository):
     if repository == REGISTRY_OWNER:
         return
     matches = [row for row in registry['repositories'] if row.get('repository') == repository]
-    if (len(matches) != 1 or matches[0].get('classification') not in ('product', 'infrastructure')
-            or not re.fullmatch(r'SUN-(?:G)?[0-9]+', matches[0].get('registryId') or '')):
+    patterns = {'product': r'SUN-[PC]?[0-9]{3}', 'infrastructure': r'SUN-G[0-9]{3}'}
+    row = matches[0] if len(matches) == 1 else {}
+    pattern = patterns.get(row.get('classification'))
+    ident = row.get('registryId')
+    if pattern is None or not isinstance(ident, str) or not re.fullmatch(pattern, ident):
         raise ValueError('Repository needs a confirmed registration in the SUN Ecosystem registry')
 
 

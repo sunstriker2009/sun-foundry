@@ -152,7 +152,9 @@ def resolve_product(authority, target, actual, new_name):
     if len(matches) != 1:
         raise ValueError('Target must uniquely identify one registered SUN product/infrastructure entry')
     item = matches[0]
-    if not re.fullmatch(r'SUN-(?:G)?[0-9]{3}', item.get('id', '')):
+    pattern = r'SUN-G[0-9]{3}' if item in authority['infrastructure'] else r'SUN-[PC]?[0-9]{3}'
+    ident = item.get('id')
+    if not isinstance(ident, str) or not re.fullmatch(pattern, ident):
         raise ValueError('Registry identity must be a stable SUN ID')
     product_name(item['name'])
     if item.get('status') not in ('CONFIRMED', 'ESTABLISHED'):
