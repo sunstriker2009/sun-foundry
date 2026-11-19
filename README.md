@@ -41,6 +41,18 @@ For existing repositories, use **[Repository Maintenance](https://github.com/sun
 
 See [docs/WORKFLOWS.md](docs/WORKFLOWS.md) for operational details and [repository selection](docs/WORKFLOW-INPUTS.md) for short-name dropdowns and confirmations.
 
+## Product registration lifecycle checklist (draft)
+
+See the [draft design](docs/PRODUCT-REGISTRATION-LIFECYCLE.md) for the workflow and open decisions.
+
+- [ ] Finalize the naming and slug rules, family mappings, and handling of an omitted description.
+- [ ] Seed Foundry's catalog from existing registrations, preserving assigned IDs and the next ID in each family.
+- [ ] Add a registration workflow that derives the ID and repository slug, validates availability, and opens a Foundry PR for manual owner approval.
+- [ ] Validate the proposed ID against current `main` before merge and require renewed review if the ID changes.
+- [ ] Provision from the approved merge. Include `branding/manifest.json` and the revision directory marker in the seed PR, and auto-merge after CI and strict governance verification pass.
+- [ ] Verify the manifest on the product repository's `main`, then publish metadata and regenerate references through an Ecosystem PR that auto-merges after its required checks pass.
+- [ ] Verify retry behavior after partial failures, confirm how environment approval works, and test the full lifecycle before switching from the existing registration workflow.
+
 ## Branding ZIP installer
 
 On an opted-in repository’s feature branch, commit a package to `branding/revisions/`; the push hook installs it in a follow-up commit on that branch. A manual fallback remains available through [Branding ZIP Installer](https://github.com/sunstriker2009/sun-foundry/actions/workflows/branding-zip-install.yml). In the fallback, Preview validates without writing; Apply proposes a reviewed PR with `branding/revisions/v1.zip` as the initial backup and `v2.zip` onward as complete asset snapshots. See the [installation and rollback guide](docs/BRANDING-ZIP-INSTALLER.md).
