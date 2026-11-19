@@ -6,13 +6,13 @@ Checkpoint: 2026-11-16. This repository document supersedes the archived convers
 
 | SUN ID | Public identity | Repository | Stable technical identity / role |
 | --- | --- | --- | --- |
-| SUN-001 | OUTPOST by Sun | sun-outpost | Sun.Security / Sun.Security.* / @sun-security/*; Identity. Trust. Protection.; HALO → ORYVA → OUTPOST |
-| SUN-002 | WORKBENCH by Sun | sun-workbench | Sun.Workspace / Sun.Workspace.* / @sun-workspace/*; Organize. Script. Explore.; formerly ASTELVO |
+| SUN-C001 (previously SUN-001) | Outpost by Sun | sun-outpost | Sun.Security / Sun.Security.* / @sun-security/*; Identity. Trust. Protection.; HALO → ORYVA → OUTPOST |
+| SUN-P001 (previously SUN-002) | Workbench by Sun | sun-workbench | Sun.Workspace / Sun.Workspace.* / @sun-workspace/*; Organize. Script. Explore.; formerly ASTELVO |
 | SUN-G001 | Ecosystem | sun-ecosystem | Registry, governance policy, gallery and central workflow handbook |
 | SUN-G002 | STRATA | sun-strata | Repository template |
 | SUN-G003 | FOUNDRY | sun-foundry | Repository factory and shared automation |
 
-Registry files in Ecosystem are authoritative. Do not revive WORKBENCH's superseded SUN-009 assignment. Commercial name clearance is separate from approval. MarketPilot AI is independent and outside these rename scans unless explicitly targeted.
+Registry files in Ecosystem are authoritative. SUN-C and SUN-P IDs apply after the registry cutover. The branding installer and product rename workflow accept the previous product IDs during the transition. Do not revive WORKBENCH's superseded SUN-009 assignment. Commercial name clearance is separate from approval. MarketPilot AI is independent and outside these rename scans unless explicitly targeted.
 
 ## Verified outcomes
 

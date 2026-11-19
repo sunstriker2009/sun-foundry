@@ -124,6 +124,20 @@ class ProductTests(unittest.TestCase):
         self.assertNotIn('docs/adr/0001.md', changes)
         self.assertIn('decisions/product-renames/sun-001-gatehouse.md', changes)
 
+    def test_resolves_family_ids_and_legacy_product_ids(self):
+        authority = json.loads((self.source / 'registry/products.json').read_text())
+        entry = authority['products'][0]
+        for ident in ('SUN-001', 'SUN-P001', 'SUN-C001'):
+            with self.subTest(ident=ident):
+                entry['id'] = ident
+                result = product.resolve_product(authority, 'sun-widget', 'sun-widget', 'GATEHOUSE')
+                self.assertEqual(result['id'], ident)
+        self.assertEqual(product.resolve_product(authority, 'sun-foundry', 'sun-foundry', 'GATEHOUSE')['id'],
+                         'SUN-G003')
+        entry['id'] = 'SUN-G001'
+        with self.assertRaisesRegex(ValueError, 'stable SUN ID'):
+            product.resolve_product(authority, 'sun-widget', 'sun-widget', 'GATEHOUSE')
+
     def test_product_only_execute_never_renames_repository(self):
         api = API()
         plan = self.build(api)
