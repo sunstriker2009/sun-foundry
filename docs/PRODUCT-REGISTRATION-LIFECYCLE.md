@@ -68,7 +68,8 @@ GitHub supports [triggering Actions when a PR merges](https://docs.github.com/en
 
 - Track progress by approved family ID and repository slug. A retry after a partial failure should resume that registration and preserve its ID. If an existing repository cannot be linked to the approved provisioning attempt, stop for owner review.
 - Verify repository governance and the expected manifest before publishing. If Ecosystem publication fails, resume publication using the approved identity.
-- Seed Foundry from current registrations, preserving assigned IDs and current family counters. Keep Ecosystem's published catalog format compatible with existing branding installers during the transition.
+- [Foundry's product catalog](../registry/product-catalog.json) is seeded from the [Ecosystem identity registry](https://github.com/sunstriker2009/sun-ecosystem/blob/756599cd7650b1c6d32cbe2a35b2e20de90c1062/registry/products.json) and [repository catalog](https://github.com/sunstriker2009/sun-ecosystem/blob/756599cd7650b1c6d32cbe2a35b2e20de90c1062/registry/repositories.json). The seed preserves current IDs, counters, names, repository slugs and recorded product aliases and retired IDs. It uses the published repository summary as the short description, with the registered purpose used for SUN Ecosystem itself. Unnumbered proposals stay in Ecosystem.
+- During the transition, Ecosystem remains the live registry for the existing registration and branding workflows. Keep its published catalog format compatible when Foundry takes over publication.
 - Limit auto-merge to the generated seed and Ecosystem PRs within their existing checks and permissions. Keep the Foundry registration PR as the manual approval gate.
 
 ## Open decisions
