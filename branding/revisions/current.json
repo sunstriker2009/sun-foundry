@@ -1,19 +1,8 @@
 {
   "changed": [
-    "icons/icon-1024.png",
-    "icons/icon-128.png",
-    "icons/icon-16.png",
-    "icons/icon-24.png",
-    "icons/icon-256.png",
-    "icons/icon-32.png",
-    "icons/icon-48.png",
-    "icons/icon-512.png",
-    "icons/icon-64.png",
-    "readme-banner.png",
-    "refs/approved-concrete-silver-board.png",
-    "symbol.png"
+    "concept-artwork.png"
   ],
-  "revision": "v2.zip",
   "operation": "install",
-  "source": "foundry-concrete-silver-assets-v1.zip"
+  "source": "foundry-installer-v2-live-pilot.zip",
+  "revision": "v3.zip"
 }
