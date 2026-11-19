@@ -115,16 +115,33 @@ def validate_pull_request(base, proposed, head_ref):
     add_registration(expected, product, next_id)
     if proposed != expected:
         raise ValueError("The catalog must match the generated proposal and advance only its family's counter.")
+    return product
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--validate-pr", type=Path, metavar="BASE_CATALOG")
+    operation = parser.add_mutually_exclusive_group()
+    operation.add_argument("--validate-pr", type=Path, metavar="BASE_CATALOG")
+    operation.add_argument("--resolve-approved", type=Path, metavar="BASE_CATALOG")
     args = parser.parse_args()
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     if args.validate_pr:
         base = json.loads(args.validate_pr.read_text(encoding="utf-8"))
         validate_pull_request(base, catalog, os.environ["GITHUB_HEAD_REF"])
+        return
+    if args.resolve_approved:
+        base = json.loads(args.resolve_approved.read_text(encoding="utf-8"))
+        product = validate_pull_request(base, catalog, os.environ["APPROVED_HEAD_REF"])
+        if product is None:
+            raise ValueError("The merge does not contain an approved product registration.")
+        manifest = {
+            "family-id": product["id"],
+            "product-name": product["name"],
+            "short-description": product["shortDescription"],
+        }
+        with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+            output.write(f"factory_target={product['repository']}\nfactory_confirmation={product['repository']}\n")
+            output.write(f"manifest={json.dumps(manifest, separators=(',', ':'))}\n")
         return
     product, next_id = registration(
         catalog, os.environ["PRODUCT_NAME"], os.environ["PRODUCT_FAMILY"], os.environ["SHORT_DESCRIPTION"]

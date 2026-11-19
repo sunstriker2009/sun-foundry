@@ -1,5 +1,8 @@
 name: Repository Factory
 on:
+  pull_request:
+    types: [closed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       repository:
@@ -37,23 +40,49 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: sun-factory-v1
+  group: ${{ github.event_name == 'pull_request' && format('sun-factory-registration-{0}', github.event.pull_request.merge_commit_sha) || 'sun-factory-v1' }}
   cancel-in-progress: false
 jobs:
   factory:
     if: >-
       ${{
-        github.event_name == 'workflow_dispatch' &&
         github.repository == 'sunstriker2009/sun-foundry' &&
         github.ref == 'refs/heads/main' &&
-        (github.actor == 'sunstriker2009' || github.actor_id == '358136762')
+        (
+          (github.event_name == 'workflow_dispatch' &&
+            (github.actor == 'sunstriker2009' || github.actor_id == '358136762')) ||
+          (github.event_name == 'pull_request' &&
+            github.actor == 'sunstriker2009' &&
+            github.event.pull_request.merged == true &&
+            github.event.pull_request.base.ref == 'main' &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            startsWith(github.event.pull_request.head.ref, 'chore/propose-product-'))
+        )
       }}
     runs-on: ubuntu-latest
     environment: repository-administration
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          fetch-depth: 2
+      - name: Resolve approved product registration
+        if: github.event_name == 'pull_request'
+        id: approval
+        shell: bash
+        env:
+          APPROVED_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          APPROVED_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          set -euo pipefail
+          [[ -n "$APPROVED_SHA" && "$(git rev-parse HEAD)" == "$APPROVED_SHA" ]]
+          base_catalog=$(mktemp)
+          trap 'rm -f "$base_catalog"' EXIT
+          git show HEAD^1:registry/product-catalog.json > "$base_catalog"
+          python3 scripts/propose-product-registration.py --resolve-approved "$base_catalog"
       - name: Resolve repository selection
+        if: github.event_name == 'workflow_dispatch'
         id: target
         env:
           SELECTION: ${{ inputs.repository }}
@@ -69,10 +98,11 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
-          TARGET: ${{ steps.target.outputs.factory_target }}
-          CONFIRM: ${{ steps.target.outputs.factory_confirmation }}
-          MODE: ${{ inputs.mode }}
-          VISIBILITY: ${{ inputs.visibility }}
+          TARGET: ${{ steps.approval.outputs.factory_target || steps.target.outputs.factory_target }}
+          CONFIRM: ${{ steps.approval.outputs.factory_confirmation || steps.target.outputs.factory_confirmation }}
+          MODE: ${{ github.event_name == 'pull_request' && 'create' || inputs.mode }}
+          VISIBILITY: ${{ github.event_name == 'pull_request' && 'public' || inputs.visibility }}
+          APPROVED_MANIFEST: ${{ steps.approval.outputs.manifest }}
         run: |
           set -euo pipefail
           [[ -n "$GH_TOKEN" ]] || { echo "::error::Missing administration token"; exit 1; }
@@ -81,12 +111,23 @@ jobs:
             [[ "$TARGET" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] || exit 1
             REPO="sunstriker2009/$TARGET"
             if gh api "repos/$REPO" >/dev/null 2>&1; then
-              echo "::error::Repository already exists; use resume"; exit 1
+              if [[ -z "$APPROVED_MANIFEST" ]]; then
+                echo "::error::Repository already exists; use resume"; exit 1
+              fi
+              if bash scripts/verify-approved-product-seed.sh "$REPO" main; then
+                echo "repository=$REPO" >> "$GITHUB_OUTPUT"
+                echo "complete=true" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              if ! bash scripts/verify-approved-product-seed.sh "$REPO" chore/sun-governance-ci-seed; then
+                echo "::error::Existing repository has no matching approved seed; inspect it before retrying"; exit 1
+              fi
+            else
+              [[ "$VISIBILITY" == private || "$VISIBILITY" == public ]] || exit 1
+              [[ "$VISIBILITY" == private ]] && is_private=true || is_private=false
+              gh api -X POST repos/sunstriker2009/sun-strata/generate \
+                -f owner=sunstriker2009 -f name="$TARGET" -F private="$is_private" -F include_all_branches=false >/dev/null
             fi
-            [[ "$VISIBILITY" == private || "$VISIBILITY" == public ]] || exit 1
-            [[ "$VISIBILITY" == private ]] && is_private=true || is_private=false
-            gh api -X POST repos/sunstriker2009/sun-strata/generate \
-              -f owner=sunstriker2009 -f name="$TARGET" -F private="$is_private" -F include_all_branches=false >/dev/null
           else
             [[ "$TARGET" =~ ^sunstriker2009/[A-Za-z0-9._-]+$ ]] || exit 1
             REPO="$TARGET"
@@ -136,6 +177,8 @@ jobs:
           echo "pr=$pr" >> "$GITHUB_OUTPUT"
           echo "Seed PR: https://github.com/$REPO/pull/$pr" >> "$GITHUB_STEP_SUMMARY"
       - name: Wait for required PR checks
+        if: steps.prepare.outputs.complete != 'true'
+        id: seed_checks
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
@@ -148,6 +191,7 @@ jobs:
             checks=$(gh api "repos/$REPO/commits/$sha/check-runs?per_page=100" --jq '[.check_runs[] | select(.name == "repository-validation" or .name == "conventional-title") | {name,status,conclusion}]')
             echo "Attempt $attempt: $checks"
             if jq -e 'length == 2 and (map(.name) | unique | length) == 2 and all(.[]; .status == "completed" and .conclusion == "success")' <<< "$checks" >/dev/null; then
+              echo "head_sha=$sha" >> "$GITHUB_OUTPUT"
               echo "Both required checks passed"; exit 0
             fi
             if jq -e 'any(.[]; .status == "completed" and (.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out"))' <<< "$checks" >/dev/null; then
@@ -157,11 +201,13 @@ jobs:
           done
           echo "::error::Timed out waiting for CI; rerun in resume mode"; exit 1
       - name: Plan governance
+        if: steps.prepare.outputs.complete != 'true'
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           REPO: ${{ steps.prepare.outputs.repository }}
         run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode plan --checks repository-validation,conventional-title
       - name: Apply governance
+        if: steps.prepare.outputs.complete != 'true'
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           REPO: ${{ steps.prepare.outputs.repository }}
@@ -172,6 +218,7 @@ jobs:
           REPO: ${{ steps.prepare.outputs.repository }}
         run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode verify --checks repository-validation,conventional-title
       - name: Propose SUN ecosystem registration
+        if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           TARGET: ${{ steps.prepare.outputs.repository }}
@@ -179,6 +226,7 @@ jobs:
           MODE: apply
         run: bash scripts/register-ecosystem-repository.sh
       - name: Completion summary
+        if: github.event_name == 'workflow_dispatch'
         env:
           REPO: ${{ steps.prepare.outputs.repository }}
           PR: ${{ steps.prepare.outputs.pr }}
@@ -186,3 +234,23 @@ jobs:
           echo "Governance applied and strictly verified for $REPO." >> "$GITHUB_STEP_SUMMARY"
           echo "Confirm the registration in Ecosystem main before using the branding upload hook." >> "$GITHUB_STEP_SUMMARY"
           echo "Final manual smoke test: squash merge https://github.com/$REPO/pull/$PR and confirm automatic branch deletion." >> "$GITHUB_STEP_SUMMARY"
+      - name: Squash merge the verified product seed
+        if: github.event_name == 'pull_request' && steps.prepare.outputs.complete != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REPO: ${{ steps.prepare.outputs.repository }}
+          PR: ${{ steps.prepare.outputs.pr }}
+          VERIFIED_HEAD: ${{ steps.seed_checks.outputs.head_sha }}
+          APPROVED_MANIFEST: ${{ steps.approval.outputs.manifest }}
+        run: |
+          set -euo pipefail
+          [[ "$VERIFIED_HEAD" =~ ^[0-9a-f]{40}$ ]]
+          bash scripts/verify-approved-product-seed.sh "$REPO" "$VERIFIED_HEAD"
+          merged=$(gh api -X PUT "repos/$REPO/pulls/$PR/merge" -f sha="$VERIFIED_HEAD" -f merge_method=squash)
+          jq -e '.merged == true' <<< "$merged" >/dev/null
+      - name: Approved product completion summary
+        if: github.event_name == 'pull_request'
+        env:
+          REPO: ${{ steps.prepare.outputs.repository }}
+        run: echo "Verified repository and seeded product identity for $REPO." >> "$GITHUB_STEP_SUMMARY"
