@@ -5,6 +5,7 @@ on:
       - '.github/workflows/repository-factory-v1.yml'
       - '.github/workflows/factory-recovery-validation.yml'
       - 'scripts/prepare-product-branding.sh'
+      - 'scripts/verify-approved-product-seed.sh'
       - 'docs/WORKFLOWS.md'
 permissions:
   contents: read
@@ -14,7 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check branding recovery shell syntax
-        run: bash -n scripts/prepare-product-branding.sh
+        run: |
+          bash -n scripts/prepare-product-branding.sh
+          bash -n scripts/verify-approved-product-seed.sh
       - name: Verify resume guardrails
         shell: bash
         run: |
@@ -28,5 +31,9 @@ jobs:
           assert 'Product README exists but STRATA banner remains' in branding
           assert 'Product README exists without brand guide' in branding
           assert 'docs/TEMPLATE-GUIDE.md?ref=$BRANCH' in branding
+          assert 'github.event.pull_request.merged == true' in factory
+          assert 'github.event.pull_request.head.repo.full_name == github.repository' in factory
+          assert 'bash scripts/verify-approved-product-seed.sh "$REPO" "$VERIFIED_HEAD"' in factory
+          assert '-f sha="$VERIFIED_HEAD" -f merge_method=squash' in factory
           print("Recovery guards present; no remote GitHub mutations performed")
           PY

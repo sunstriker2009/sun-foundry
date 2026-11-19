@@ -28,7 +28,7 @@ As the repository owner, open [Propose SUN Product Registration](https://github.
 
 The native GitHub Actions form presents text fields and a fixed dropdown. A dedicated Foundry form could show live previews before submission. See [GitHub Actions workflow input syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatchinputs).
 
-Provisioning and Ecosystem publication still follow the existing separate workflows.
+The owner-approved squash merge starts Foundry's existing Repository Factory. Automatic Ecosystem publication remains a separate checklist item.
 
 ### Merge-time validation
 
@@ -71,7 +71,7 @@ When omitted, store JSON `null` in Foundry and in the manifest's `short-descript
 
 1. **Propose registration.** Validate the product name against SUN policy, resolve the family and candidate ID, and derive the repository slug. Check for duplicate names, IDs, and slugs in Foundry and check that the target repository is available on GitHub. Open a Foundry registry PR containing the exact identity and next-ID update. Keep auto-merge disabled.
 2. **Approve registration.** The owner reviews and squash-merges the Foundry PR. The merge commits the ID allocation and authorizes provisioning. Validate uniqueness and the next ID against current Foundry `main` before merge. An outdated proposal must refresh and show any changed ID for review.
-3. **Provision and verify.** Trigger provisioning from a merged registration PR on Foundry `main`. Read the approved metadata from the merge commit and reuse [Repository Factory v1](REPOSITORY-FACTORY-V1.md) and Strata. Include `branding/manifest.json` in the seed PR with `family-id`, `product-name`, and `short-description`. Keep the revision directory marker. Enable squash auto-merge for the seed PR after required CI and strict governance verification pass.
+3. **Provision and verify.** The owner's squash merge into Foundry `main` starts [Repository Factory v1](REPOSITORY-FACTORY-V1.md). The factory reads the approved identity from the merge commit, uses the current Strata template, and creates the repository with the factory's public default. The seed PR includes `branding/manifest.json` with `family-id`, `product-name`, and `short-description`, and retains the revision marker. After CI and strict governance verification pass, the factory checks the manifest and marker at the tested head SHA and automatically squash-merges that exact SHA through GitHub's protected PR merge.
 4. **Publish to Ecosystem.** Once the seed PR lands and Foundry verifies the manifest on the new repository's `main`, open a generated Ecosystem PR with the confirmed metadata and updated references. Enable squash auto-merge after the required checks pass. The branding upload workflow can recognize the product once the entry is on Ecosystem `main`. Publish approved artwork and the gallery icon through the existing branding flow.
 
 GitHub supports [triggering Actions when a PR merges](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#running-your-pull_request-workflow-when-a-pull-request-merges). Confirm which authorized credential the factory and publisher will use so downstream PR checks run automatically. See [GitHub's workflow-trigger guidance](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow#triggering-a-workflow-from-a-workflow).
@@ -79,6 +79,7 @@ GitHub supports [triggering Actions when a PR merges](https://docs.github.com/en
 ## Recovery and compatibility
 
 - Track progress by approved family ID and repository slug. A retry after a partial failure should resume that registration and preserve its ID. If an existing repository cannot be linked to the approved provisioning attempt, stop for owner review.
+- Re-running the approved factory job can resume a matching seed branch or verify an already seeded repository. If creation succeeded before the approved manifest was written, the next run stops for inspection because it cannot establish the repository's identity.
 - Verify repository governance and the expected manifest before publishing. If Ecosystem publication fails, resume publication using the approved identity.
 - [Foundry's product catalog](../registry/product-catalog.json) is seeded from the [Ecosystem identity registry](https://github.com/sunstriker2009/sun-ecosystem/blob/756599cd7650b1c6d32cbe2a35b2e20de90c1062/registry/products.json) and [repository catalog](https://github.com/sunstriker2009/sun-ecosystem/blob/756599cd7650b1c6d32cbe2a35b2e20de90c1062/registry/repositories.json). The seed preserves current IDs, counters, names, repository slugs and recorded product aliases and retired IDs. It uses the published repository summary as the short description, with the registered purpose used for SUN Ecosystem itself. Unnumbered proposals stay in Ecosystem.
 - During the transition, Ecosystem remains the live registry for the existing registration and branding workflows. Keep its published catalog format compatible when Foundry takes over publication.

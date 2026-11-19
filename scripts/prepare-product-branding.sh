@@ -8,6 +8,12 @@ BRANCH="${2:-chore/sun-governance-ci-seed}"
 [[ "$BRANCH" == chore/sun-governance-ci-seed ]] || { echo "::error::Refusing non-seed branch"; exit 1; }
 [[ "$REPO" != sunstriker2009/sun-strata ]] || exit 1
 : "${GH_TOKEN:?GH_TOKEN required}"
+manifest=
+manifest_sha=
+if [[ -n "${APPROVED_MANIFEST:-}" ]]; then
+  manifest=$(jq . <<< "$APPROVED_MANIFEST")
+  manifest_sha=$(printf '%s\n' "$manifest" | git hash-object --stdin)
+fi
 sha=$(gh api "repos/$REPO/git/ref/heads/$BRANCH" --jq .object.sha)
 readme=$(gh api -H "Accept: application/vnd.github.raw+json" "repos/$REPO/contents/README.md?ref=$BRANCH")
 clean_readme=$(cat <<'EOF'
@@ -28,18 +34,23 @@ if ! jq -e '.truncated == false' <<< "$tree" >/dev/null; then
 fi
 if ! grep -q '^# STRATA by Sun$' <<< "$readme"; then
   if [[ "$readme" == "$clean_readme" ]]; then
-    if jq -e 'any(.tree[];
+    if jq -e --arg manifest_sha "$manifest_sha" 'any(.tree[];
       .path == "docs/TEMPLATE-GUIDE.md"
       or (.type != "tree" and (.path == "branding" or (.path | startswith("branding/")))
-        and (.path != "branding/revisions/.gitkeep" or .type != "blob"
-          or .mode != "100644" or .sha != "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"))
+        and (.type != "blob" or .mode != "100644" or (
+          (.path != "branding/revisions/.gitkeep" or .sha != "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391")
+          and (.path != "branding/manifest.json" or .sha != $manifest_sha))))
     )' <<< "$tree" >/dev/null; then
       echo "::error::Product README exists but cleaned STRATA template files remain; manual inspection required"
       exit 1
     fi
+    if [[ -n "$manifest" ]]; then
+      bash scripts/verify-approved-product-seed.sh "$REPO" "$sha"
+    fi
     echo "Product-neutral README already initialized"
     exit 0
   fi
+  [[ -z "$manifest" ]] || { echo "::error::Unexpected approved product seed baseline"; exit 1; }
   if grep -q '^# SUN Product Repository$' <<< "$readme"; then
     echo "Product README already initialized; checking remaining branding cleanup"
     # A prior attempt may have stopped after writing README but before removing
@@ -98,12 +109,13 @@ if jq -e 'any(.tree[]; .path == "branding/manifest.json" or .path == "branding/r
     exit 1
   fi
   # Publish the neutral README and remove reviewed template branding, retaining the empty revision marker.
-  payload=$(jq -c --arg base "$base_tree" --arg readme "$clean_readme"$'\n' '
+  payload=$(jq -c --arg base "$base_tree" --arg readme "$clean_readme"$'\n' --arg manifest "$manifest" '
     {base_tree:$base, tree:([
       .tree[] | select(.type == "blob" and ((.path | startswith("branding/")) or .path == "docs/TEMPLATE-GUIDE.md")
-        and .path != "branding/revisions/.gitkeep")
+        and .path != "branding/revisions/.gitkeep" and (.path != "branding/manifest.json" or $manifest == ""))
       | {path, mode, type, sha:null}
-    ] + [{path:"README.md",mode:"100644",type:"blob",content:$readme}])}
+    ] + [{path:"README.md",mode:"100644",type:"blob",content:$readme}]
+      + (if $manifest == "" then [] else [{path:"branding/manifest.json",mode:"100644",type:"blob",content:($manifest + "\n")}] end))}
   ' <<< "$tree")
   new_tree=$(gh api -X POST "repos/$REPO/git/trees" --input - --jq .sha <<< "$payload")
   new_commit=$(gh api -X POST "repos/$REPO/git/commits" -f message="chore: initialize product-neutral repository from STRATA" -f tree="$new_tree" -f parents[]="$sha" --jq .sha)
@@ -111,6 +123,7 @@ if jq -e 'any(.tree[]; .path == "branding/manifest.json" or .path == "branding/r
   echo "Product-neutral README prepared; inherited STRATA branding removed on $BRANCH"
   exit 0
 fi
+[[ -z "$manifest" ]] || { echo "::error::Approved registrations require the current STRATA branding baseline"; exit 1; }
 # Only delete exact known template-brand paths, not arbitrary product assets.
 mapfile -t paths < <(jq -r '.tree[] | select(.type == "blob") | .path | select(startswith("branding/"))' <<< "$tree")
 if (( ${#paths[@]} > 0 )); then
