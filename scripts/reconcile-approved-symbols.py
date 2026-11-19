@@ -43,6 +43,9 @@ def main():
     catalog = json.loads(api(f"repos/{ECO}/contents/registry/repositories.json", True))
     if catalog.get("schemaVersion") != 1:
         raise SystemExit("Unsupported registry schema")
+    gallery = catalog.get("galleryDirectory", "branding/registry")
+    if gallery not in ("branding/registry", "gallery"):
+        raise SystemExit("Unsupported gallery directory")
     seen = set()
     failures = []
     for row in catalog["repositories"]:
@@ -65,7 +68,7 @@ def main():
         meta = json.loads(result.stdout)
         content = read_png_blob(repo, SOURCE, meta)
         actual = hashlib.sha256(content).hexdigest()
-        destination = f"branding/registry/{repo.split('/')[1]}.png"
+        destination = f"{gallery}/{repo.split('/')[1]}.png"
         if row.get("icon") == destination and row.get("iconSha256") == actual:
             print(f"OK {repo}: already synchronized")
             continue

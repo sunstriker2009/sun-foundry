@@ -9,7 +9,7 @@ on:
       - 'tests/test_asset_adoption.py'
       - 'assets/**'
       - 'branding/asset-config.json'
-      - 'branding/archive/originals/readme-banner-v1.png'
+      - 'branding/assets/readme-banner.png'
       - 'branding/assets/symbol.png'
       - 'branding/assets/icons/**'
       - 'docs/FOUNDRY-ASSET-PILOT.md'
@@ -23,7 +23,7 @@ on:
       - 'tests/test_asset_pipeline.py'
       - 'tests/test_asset_adoption.py'
       - 'branding/asset-config.json'
-      - 'branding/archive/originals/readme-banner-v1.png'
+      - 'branding/assets/readme-banner.png'
       - 'branding/assets/symbol.png'
       - '.github/workflows/asset-validation.yml'
 permissions:

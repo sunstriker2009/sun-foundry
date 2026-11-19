@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "sources": {
-    "banner": "branding/archive/originals/readme-banner-v1.png",
+    "banner": "branding/assets/readme-banner.png",
     "symbol": "branding/assets/symbol.png"
   },
   "outputDir": "branding/generated",
-  "bannerWidth": 1600,
+  "bannerWidth": 1536,
   "iconSizes": [
     16,
     24,

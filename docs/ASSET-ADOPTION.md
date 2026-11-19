@@ -10,7 +10,7 @@ FOUNDRY owns the shared generator. **STRATA provides repository structure**, not
 
 ```sh
 python scripts/init-asset-config.py --product-root . \
-  --banner branding/archive/originals/readme-banner-v1.png \
+  --banner branding/assets/readme-banner.png \
   --symbol branding/assets/symbol-canonical-v1.png \
   --icon-override 16=branding/assets/icons/icon-16.png
 ```
