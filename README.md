@@ -47,7 +47,7 @@ See the [draft design](docs/PRODUCT-REGISTRATION-LIFECYCLE.md) for the workflow 
 
 - [x] Define the [naming and slug rules, family mappings, and description defaults](docs/PRODUCT-REGISTRATION-LIFECYCLE.md#registration-rules).
 - [x] Seed [Foundry's catalog](registry/product-catalog.json) from existing registrations, preserving assigned IDs and the next ID in each family.
-- [ ] Add a registration workflow that derives the ID and repository slug, validates availability, and opens a Foundry PR for manual owner approval.
+- [x] Add a [registration proposal workflow](docs/PRODUCT-REGISTRATION-LIFECYCLE.md#propose-a-registration) that derives the ID and repository slug, validates availability, and opens a Foundry PR for manual owner approval.
 - [ ] Validate the proposed ID against current `main` before merge and require renewed review if the ID changes.
 - [ ] Provision from the approved merge. Include `branding/manifest.json` and the revision directory marker in the seed PR, and auto-merge after CI and strict governance verification pass.
 - [ ] Verify the manifest on the product repository's `main`, then publish metadata and regenerate references through an Ecosystem PR that auto-merges after its required checks pass.

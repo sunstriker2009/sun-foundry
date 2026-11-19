@@ -1,0 +1,79 @@
+name: Propose SUN Product Registration
+on:
+  workflow_dispatch:
+    inputs:
+      product_name:
+        description: 'Base product name, e.g. CodeFolio'
+        required: true
+        type: string
+      product_family:
+        description: 'SUN product family'
+        required: true
+        type: choice
+        options:
+          - productivity
+          - application_component
+      short_description:
+        description: 'Optional single-line product description'
+        required: false
+        type: string
+permissions:
+  contents: read
+jobs:
+  propose:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: repository-administration
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+      - name: Validate and prepare the registration
+        id: proposal
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          PRODUCT_NAME: ${{ inputs.product_name }}
+          PRODUCT_FAMILY: ${{ inputs.product_family }}
+          SHORT_DESCRIPTION: ${{ inputs.short_description }}
+        run: python3 scripts/propose-product-registration.py
+      - name: Open the Foundry registry PR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REPOSITORY: ${{ steps.proposal.outputs.repository }}
+          FAMILY_ID: ${{ steps.proposal.outputs.family_id }}
+        run: |
+          set -euo pipefail
+          branch="chore/propose-product-$REPOSITORY"
+          ref="refs/heads/$branch"
+          base=$(git rev-parse HEAD)
+          git add registry/product-catalog.json
+          git -c user.name='sun-foundry[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -qm "chore(registry): propose $REPOSITORY"
+
+          existing=$(git ls-remote --heads origin "$ref")
+          if [[ -z "$existing" ]]; then
+            git push --force-with-lease="$ref:" origin "HEAD:$ref"
+          else
+            git fetch --depth=2 origin "$ref"
+            if [[ "$(git show -s --format=%P FETCH_HEAD)" != "$base" ]] || ! git diff --quiet HEAD FETCH_HEAD; then
+              echo "::error::Existing proposal branch $branch differs from this proposal. Review the existing branch and PR."
+              exit 1
+            fi
+          fi
+
+          pr=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --base main --state open --json url --jq '.[0].url // empty')
+          if [[ -z "$pr" ]]; then
+            body=$(printf '%s\n' \
+              "Proposed family ID: \`$FAMILY_ID\`" \
+              "Proposed repository: \`sunstriker2009/$REPOSITORY\`" \
+              "" \
+              "Review the name, family, description, ID and next counter in the catalog diff. Owner review and squash merge required.")
+            pr=$(gh pr create --repo "$GITHUB_REPOSITORY" --head "$branch" --base main \
+              --title "chore(registry): propose $REPOSITORY" --body "$body")
+          fi
+          printf "Proposed family ID: \`%s\`\n\nRepository: \`sunstriker2009/%s\`\n\n[Registration PR](%s)\n" \
+            "$FAMILY_ID" "$REPOSITORY" "$pr" >> "$GITHUB_STEP_SUMMARY"
