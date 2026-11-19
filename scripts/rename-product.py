@@ -14,7 +14,7 @@ SPEC = importlib.util.spec_from_file_location('repository_rename', Path(__file__
 repository = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(repository)
 ROOT = Path(__file__).resolve().parents[1]
-HISTORY = ('branding/archive/', 'branding/revisions/', 'branding/assets/refs/',
+HISTORY = ('branding/archive/', 'branding/revisions/', 'branding/assets/refs/', 'branding/recycling/',
            'decisions/', 'docs/adr/', 'docs/brand/000')
 CODE = {'.cs', '.mjs', '.cjs', '.js', '.ts', '.tsx', '.jsx', '.html', '.csproj', '.yml', '.yaml'}
 DISPLAY = re.compile(r'\b(title|productName|displayName|brand|applicationName|aria-label|alt|placeholder)\b|\bsetName\s*\(')
@@ -64,7 +64,7 @@ def rewrite_product(path, text, old, new):
             nonlocal changed
             if isinstance(value, dict):
                 for key, item in value.items():
-                    if key in ('title', 'productName', 'displayName', 'brand', 'applicationName', 'short_name', 'description') and isinstance(item, str):
+                    if key in ('title', 'productName', 'product-name', 'displayName', 'brand', 'applicationName', 'short_name', 'description') and isinstance(item, str):
                         replacement = display_text(item, old, new)
                         changed |= replacement != item
                         value[key] = replacement

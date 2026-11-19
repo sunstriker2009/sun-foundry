@@ -61,7 +61,10 @@ def main():
     data = read_png_blob(target, args.source, meta)
     digest = hashlib.sha256(data).hexdigest()
     # Merging the canonical branding asset to main is artwork approval.
-    dest = f"branding/registry/{slug}.png"
+    gallery = catalog.get("galleryDirectory", "branding/registry")
+    if gallery not in ("branding/registry", "gallery"):
+        raise SystemExit("Unsupported gallery directory")
+    dest = f"{gallery}/{slug}.png"
     current = matching[0]
     if current.get("icon") == dest and current.get("iconSha256") == digest:
         print("Already synchronized; no PR required")
@@ -82,13 +85,15 @@ def main():
         header = f"http.extraheader=AUTHORIZATION: basic {auth}"
         subprocess.run(["git", "-c", header, "clone", "--quiet", f"https://github.com/{eco}.git", str(repo_dir)], check=True)
         subprocess.run(["git", "checkout", "-q", "-b", branch], cwd=repo_dir, check=True)
-        path = repo_dir / dest
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
         live = json.loads((repo_dir / "registry/repositories.json").read_text())
+        if live.get("galleryDirectory", "branding/registry") != gallery:
+            raise SystemExit("Gallery directory changed; retry against the live catalog")
         matches = [r for r in live["repositories"] if r["repository"] == target]
         if len(matches) != 1 or matches[0]["classification"] == "pending":
             raise SystemExit("Registry changed; retry after review")
+        path = repo_dir / dest
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
         matches[0]["icon"] = dest
         matches[0]["iconSha256"] = digest
         (repo_dir / "registry/repositories.json").write_text(json.dumps(live, indent=2) + "\n")

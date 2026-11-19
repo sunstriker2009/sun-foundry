@@ -4,8 +4,8 @@
 
 ## Approved inputs
 
-- `branding/archive/originals/readme-banner-v1.png`: exact archived owner-approved banner; do not replace.
-- `branding/assets/symbol.png`: banner-aligned transparent master proposed in the artwork PR.
+- `branding/assets/readme-banner.png`: owner-approved production banner. The self-pilot uses its native 1536 px width.
+- `branding/assets/symbol.png`: approved banner-aligned transparent master.
 - `branding/assets/icons/icon-{size}.png`: consistent exports of the active master at all nine sizes; approval is recorded by merging the artwork PR.
 
 ## How to run
@@ -33,4 +33,4 @@ All current sizes deliberately share one master, rather than using optical varia
 
 ## Regression coverage
 
-Run `python -m unittest discover -s tests -p 'test_asset_pipeline.py' -v` locally. Tests cover valid manifest generation, transparent icon output, missing/corrupted source, altered or missing output, modified manifest, attempted upscaling, nontransparent symbol rejection and output path traversal. Legacy optical variants are retained under `branding/assets/refs/icons-v3/` and are no longer active overrides.
+Run `python -m unittest discover -s tests -p 'test_asset_pipeline.py' -v` locally. Tests cover valid manifest generation, transparent icon output, missing/corrupted source, altered or missing output, modified manifest, attempted upscaling, nontransparent symbol rejection and output path traversal.

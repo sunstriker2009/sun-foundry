@@ -96,7 +96,7 @@ def scan_checkout(root, old, new):
         if mode != '100644' and mode != '100755':
             skipped.append(path)
             continue
-        if path.startswith(('branding/archive/', 'branding/revisions/')):
+        if path.startswith(('branding/archive/', 'branding/revisions/', 'branding/recycling/')):
             continue
         file = root / path
         if file.stat().st_size > MAX_TEXT:
