@@ -3,7 +3,7 @@
   "families": {
     "productivity": {
       "format": "SUN-PNNN",
-      "nextId": "SUN-P003",
+      "nextId": "SUN-P002",
       "repositoryClassification": "product"
     },
     "application_component": {
@@ -47,14 +47,6 @@
         "SUN-002",
         "SUN-009"
       ]
-    },
-    {
-      "id": "SUN-P002",
-      "name": "CodeFolio",
-      "family": "productivity",
-      "repository": "sun-codefolio",
-      "shortDescription": "Searchable code snippet reference and interactive snippet builder",
-      "publicName": "CodeFolio by Sun"
     }
   ],
   "infrastructure": [
