@@ -22,7 +22,13 @@ CodeFolio's [registration](https://github.com/sunstriker2009/sun-ecosystem/pull/
 | Repository name | Derived by applying the naming policy's kebab-case rules and adding the `sun-` prefix. Show it as read-only wherever there is a live preview. |
 | Short description | Optional single-line text. See [description handling](#description-handling). |
 
-The initial GitHub Actions form can provide text fields and a fixed dropdown. Since it cannot calculate live read-only labels, show the derived values in the workflow summary and approval PR. A dedicated Foundry form could preview them before submission. See [GitHub Actions workflow input syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatchinputs).
+### Propose a registration
+
+As the repository owner, open [Propose SUN Product Registration](https://github.com/sunstriker2009/sun-foundry/actions/workflows/propose-product-registration.yml) and run it on `main`. Enter the base name, select the product family, and optionally enter a short description. The run uses the `repository-administration` environment and shows the derived family ID, repository slug, and proposal PR in its summary. The PR changes Foundry's catalog and stays open for manual owner review.
+
+The native GitHub Actions form presents text fields and a fixed dropdown. A dedicated Foundry form could show live previews before submission. See [GitHub Actions workflow input syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatchinputs).
+
+The candidate ID comes from `main` at proposal time. Treat it as provisional until the merge-time validation item is implemented. Provisioning and Ecosystem publication still follow the existing separate workflows.
 
 ## Registration rules
 
