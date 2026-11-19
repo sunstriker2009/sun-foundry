@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'scripts/register-ecosystem-repository.sh'
+      - 'scripts/publish-product-registration.py'
+      - 'tests/test_product_publication.py'
       - '.github/workflows/register-sun-repository.yml'
       - '.github/workflows/repository-factory-v1.yml'
       - '.github/workflows/ecosystem-registration-validation.yml'
@@ -15,6 +17,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Shell syntax
         run: bash -n scripts/register-ecosystem-repository.sh
+      - name: Test approved product publication
+        run: python3 -m unittest discover -s tests -p 'test_product_publication.py' -v
       - name: Verify fail-closed boundaries
         run: |
           python3 - <<'PY'
@@ -25,6 +29,7 @@ jobs:
           for required in ('"classification":"pending"', '"registryId":None', 'Repository confirmation mismatch', 'Existing registration branch', 'python3 scripts/render-repository-gallery.py'):
               assert required in script, required
           assert factory.index('Strict verify governance') < factory.index('Propose SUN ecosystem registration')
+          assert factory.index('Squash merge the verified product seed') < factory.index('Verify main and publish the approved identity to Ecosystem')
           assert 'options: [preview, apply]' in manual
           assert 'github.actor == ' in manual
           PY

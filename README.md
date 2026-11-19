@@ -50,7 +50,7 @@ See the [draft design](docs/PRODUCT-REGISTRATION-LIFECYCLE.md) for the workflow 
 - [x] Add a [registration proposal workflow](docs/PRODUCT-REGISTRATION-LIFECYCLE.md#propose-a-registration) that derives the ID and repository slug, validates availability, and opens a Foundry PR for manual owner approval.
 - [x] [Validate the proposed ID against current `main`](docs/PRODUCT-REGISTRATION-LIFECYCLE.md#merge-time-validation) before merge and require renewed review if the ID changes.
 - [x] Provision from the approved merge. Include `branding/manifest.json` and the revision directory marker in the seed PR, and auto-merge after CI and strict governance verification pass.
-- [ ] Verify the manifest on the product repository's `main`, then publish metadata and regenerate references through an Ecosystem PR that auto-merges after its required checks pass.
+- [x] Verify the manifest on the product repository's `main`, then publish metadata and regenerate references through an Ecosystem PR that auto-merges after its required checks pass.
 - [ ] Verify retry behavior after partial failures, confirm how environment approval works, and test the full lifecycle before switching from the existing registration workflow.
 
 ## Branding ZIP installer
