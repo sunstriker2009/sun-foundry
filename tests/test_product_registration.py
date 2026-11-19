@@ -1,4 +1,5 @@
 import importlib.util
+from copy import deepcopy
 import json
 from pathlib import Path
 import unittest
@@ -72,3 +73,46 @@ class ProductRegistrationTests(unittest.TestCase):
             connection.getresponse.side_effect = TimeoutError
             with self.assertRaisesRegex(ValueError, "could not be completed"):
                 proposal.check_repository_available("sun-data-studio", "token")
+
+    def test_merge_validation_accepts_the_exact_proposal_and_family_increment(self):
+        product, next_id = proposal.registration(self.catalog, "Data Studio", "productivity", "")
+        proposed = deepcopy(self.catalog)
+        proposal.add_registration(proposed, product, next_id)
+        ref = f"{proposal.PROPOSAL_PREFIX}{product['id']}-{product['repository']}"
+        proposal.validate_pull_request(self.catalog, proposed, ref)
+
+        proposed["families"]["application_component"]["nextId"] = "SUN-C999"
+        with self.assertRaisesRegex(ValueError, "match the generated proposal"):
+            proposal.validate_pull_request(self.catalog, proposed, ref)
+
+    def test_merge_validation_requires_a_new_branch_when_the_id_changes(self):
+        product, next_id = proposal.registration(self.catalog, "Data Studio", "productivity", "")
+        proposed = deepcopy(self.catalog)
+        proposal.add_registration(proposed, product, next_id)
+        stale_ref = f"{proposal.PROPOSAL_PREFIX}{product['id']}-{product['repository']}"
+
+        winner, following_id = proposal.registration(self.catalog, "Query Pad", "productivity", "")
+        base = deepcopy(self.catalog)
+        proposal.add_registration(base, winner, following_id)
+        with self.assertRaisesRegex(ValueError, f"{product['id']} is stale.*{following_id}"):
+            proposal.validate_pull_request(base, proposed, stale_ref)
+
+        revised, next_id = proposal.registration(base, "Data Studio", "productivity", "")
+        refreshed = deepcopy(base)
+        proposal.add_registration(refreshed, revised, next_id)
+        with self.assertRaisesRegex(ValueError, "is stale"):
+            proposal.validate_pull_request(base, refreshed, stale_ref)
+        new_ref = f"{proposal.PROPOSAL_PREFIX}{revised['id']}-{revised['repository']}"
+        proposal.validate_pull_request(base, refreshed, new_ref)
+
+    def test_merge_validation_keeps_regular_work_and_rejects_an_unbound_registration(self):
+        updated = deepcopy(self.catalog)
+        updated["products"][0]["shortDescription"] = "Updated description"
+        proposal.validate_pull_request(self.catalog, updated, "docs/update-product")
+
+        product, next_id = proposal.registration(self.catalog, "Data Studio", "productivity", "")
+        proposal.add_registration(updated, product, next_id)
+        with self.assertRaisesRegex(ValueError, "Use the Foundry proposal workflow"):
+            proposal.validate_pull_request(self.catalog, updated, "chore/edit-catalog")
+        with self.assertRaisesRegex(ValueError, "ID-bound proposal"):
+            proposal.validate_pull_request(self.catalog, updated, "chore/propose-product-sun-data-studio")

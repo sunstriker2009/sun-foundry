@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Validate a Foundry product proposal and prepare the catalog change."""
 
+import argparse
 from contextlib import closing
+from copy import deepcopy
 from http.client import HTTPSConnection, HTTPException
 import json
 import os
@@ -11,6 +13,7 @@ import re
 
 CATALOG = Path("registry/product-catalog.json")
 OWNER = "sunstriker2009"
+PROPOSAL_PREFIX = "chore/propose-product-"
 
 
 def registration(catalog, name, family, description):
@@ -81,8 +84,48 @@ def check_repository_available(slug, token):
     raise ValueError(f"GitHub repository lookup failed (HTTP {status}).")
 
 
+def add_registration(catalog, product, next_id):
+    catalog["products"].append(product)
+    catalog["families"][product["family"]]["nextId"] = next_id
+
+
+def validate_pull_request(base, proposed, head_ref):
+    if not head_ref.startswith(PROPOSAL_PREFIX):
+        base_ids = {record["id"] for record in base["products"]}
+        proposed_ids = [record["id"] for record in proposed["products"]]
+        if set(proposed_ids) - base_ids or len(proposed_ids) != len(set(proposed_ids)):
+            raise ValueError("Use the Foundry proposal workflow to register a product.")
+        return
+
+    match = re.fullmatch(r"(SUN-[A-Z][0-9]{3})-(sun-[a-z0-9]+(?:-[a-z0-9]+)*)", head_ref[len(PROPOSAL_PREFIX):])
+    if match is None:
+        raise ValueError("Run the Foundry proposal workflow again to open an ID-bound proposal.")
+    branch_id, slug = match.groups()
+    records = [record for record in proposed["products"] if record["repository"] == slug]
+    if len(records) != 1:
+        raise ValueError("The proposal must contain exactly one product for its repository.")
+    record = records[0]
+    product, next_id = registration(base, record["name"], record["family"], record["shortDescription"] or "")
+    if branch_id != product["id"]:
+        raise ValueError(
+            f"Proposed ID {branch_id} is stale. Current main proposes {product['id']}. "
+            "Run the proposal workflow again and review the new PR."
+        )
+    expected = deepcopy(base)
+    add_registration(expected, product, next_id)
+    if proposed != expected:
+        raise ValueError("The catalog must match the generated proposal and advance only its family's counter.")
+
+
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--validate-pr", type=Path, metavar="BASE_CATALOG")
+    args = parser.parse_args()
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
+    if args.validate_pr:
+        base = json.loads(args.validate_pr.read_text(encoding="utf-8"))
+        validate_pull_request(base, catalog, os.environ["GITHUB_HEAD_REF"])
+        return
     product, next_id = registration(
         catalog, os.environ["PRODUCT_NAME"], os.environ["PRODUCT_FAMILY"], os.environ["SHORT_DESCRIPTION"]
     )
@@ -91,8 +134,7 @@ def main():
         raise ValueError("A GitHub credential is required to check repository availability.")
     check_repository_available(product["repository"], token)
 
-    catalog["products"].append(product)
-    catalog["families"][product["family"]]["nextId"] = next_id
+    add_registration(catalog, product, next_id)
     CATALOG.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
         output.write(f"repository={product['repository']}\nfamily_id={product['id']}\n")

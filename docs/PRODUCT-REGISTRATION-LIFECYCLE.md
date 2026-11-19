@@ -28,7 +28,13 @@ As the repository owner, open [Propose SUN Product Registration](https://github.
 
 The native GitHub Actions form presents text fields and a fixed dropdown. A dedicated Foundry form could show live previews before submission. See [GitHub Actions workflow input syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatchinputs).
 
-The candidate ID comes from `main` at proposal time. Treat it as provisional until the merge-time validation item is implemented. Provisioning and Ecosystem publication still follow the existing separate workflows.
+Provisioning and Ecosystem publication still follow the existing separate workflows.
+
+### Merge-time validation
+
+The required `build` check validates the proposed catalog against the base of GitHub's PR merge preview. Foundry's existing strict status-check rule requires the PR to be up to date with `main` when it merges. The check recomputes the identity, verifies the next ID for the selected family, and checks that the catalog changes match that one proposal.
+
+Each proposal branch includes the candidate ID and repository slug. If an earlier merge advances the same family's counter, the stale proposal cannot be updated in place to claim a new ID. Run the proposal workflow again to open a new PR, review the revised ID, and close the superseded PR. Proposals created before the ID was added to branch names also need a fresh run.
 
 ## Registration rules
 

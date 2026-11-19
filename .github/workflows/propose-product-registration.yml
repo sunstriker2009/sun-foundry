@@ -46,7 +46,7 @@ jobs:
           FAMILY_ID: ${{ steps.proposal.outputs.family_id }}
         run: |
           set -euo pipefail
-          branch="chore/propose-product-$REPOSITORY"
+          branch="chore/propose-product-$FAMILY_ID-$REPOSITORY"
           ref="refs/heads/$branch"
           base=$(git rev-parse HEAD)
           git add registry/product-catalog.json
