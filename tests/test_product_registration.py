@@ -1,6 +1,5 @@
 import importlib.util
 from copy import deepcopy
-import json
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -13,7 +12,23 @@ SPEC.loader.exec_module(proposal)
 
 class ProductRegistrationTests(unittest.TestCase):
     def setUp(self):
-        self.catalog = json.loads((ROOT / proposal.CATALOG).read_text(encoding="utf-8"))
+        self.catalog = {
+            "schemaVersion": 1,
+            "families": {
+                "productivity": {"format": "SUN-PNNN", "nextId": "SUN-P002", "repositoryClassification": "product"},
+                "application_component": {"format": "SUN-CNNN", "nextId": "SUN-C002", "repositoryClassification": "product"},
+                "governance": {"format": "SUN-GNNN", "nextId": "SUN-G002", "repositoryClassification": "infrastructure"},
+            },
+            "products": [
+                {"id": "SUN-C001", "name": "Ledger", "repository": "sun-ledger",
+                 "family": "application_component", "shortDescription": None},
+                {"id": "SUN-P001", "name": "Script Case", "repository": "sun-script-case",
+                 "family": "productivity", "previousNames": ["Script Vault"]},
+            ],
+            "infrastructure": [
+                {"id": "SUN-G001", "name": "Factory Pilot", "repository": "sun-factory-pilot", "family": "governance"},
+            ],
+        }
 
     def test_derives_identity_and_advances_only_the_proposed_family(self):
         family = "application_component"
@@ -36,7 +51,7 @@ class ProductRegistrationTests(unittest.TestCase):
         self.assertIsNone(product["shortDescription"])
 
     def test_rejects_names_aliases_and_normalized_slugs_already_in_the_catalog(self):
-        for name in ("CODEFOLIO", "aStElVo", "Foundry--Pilot"):
+        for name in ("SCRIPT CASE", "sCrIpT VaUlT", "Factory--Pilot"):
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, "already recorded"):
                 proposal.registration(self.catalog, name, "productivity", "")
 
