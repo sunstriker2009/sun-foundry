@@ -45,7 +45,7 @@ See [docs/WORKFLOWS.md](docs/WORKFLOWS.md) for operational details and [reposito
 
 See the [draft design](docs/PRODUCT-REGISTRATION-LIFECYCLE.md) for the workflow and open decisions.
 
-- [ ] Finalize the naming and slug rules, family mappings, and handling of an omitted description.
+- [x] Define the [naming and slug rules, family mappings, and description defaults](docs/PRODUCT-REGISTRATION-LIFECYCLE.md#registration-rules).
 - [ ] Seed Foundry's catalog from existing registrations, preserving assigned IDs and the next ID in each family.
 - [ ] Add a registration workflow that derives the ID and repository slug, validates availability, and opens a Foundry PR for manual owner approval.
 - [ ] Validate the proposed ID against current `main` before merge and require renewed review if the ID changes.

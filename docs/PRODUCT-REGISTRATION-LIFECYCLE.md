@@ -17,18 +17,49 @@ CodeFolio's [registration](https://github.com/sunstriker2009/sun-ecosystem/pull/
 | Field | Behavior |
 |---|---|
 | Product name | Required text. Preserve the approved display spelling, such as CodeFolio. |
-| Product family | Required dropdown. Start with Productivity (`productivity`, `SUN-PNNN`) and Application component (`application_component`, `SUN-CNNN`). The published repository catalog classifies either family as `product`. |
+| Product family | Required dropdown. Choose Productivity or Application component. |
 | Family ID | Derived from the selected family's next available ID. Show it as read-only wherever there is a live preview. |
 | Repository name | Derived by applying the naming policy's kebab-case rules and adding the `sun-` prefix. Show it as read-only wherever there is a live preview. |
-| Short description | Optional text. Decide how to represent an omitted value in the manifest and the Ecosystem catalog, whose gallery validator currently requires a summary. |
+| Short description | Optional single-line text. See [description handling](#description-handling). |
 
 The initial GitHub Actions form can provide text fields and a fixed dropdown. Since it cannot calculate live read-only labels, show the derived values in the workflow summary and approval PR. A dedicated Foundry form could preview them before submission. See [GitHub Actions workflow input syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatchinputs).
+
+## Registration rules
+
+### Display name and repository slug
+
+Use the [SUN naming guidelines](https://github.com/sunstriker2009/sun-ecosystem/blob/main/branding/NAMING-GUIDELINES.md) for owner review. Enter the base product name, then derive the endorsed name by appending ` by Sun`. Strip outer spaces and retain the chosen capitalization and word spacing in the display name. For the initial workflow, accept ASCII letters, digits, spaces, and hyphens, with at least one letter and an alphanumeric character at each end after trimming. If the name contains other characters, explain which characters the workflow accepts so the owner can revise the proposal.
+
+To derive the repository slug, lowercase the base name and replace each run of spaces or hyphens with one hyphen. Add `sun-` once. Treat casing within a word as part of its spelling, so CodeFolio stays a single slug segment. Ask for the base name if the input already includes the `sun-` prefix or the `by Sun` endorsement. The complete slug must fit the current factory's 100-character limit.
+
+| Base product name | Endorsed display name | Repository slug |
+|---|---|---|
+| CodeFolio | CodeFolio by Sun | `sun-codefolio` |
+| Data Studio | Data Studio by Sun | `sun-data-studio` |
+| API-Workbench | API-Workbench by Sun | `sun-api-workbench` |
+
+Check proposed names case-insensitively against recorded current and historical names. Check the resulting slug against the catalog and the target GitHub owner. A name or slug collision requires a revised proposal. Source existing names and slugs as recorded when seeding the catalog.
+
+### Product families
+
+| Dropdown label | Product registry family | ID format | Ecosystem catalog classification |
+|---|---|---|---|
+| Productivity | `productivity` | `SUN-PNNN` | `product` |
+| Application component | `application_component` | `SUN-CNNN` | `product` |
+
+Governance and shared infrastructure use the separate `SUN-GNNN` series and stay outside the product registration dropdown. Each product family uses its own next ID from Foundry's catalog. The proposed ID becomes assigned on owner merge. Assigned IDs remain stable across renames and repository moves.
+
+### Description handling
+
+Trim outer whitespace. Treat empty or whitespace-only input as omitted. For a supplied description, accept a single line of up to 180 characters and reject `<`, `>`, `|`, `[`, and `]` to match the [Ecosystem gallery validator](https://github.com/sunstriker2009/sun-ecosystem/blob/main/scripts/render-repository-gallery.py). Use the trimmed text in Foundry, the manifest, and the Ecosystem summary.
+
+When omitted, store JSON `null` in Foundry and in the manifest's `short-description` field. Publish a family-specific summary in Ecosystem so its gallery has a nonempty value. Use `Productivity product by Sun` for Productivity and `Application component by Sun` for Application component.
 
 ## Workflow sequence
 
 1. **Propose registration.** Validate the product name against SUN policy, resolve the family and candidate ID, and derive the repository slug. Check for duplicate names, IDs, and slugs in Foundry and check that the target repository is available on GitHub. Open a Foundry registry PR containing the exact identity and next-ID update. Keep auto-merge disabled.
 2. **Approve registration.** The owner reviews and squash-merges the Foundry PR. The merge commits the ID allocation and authorizes provisioning. Validate uniqueness and the next ID against current Foundry `main` before merge. An outdated proposal must refresh and show any changed ID for review.
-3. **Provision and verify.** Trigger provisioning from a merged registration PR on Foundry `main`. Read the approved metadata from the merge commit and reuse [Repository Factory v1](REPOSITORY-FACTORY-V1.md) and Strata. Include `branding/manifest.json` in the seed PR with `family-id`, `product-name`, and `short-description`, subject to the description decision above. Keep the revision directory marker. Enable squash auto-merge for the seed PR after required CI and strict governance verification pass.
+3. **Provision and verify.** Trigger provisioning from a merged registration PR on Foundry `main`. Read the approved metadata from the merge commit and reuse [Repository Factory v1](REPOSITORY-FACTORY-V1.md) and Strata. Include `branding/manifest.json` in the seed PR with `family-id`, `product-name`, and `short-description`. Keep the revision directory marker. Enable squash auto-merge for the seed PR after required CI and strict governance verification pass.
 4. **Publish to Ecosystem.** Once the seed PR lands and Foundry verifies the manifest on the new repository's `main`, open a generated Ecosystem PR with the confirmed metadata and updated references. Enable squash auto-merge after the required checks pass. The branding upload workflow can recognize the product once the entry is on Ecosystem `main`. Publish approved artwork and the gallery icon through the existing branding flow.
 
 GitHub supports [triggering Actions when a PR merges](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#running-your-pull_request-workflow-when-a-pull-request-merges). Confirm which authorized credential the factory and publisher will use so downstream PR checks run automatically. See [GitHub's workflow-trigger guidance](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow#triggering-a-workflow-from-a-workflow).
@@ -42,8 +73,6 @@ GitHub supports [triggering Actions when a PR merges](https://docs.github.com/en
 
 ## Open decisions
 
-- Define the slug normalization rules for spacing, punctuation, acronyms, and multiword names.
-- Decide how the optional description is represented in the manifest and the required Ecosystem summary.
 - Decide how the post-merge workflow satisfies the existing `repository-administration` environment approval. Document whether a second owner action is expected.
 - Define how Foundry reports incomplete registrations and how operators resume them.
 - Confirm the cutover point for registry updates and how the existing pending-registration path behaves during migration.
