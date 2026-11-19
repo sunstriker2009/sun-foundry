@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validate SUN branding ZIPs and prepare reversible asset-only installations."""
 import argparse
+from contextlib import contextmanager
 from io import BytesIO
 import json
 import os
@@ -83,13 +84,19 @@ def package_assets(data):
         if not path.startswith(root):
             raise ValueError('Files outside the package root')
         relative = path[len(root):]
-        if relative in ('README.md', 'manifest.json', 'PREVIEW.png'):
+        if relative in ('README.md', 'manifest.json'):
             continue  # Informational export metadata never overwrites repository files.
-        if not relative.startswith('branding/assets/'):
+        if relative in ('preview.png', 'PREVIEW.png', 'branding/assets/preview.png'):
+            name = 'concept-artwork.png'
+        elif relative.startswith('branding/assets/'):
+            name = relative[len('branding/assets/'):]
+        else:
             raise ValueError(f'Unsupported package file: {relative}')
-        name = relative[len('branding/assets/'):]
+        if name in result:
+            raise ValueError(f'Duplicate installed asset: {name}')
         icon = re.fullmatch(r'icons/icon-([0-9]+)\.png', name)
-        allowed = (name in ('symbol.png', 'readme-banner.png', 'social-card.png', 'social-preview.png')
+        allowed = (name in ('symbol.png', 'readme-banner.png', 'concept-artwork.png',
+                            'social-card.png', 'social-preview.png')
                    or icon or (name.startswith('refs/') and name.endswith('.png')))
         if not allowed:
             raise ValueError(f'Unsupported asset: {name}')
@@ -109,6 +116,8 @@ def package_assets(data):
 
 def files_under(directory):
     result = {}
+    if directory.is_symlink():
+        raise ValueError('Symlinked asset directory is unsupported')
     if directory.exists():
         for path in directory.rglob('*'):
             if path.is_symlink():
@@ -148,13 +157,11 @@ def restore_assets(data):
     return result
 
 
-def prepare(repository, source, rollback=False):
-    """Return the full proposed asset tree without writing anything."""
+def prepare_assets(repository, source, rollback):
+    """Plan imagery changes without reading or writing revision history."""
     branding = Path(repository) / 'branding'
     if branding.is_symlink():
         raise ValueError('Symlinks are unsupported in branding')
-    if any(p.is_symlink() for p in branding.rglob("*")):
-        raise ValueError("Symlinks are unsupported in branding")
     old = files_under(branding / 'assets')
     if Path(source).stat().st_size > MAX_ZIP:
         raise ValueError("ZIP exceeds 20 MB")
@@ -165,71 +172,102 @@ def prepare(repository, source, rollback=False):
     if rollback:
         new = restore_assets(incoming)
     else:
-        supplied = package_assets(incoming)
-        new = dict(old)
-        # Replace all active icons; preserve references and other existing assets.
-        new = {p: c for p, c in new.items() if not p.startswith('icons/')}
-        new.update(supplied)
+        new = {**old, **package_assets(incoming)}
     for name in new:
         if any(str(parent) in new for parent in PurePosixPath(name).parents if str(parent) != "."):
             raise ValueError("Asset path conflicts with a parent file")
-    revisions = branding / 'revisions'
+    changed = sorted(p for p in old.keys() | new.keys() if old.get(p) != new.get(p))
+    return old, new, {'changed': changed, 'operation': 'rollback' if rollback else 'install',
+                      'source': Path(source).name}
+
+
+def plan_revisions(revisions, old, new, report):
+    if revisions.is_symlink() or any(path.is_symlink() for path in revisions.rglob('*')):
+        raise ValueError('Symlinks are unsupported in revision history')
     versions = sorted(int(p.stem[1:]) for p in revisions.glob('v*.zip')
                       if re.fullmatch(r'v[1-9][0-9]*', p.stem))
     if versions and versions != list(range(1, len(versions) + 1)):
         raise ValueError('Revision history is not contiguous; inspect it before proceeding')
-    changed = sorted(p for p in old.keys() | new.keys() if old.get(p) != new.get(p))
     number = max(versions, default=1) + 1
+    if not report['changed']:
+        return {}, None
     additions = {} if versions else {'v1.zip': snapshot(old)}
-    if changed:
-        additions[f'v{number}.zip'] = snapshot(new)
-    return old, new, additions, {'changed': changed, 'revision': f'v{number}.zip' if changed else None,
-                                'operation': 'rollback' if rollback else 'install',
-                                'source': Path(source).name}
+    revision = f'v{number}.zip'
+    additions[revision] = snapshot(new)
+    return additions, revision
+
+
+def stage_assets(stage, assets):
+    stage.mkdir()
+    for name, content in assets.items():
+        destination = stage / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(content)
+
+
+@contextmanager
+def swap_directory(stage, target, backup):
+    existed = target.exists()
+    if existed:
+        os.replace(target, backup)
+    swapped = False
+    try:
+        os.replace(stage, target)
+        swapped = True
+        yield
+    except BaseException:
+        if swapped:
+            os.replace(target, stage)
+        if existed:
+            os.replace(backup, target)
+        raise
 
 
 def install(repository, source, rollback=False, apply=False):
+    """Preview or apply imagery only, including restores from a legacy snapshot."""
     repository = Path(repository).resolve()
-    old, new, additions, report = prepare(repository, source, rollback)
+    _, new, report = prepare_assets(repository, source, rollback)
     if not apply or not report['changed']:
         return report
     branding = repository / 'branding'
-    # Build everything off to the side, then swap; restore the original on failure.
     with tempfile.TemporaryDirectory(prefix='.branding-stage-', dir=repository) as directory:
-        stage = Path(directory) / 'new'
-        previous = Path(directory) / 'previous'
-        if branding.exists():
-            shutil.copytree(branding, stage)
+        stage = Path(directory)
+        stage_assets(stage / 'new-assets', new)
+        branding.mkdir(exist_ok=True)
+        with swap_directory(stage / 'new-assets', branding / 'assets', stage / 'old-assets'):
+            pass
+    return report
+
+
+def install_with_revision(repository, source, rollback=False, apply=False):
+    """Coordinate imagery and revision recording for the branch and PR workflows."""
+    repository = Path(repository).resolve()
+    branding = repository / 'branding'
+    revisions = branding / 'revisions'
+    old, new, report = prepare_assets(repository, source, rollback)
+    additions, report['revision'] = plan_revisions(revisions, old, new, report)
+    if not apply or not report['changed']:
+        return report
+    source_path = Path(source).resolve()
+    with tempfile.TemporaryDirectory(prefix='.branding-stage-', dir=repository) as directory:
+        stage = Path(directory)
+        stage_assets(stage / 'new-assets', new)
+        staged_history = stage / 'new-revisions'
+        if revisions.exists():
+            shutil.copytree(revisions, staged_history)
         else:
-            stage.mkdir()
-        assets = stage / 'assets'
-        if assets.exists():
-            shutil.rmtree(assets)
-        assets.mkdir()
-        for name, content in new.items():
-            destination = assets / name
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_bytes(content)
-        revisions = stage / 'revisions'
-        revisions.mkdir(exist_ok=True)
+            staged_history.mkdir()
         for name, content in additions.items():
-            with (revisions / name).open('xb') as stream:
+            with (staged_history / name).open('xb') as stream:
                 stream.write(content)
-        (revisions / 'current.json').write_text(json.dumps(report, indent=2) + '\n')
-        if not rollback:
-            # Consume pending local uploads only; never remove numbered history.
-            source_path = Path(source).resolve()
-            if source_path.parent in (branding / 'inbox', branding / 'revisions'):
-                (stage / source_path.relative_to(branding)).unlink()
-        existed = branding.exists()
-        if existed:
-            os.replace(branding, previous)
-        try:
-            os.replace(stage, branding)
-        except BaseException:
-            if existed:
-                os.replace(previous, branding)
-            raise
+        (staged_history / 'current.json').write_text(json.dumps(report, indent=2) + '\n')
+        if not rollback and source_path.parent == revisions:
+            (staged_history / source_path.name).unlink()
+        branding.mkdir(exist_ok=True)
+        with swap_directory(stage / 'new-assets', branding / 'assets', stage / 'old-assets'):
+            with swap_directory(staged_history, revisions, stage / 'old-revisions'):
+                if not rollback and source_path.parent == branding / 'inbox':
+                    source_path.unlink()
     return report
 
 
@@ -239,8 +277,10 @@ def main():
     parser.add_argument('--zip', type=Path, required=True)
     parser.add_argument('--rollback', action='store_true')
     parser.add_argument('--apply', action='store_true', help='Write locally; the workflow only pushes a PR branch')
+    parser.add_argument('--record-revision', action='store_true', help='Also record numbered snapshot history')
     args = parser.parse_args()
-    print(json.dumps(install(args.repository_root, args.zip, args.rollback, args.apply), indent=2))
+    operation = install_with_revision if args.record_revision else install
+    print(json.dumps(operation(args.repository_root, args.zip, args.rollback, args.apply), indent=2))
 
 
 if __name__ == '__main__':

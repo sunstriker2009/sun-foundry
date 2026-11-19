@@ -62,7 +62,7 @@ def main():
         base = run('git', 'rev-parse', 'HEAD', cwd=repo)
         if not args.rollback_revision and (repo / 'branding/revisions' / args.filename).is_file():
             relative = 'branding/revisions/' + args.filename
-        report = installer.install(repo, repo / relative, bool(args.rollback_revision), apply=False)
+        report = installer.install_with_revision(repo, repo / relative, bool(args.rollback_revision), apply=False)
         print(json.dumps(report, indent=2))
         summary = ['## SUN branding ZIP', f'Target: `{args.repository}`', f'Source: `{relative}`',
                    f'Base: `{base}`', f"Proposed revision: `{report['revision']}`",
@@ -71,7 +71,7 @@ def main():
             existing = run('gh', 'api', f'repos/{args.repository}/git/matching-refs/heads/{BRANCH}')
             if json.loads(existing):
                 raise ValueError('Existing branding-install branch: review/merge or close/delete it before retrying')
-            installer.install(repo, repo / relative, bool(args.rollback_revision), apply=True)
+            installer.install_with_revision(repo, repo / relative, bool(args.rollback_revision), apply=True)
             run('git', 'checkout', '-q', '-b', BRANCH, cwd=repo)
             run('git', 'add', '-f', '--', 'branding/assets', 'branding/revisions', cwd=repo)
             if not args.rollback_revision:

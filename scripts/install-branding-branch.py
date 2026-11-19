@@ -84,7 +84,7 @@ def install_branch(root, repository, branch, expected):
     spec = importlib.util.spec_from_file_location('installer', ROOT / 'scripts/install-branding.py')
     installer = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(installer)
-    report = installer.install(root, source, apply=True)
+    report = installer.install_with_revision(root, source, apply=True)
     if not report['changed']:
         return {'installed': False, 'reason': 'Already identical; upload retained'}
     git(root, 'add', '-f', '--', 'branding/assets', 'branding/revisions')

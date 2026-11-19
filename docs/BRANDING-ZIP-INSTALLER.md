@@ -40,9 +40,9 @@ A package contains `branding/assets/`, either at the ZIP root or beneath one enc
 - `symbol.png`: square PNG, 128–4096 pixels per side.
 - `icons/icon-{size}.png`: exact square dimensions for 16, 24, 32, 48, 64, 128, 256, 512 and 1024.
 
-Additional PNG icons up to 1024 pixels, `social-card.png`, `social-preview.png`, and PNG references beneath `refs/` are supported. Package-root `README.md`, `PREVIEW.png` and `manifest.json` are informational and ignored. Other files are rejected. The installer decodes static PNGs, checks image and ZIP limits, rejects traversal, duplicate names, links and encrypted entries, and never executes package contents. It does not compare artwork visually or treat an export manifest digest as approval.
+Optional `preview.png` at the export root or inside `branding/assets/` installs as `branding/assets/concept-artwork.png`. The legacy export-root spelling `PREVIEW.png` and the canonical filename inside assets are also accepted. Supply a single version. Legacy packages may include supplementary PNG icons up to 1024 pixels, social PNGs, and PNG references beneath `refs/`. Package-root `README.md` and `manifest.json` are informational. The installer decodes static PNGs and validates archive contents before writing any assets.
 
-Canonical destinations remain `branding/assets/readme-banner.png`, `branding/assets/symbol.png` and **`branding/assets/icons/`**. The icons directory is replaced with the package’s PNG icon set, including removal of obsolete icon files. Other existing assets and references are retained unless the package replaces the same path. Repository README text, app asset copies, asset-generator configuration, brand guides and legacy archives are outside the installation scope. If an application needs non-PNG icons or copies elsewhere, handle that adoption explicitly in the branding PR. A generated-output pipeline is separate; its old master/configuration must be updated explicitly before using it to export new artwork.
+Imagery installation writes only within `branding/assets/`. Existing supporting files remain in place unless the package supplies a supported replacement at the same path. Keep repository metadata in `branding/manifest.json` and maintain app copies and generator configuration separately. The branch and PR workflows coordinate imagery installation with a separate revision-recording step and commit both changes together.
 
 ## Revision behavior
 
@@ -64,7 +64,7 @@ There is one pending installer branch per target, with serialized manual runs. A
 
 Validation and staging failures occur before publishing a branch; local replacement restores the original tree if the directory swap fails. Remote push/PR failures leave main unchanged. A failed upload remains under its original name. Legacy `branding/archive/` remains intact; migration or cleanup requires a separate reviewed change after the pilot.
 
-Local use: install `assets/requirements.txt`, then run `python3 scripts/install-branding.py --repository-root /path/to/checkout --zip /path/to/package.zip`. This previews only; `--apply` writes the local checkout, and `--rollback` interprets the ZIP as an existing revision snapshot. The local CLI does not create or merge PRs.
+Local use: install `assets/requirements.txt`, then run `python3 scripts/install-branding.py --repository-root /path/to/checkout --zip /path/to/package.zip`. The default previews changes. `--apply` updates only the asset tree, and `--rollback` interprets the ZIP as an existing revision snapshot. Add `--record-revision` to use the workflow’s numbered snapshot and upload-handling behavior locally.
 
 ## Validation and rollout gate
 
