@@ -70,10 +70,10 @@ class InstallerTests(unittest.TestCase):
 
     def test_preview_is_read_only_and_first_apply_captures_exact_backup(self):
         before = self.tree()
-        report = installer.install(self.root, self.zip)
+        report = installer.install_with_revision(self.root, self.zip)
         self.assertEqual(before, self.tree())
         self.assertEqual(report['revision'], 'v2.zip')
-        installer.install(self.root, self.zip, apply=True)
+        installer.install_with_revision(self.root, self.zip, apply=True)
         revisions = self.root / 'branding/revisions'
         self.assertEqual(installer.restore_assets((revisions / 'v1.zip').read_bytes()), {'old.svg': b'<svg/>'})
         self.assertEqual(installer.restore_assets((revisions / 'v2.zip').read_bytes()), installer.files_under(self.assets))
@@ -83,32 +83,65 @@ class InstallerTests(unittest.TestCase):
         self.assertFalse((self.assets / 'manifest.json').exists())
 
     def test_next_revision_then_rollback_appends_and_preserves_history(self):
-        installer.install(self.root, self.zip, apply=True)
+        installer.install_with_revision(self.root, self.zip, apply=True)
         revisions = self.root / 'branding/revisions'
         original_v1 = (revisions / 'v1.zip').read_bytes()
         self.zip.write_bytes(package('red'))
-        self.assertEqual(installer.install(self.root, self.zip, apply=True)['revision'], 'v3.zip')
-        installer.install(self.root, revisions / 'v1.zip', rollback=True, apply=True)
+        self.assertEqual(installer.install_with_revision(self.root, self.zip, apply=True)['revision'], 'v3.zip')
+        installer.install_with_revision(self.root, revisions / 'v1.zip', rollback=True, apply=True)
         self.assertEqual(installer.files_under(self.assets), {'old.svg': b'<svg/>'})
         self.assertEqual((revisions / 'v1.zip').read_bytes(), original_v1)
         self.assertEqual(installer.restore_assets((revisions / 'v4.zip').read_bytes()), {'old.svg': b'<svg/>'})
         self.assertEqual(json.loads((revisions / 'current.json').read_text())['revision'], 'v4.zip')
 
     def test_noop_keeps_upload_and_does_not_allocate_revision(self):
-        installer.install(self.root, self.zip, apply=True)
+        installer.install_with_revision(self.root, self.zip, apply=True)
         self.zip.write_bytes(package())
         before = self.tree()
-        self.assertIsNone(installer.install(self.root, self.zip, apply=True)['revision'])
+        self.assertIsNone(installer.install_with_revision(self.root, self.zip, apply=True)['revision'])
         self.assertEqual(before, self.tree())
 
-    def test_replaces_old_icons_preserves_refs(self):
+    def test_preserves_supporting_icon_exports_and_refs(self):
         (self.assets / 'icons').mkdir()
         (self.assets / 'icons/old.ico').write_bytes(b'old')
         (self.assets / 'refs').mkdir()
         (self.assets / 'refs/old.txt').write_text('reference')
-        installer.install(self.root, self.zip, apply=True)
-        self.assertFalse((self.assets / 'icons/old.ico').exists())
+        installer.install_with_revision(self.root, self.zip, apply=True)
+        self.assertEqual((self.assets / 'icons/old.ico').read_bytes(), b'old')
         self.assertTrue((self.assets / 'refs/old.txt').exists())
+
+    def test_asset_only_install_and_rollback_leave_metadata_and_revisions_untouched(self):
+        branding = self.root / 'branding'
+        (branding / 'manifest.json').write_text('{"product-name":"Example"}')
+        revisions = branding / 'revisions'
+        revisions.mkdir()
+        legacy = revisions / 'v1.zip'
+        legacy.write_bytes(installer.snapshot(installer.files_under(self.assets)))
+        (revisions / 'current.json').write_text('existing bookkeeping')
+        preview = png((300, 200))
+        self.zip.write_bytes(package(extra={'preview.png': preview}))
+        outside = {path: value for path, value in self.tree().items()
+                   if not path.startswith('branding/assets/')}
+        report = installer.install(self.root, self.zip, apply=True)
+        self.assertIn('concept-artwork.png', report['changed'])
+        self.assertEqual((self.assets / 'concept-artwork.png').read_bytes(), preview)
+        self.assertEqual({path: value for path, value in self.tree().items()
+                          if not path.startswith('branding/assets/')}, outside)
+        installer.install(self.root, legacy, rollback=True, apply=True)
+        self.assertEqual(installer.files_under(self.assets), {'old.svg': b'<svg/>'})
+        self.assertEqual({path: value for path, value in self.tree().items()
+                          if not path.startswith('branding/assets/')}, outside)
+
+    def test_preview_aliases_and_duplicate_concept_are_validated(self):
+        preview = png((300, 200))
+        for path in ('preview.png', 'PREVIEW.png', 'branding/assets/preview.png',
+                     'branding/assets/concept-artwork.png'):
+            with self.subTest(path=path):
+                self.assertEqual(installer.package_assets(package(extra={path: preview}))
+                                 ['concept-artwork.png'], preview)
+        with self.assertRaises(ValueError):
+            installer.package_assets(package(extra={'preview.png': preview,
+                                                    'branding/assets/concept-artwork.png': preview}))
 
     def test_invalid_packages_preserve_original_name_and_entire_tree(self):
         bad = [package(extra={'../escape': b'bad'}),
@@ -125,7 +158,7 @@ class InstallerTests(unittest.TestCase):
                 self.zip.write_bytes(data)
                 before = self.tree()
                 with self.assertRaises(Exception):
-                    installer.install(self.root, self.zip, apply=True)
+                    installer.install_with_revision(self.root, self.zip, apply=True)
                 self.assertEqual(before, self.tree())
 
     def test_zip_duplicates_links_and_limits_rejected(self):
@@ -150,19 +183,19 @@ class InstallerTests(unittest.TestCase):
         outside.mkdir()
         (self.assets / 'refs').symlink_to(outside, target_is_directory=True)
         with self.assertRaises(ValueError):
-            installer.install(self.root, self.zip, apply=True)
+            installer.install_with_revision(self.root, self.zip, apply=True)
         self.assertEqual(list(outside.iterdir()), [])
 
     def test_swap_failure_restores_original_tree_and_version(self):
         before = self.tree()
         replace = installer.os.replace
         def fail_install(source, destination):
-            if Path(source).name == 'new':
+            if Path(source).name == 'new-revisions':
                 raise OSError('simulated swap failure')
             return replace(source, destination)
         with patch.object(installer.os, 'replace', side_effect=fail_install):
             with self.assertRaises(OSError):
-                installer.install(self.root, self.zip, apply=True)
+                installer.install_with_revision(self.root, self.zip, apply=True)
         self.assertEqual(before, self.tree())
 
     def test_revision_gaps_and_rollback_traversal_rejected(self):
@@ -170,7 +203,7 @@ class InstallerTests(unittest.TestCase):
         revisions.mkdir()
         (revisions / 'v2.zip').write_bytes(b'gap')
         with self.assertRaises(ValueError):
-            installer.install(self.root, self.zip, apply=True)
+            installer.install_with_revision(self.root, self.zip, apply=True)
         data = BytesIO()
         with zipfile.ZipFile(data, 'w') as archive:
             archive.writestr('README.md', 'outside assets')
