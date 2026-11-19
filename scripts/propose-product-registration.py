@@ -142,6 +142,7 @@ def main():
         with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
             output.write(f"factory_target={product['repository']}\nfactory_confirmation={product['repository']}\n")
             output.write(f"manifest={json.dumps(manifest, separators=(',', ':'))}\n")
+            output.write(f"product={json.dumps(product, separators=(',', ':'))}\n")
         return
     product, next_id = registration(
         catalog, os.environ["PRODUCT_NAME"], os.environ["PRODUCT_FAMILY"], os.environ["SHORT_DESCRIPTION"]

@@ -254,3 +254,19 @@ jobs:
         env:
           REPO: ${{ steps.prepare.outputs.repository }}
         run: echo "Verified repository and seeded product identity for $REPO." >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify main and publish the approved identity to Ecosystem
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REPO: ${{ steps.prepare.outputs.repository }}
+          APPROVED_MANIFEST: ${{ steps.approval.outputs.manifest }}
+          APPROVED_PRODUCT: ${{ steps.approval.outputs.product }}
+        run: |
+          set -euo pipefail
+          product_main=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
+          [[ "$product_main" =~ ^[0-9a-f]{40}$ ]]
+          bash scripts/verify-approved-product-seed.sh "$REPO" "$product_main"
+          APPROVED_ON=$(git show -s --format=%as HEAD)
+          export APPROVED_ON
+          python3 scripts/publish-product-registration.py
