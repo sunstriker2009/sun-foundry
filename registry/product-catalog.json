@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "families": {
+    "productivity": {
+      "format": "SUN-PNNN",
+      "nextId": "SUN-P003",
+      "repositoryClassification": "product"
+    },
+    "application_component": {
+      "format": "SUN-CNNN",
+      "nextId": "SUN-C002",
+      "repositoryClassification": "product"
+    },
+    "governance": {
+      "format": "SUN-GNNN",
+      "nextId": "SUN-G005",
+      "repositoryClassification": "infrastructure"
+    }
+  },
+  "products": [
+    {
+      "id": "SUN-C001",
+      "name": "Outpost",
+      "family": "application_component",
+      "repository": "sun-outpost",
+      "shortDescription": "Identity, authentication, authorization and security",
+      "publicName": "Outpost by Sun",
+      "previousNames": [
+        "HALO",
+        "ORYVA"
+      ],
+      "previousIds": [
+        "SUN-001"
+      ]
+    },
+    {
+      "id": "SUN-P001",
+      "name": "Workbench",
+      "family": "productivity",
+      "repository": "sun-workbench",
+      "shortDescription": "Local code organizer and interactive scripting workspace",
+      "publicName": "Workbench by Sun",
+      "previousNames": [
+        "ASTELVO"
+      ],
+      "previousIds": [
+        "SUN-002",
+        "SUN-009"
+      ]
+    },
+    {
+      "id": "SUN-P002",
+      "name": "CodeFolio",
+      "family": "productivity",
+      "repository": "sun-codefolio",
+      "shortDescription": "Searchable code snippet reference and interactive snippet builder",
+      "publicName": "CodeFolio by Sun"
+    }
+  ],
+  "infrastructure": [
+    {
+      "id": "SUN-G001",
+      "name": "SUN Ecosystem",
+      "family": "governance",
+      "repository": "sun-ecosystem",
+      "shortDescription": "SUN portfolio registry, branding and governance",
+      "role": "GOVERNANCE_AUTHORITY"
+    },
+    {
+      "id": "SUN-G002",
+      "name": "Strata",
+      "family": "governance",
+      "repository": "sun-strata",
+      "shortDescription": "Reusable repository template",
+      "role": "REPOSITORY_TEMPLATE"
+    },
+    {
+      "id": "SUN-G003",
+      "name": "Foundry",
+      "family": "governance",
+      "repository": "sun-foundry",
+      "shortDescription": "Repository factory and governance verification",
+      "role": "REPOSITORY_FACTORY"
+    },
+    {
+      "id": "SUN-G004",
+      "name": "Foundry Pilot",
+      "family": "governance",
+      "repository": "sun-foundry-pilot",
+      "shortDescription": "Isolated repository for validating Foundry provisioning and inherited branding",
+      "role": "VALIDATION_REPOSITORY"
+    }
+  ]
+}
