@@ -28,7 +28,12 @@ if ! jq -e '.truncated == false' <<< "$tree" >/dev/null; then
 fi
 if ! grep -q '^# STRATA by Sun$' <<< "$readme"; then
   if [[ "$readme" == "$clean_readme" ]]; then
-    if jq -e 'any(.tree[]; .path == "branding" or .path == "docs/TEMPLATE-GUIDE.md")' <<< "$tree" >/dev/null; then
+    if jq -e 'any(.tree[];
+      .path == "docs/TEMPLATE-GUIDE.md"
+      or (.type != "tree" and (.path == "branding" or (.path | startswith("branding/")))
+        and (.path != "branding/revisions/.gitkeep" or .type != "blob"
+          or .mode != "100644" or .sha != "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"))
+    )' <<< "$tree" >/dev/null; then
       echo "::error::Product README exists but cleaned STRATA template files remain; manual inspection required"
       exit 1
     fi
@@ -92,10 +97,11 @@ if jq -e 'any(.tree[]; .path == "branding/manifest.json" or .path == "branding/r
     echo "::error::Cleaned STRATA template has unexpected or modified branding; refusing cleanup"
     exit 1
   fi
-  # Publish the neutral README and remove all reviewed template files atomically.
+  # Publish the neutral README and remove reviewed template branding, retaining the empty revision marker.
   payload=$(jq -c --arg base "$base_tree" --arg readme "$clean_readme"$'\n' '
     {base_tree:$base, tree:([
-      .tree[] | select(.type == "blob" and ((.path | startswith("branding/")) or .path == "docs/TEMPLATE-GUIDE.md"))
+      .tree[] | select(.type == "blob" and ((.path | startswith("branding/")) or .path == "docs/TEMPLATE-GUIDE.md")
+        and .path != "branding/revisions/.gitkeep")
       | {path, mode, type, sha:null}
     ] + [{path:"README.md",mode:"100644",type:"blob",content:$readme}])}
   ' <<< "$tree")
