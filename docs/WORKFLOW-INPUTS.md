@@ -1,31 +1,3 @@
-# Repository selection in FOUNDRY workflows
+# Workflow inputs
 
-The owner is always `sunstriker2009`; workflow forms use short repository names. Choose a known repository from the dropdown and leave `repository_name` empty. Where a confirmation is required, type only the same short name, such as `sun-foundry`. Existing backend scripts still receive the full `sunstriker2009/sun-foundry` target and confirmation.
-
-| Workflow | Repository selection |
-| --- | --- |
-| Repository Factory — create | Select `other-repository`, enter the new short name in `repository_name`, repeat that short name as confirmation. |
-| Repository Factory — resume | Choose a listed repository, or `other-repository` plus its short name; repeat the short name. |
-| Repository Maintenance | Choose a listed repository or another existing short name; confirmation is required for Apply. |
-| Register SUN Repository | Choose a listed repository or another existing short name; repeat the short name. Registration still validates live access and registry identity. |
-| Sync Approved SUN Symbol | Choose a listed symbol repository or another registered short name; repeat the short name. Backend registry and PNG checks still apply. |
-| SUN Governance Alignment | Restricted dropdown of five configured repositories. Apply needs the short-name confirmation and reviewed Plan run ID. |
-| Governance Fleet Audit / reconciliation / asset validation | No repository input; existing configured scope is unchanged. |
-
-For example, alignment Plan uses `repository: sun-foundry`, `operation: plan`, with the Apply fields empty. Apply uses `repository: sun-foundry`, the successful Plan run ID and `confirm_repository: sun-foundry`. Plan artifacts retain fully qualified repository identities, so reviewed-plan matching is unchanged.
-
-Known choices are versioned in `config/workflow-repositories.json` and the workflow YAML. Alignment choices come from its separate explicit ruleset-ID policy. These are curated dropdowns, not a live account inventory. Update the list and affected dropdowns together when adding a repository; `python3 scripts/resolve-workflow-repository.py --check-workflows` detects mismatches. The `other-repository` route avoids needing a dropdown update before creating or registering a new repository.
-
-The shared resolver trims surrounding whitespace from selections, other-repository names and confirmations, then rejects foreign owners, slashes in short names, embedded whitespace, mismatched confirmation and stale custom fields. Whitespace-only optional confirmation stays empty and cannot authorize Apply. Same-owner fully qualified values remain accepted by the resolver for compatibility, but operators no longer need to enter them. Existing direct CLI commands continue to use fully qualified repository names. No administrative permissions, environment gates, backend allowlists or source validation checks are changed.
-
-Factory runs are serialized to avoid different selections or aliases provisioning the same repository concurrently. The other-repository name field never accepts an owner override.
-
-## Rename inputs
-
-**SUN Rename Repository** takes `repository` and `new_name` as short-name text inputs. The source must be configured; the destination must be an unused lowercase name. Operation `execute` is the default: Plan, validate and Apply automatically in one job. Operation `plan` is read-only. No Plan run ID or typed confirmation is required by the form. Existing administration-environment access controls still apply before the job starts. See [rename guide](REPOSITORY-RENAME.md).
-
-
-
-## Product rename inputs
-
-**SUN Rename Product** accepts `repository`, `new_product_name`, optional `rename_repository`/`new_repository_name`, and `operation` (Execute or Plan). The existing name/ID come from the Ecosystem registry; no old-name guessing or new ID assignment is allowed. Repository rename defaults off. Its reference scope and the standalone rename workflow are bounded to the target plus STRATA/FOUNDRY/Ecosystem. See [product rename guide](PRODUCT-RENAME.md).
+See [Access and inputs](WORKFLOWS.md#access-and-inputs) in the workflow handbook.

@@ -1,99 +1,127 @@
-# Repository automation
+# Foundry workflow handbook
 
-For repository provisioning and maintenance, use these two workflows:
+## Access and inputs
 
-- **Repository Factory** (`.github/workflows/repository-factory-v1.yml`): create a repository or resume interrupted provisioning. Initializes a seed PR, waits for CI, applies and strictly verifies governance.
-- **Repository Maintenance** (`.github/workflows/repository-factory-resume.yml`): diagnose, plan, apply, or verify governance on an existing repository without creating or seeding it.
+Run owner-dispatched administration workflows from `main` in `sunstriker2009/sun-foundry` as `sunstriker2009`. The protected jobs use the `repository-administration` environment and its `SUN_REPO_ADMIN_TOKEN`. Scope the credential to the target repositories and API operations the workflow uses. Workflow-file updates during renames require Workflows permission in addition to Contents and pull request access. Repository creation, rulesets, settings, and renames require the relevant administration access.
 
-Both require owner-initiated manual dispatch on `main` and the `repository-administration` environment credential. Choose a short repository name from the dropdown; the owner is implicit. Where required, confirmation repeats only the short name. See [repository input guide](WORKFLOW-INPUTS.md) for new or unlisted repositories.
+A workflow authorization check and a GitHub environment approval are separate gates. If a job waits, inspect the run for a deployment review prompt, then check the environment's reviewers, self-review policy, allowed branches, and wait timer. If the job skipped, inspect its actor, branch, repository, and triggering event. For a credential or access error, inspect the failing step and use [Repository Maintenance](#repository-maintenance) with `diagnose` when appropriate. Check existing runs before retrying.
 
-Retired workflows: original Repository Factory (create + plan only), standalone Seed CI, and legacy Provisioning. Git history retains their definitions if recovery is needed. The supported workflows above replace their functions.
+Forms use short names such as `sun-codefolio`. Where a dropdown offers `other-repository`, enter the short name in `repository_name`. Repeat the short name in `confirm_repository` when required. Dropdowns are curated in [workflow repository configuration](../config/workflow-repositories.json) and the workflow files. Alignment and the fleet audit use their own policies. Validate input changes with `python3 scripts/resolve-workflow-repository.py --check-workflows`.
 
-For normal setup, prefer **Repository Factory**. For troubleshooting and targeted reconfiguration, use **Repository Maintenance**.
+## Repository provisioning and maintenance
 
-After Factory succeeds, squash merge its disposable seed PR manually to test the merge and branch-cleanup policy.
+### Propose SUN Product Registration
 
-## STRATA branding isolation during repository creation
+Run [Propose SUN Product Registration](https://github.com/sunstriker2009/sun-foundry/actions/workflows/propose-product-registration.yml) for a new SUN product.
 
-FOUNDRY creates the target from STRATA, then prepares the governance seed branch with a **product-neutral README** before opening the seed PR. The script `scripts/prepare-product-branding.sh` deletes STRATA-specific `branding/` assets **only on the seed branch**, never directly on `main`. It refuses to proceed if the README does not match the STRATA starter, if expected branding fingerprints are missing, or if unexpected branding files are present. This prevents silently deleting already customized product artwork.
-
-The seed PR must be reviewed and squash-merged after governance verification; until then, the generated repository's `main` still contains the template's STRATA branding. Product-specific approved images are deliberately not fabricated or copied from other SUN products. For the cleaned STRATA layout, Foundry verifies the template blobs before removing the inherited assets, metadata, recycling folder, and template guide in the same commit as the neutral README. Pre-cleanup templates still use their existing scaffold and recovery path.
-
-**Validation:** Review the seed PR diff to confirm the inherited STRATA branding and template usage guide were removed and the README is product-neutral. Pre-cleanup templates may also have a product-neutral brand guide. After squash merge, confirm `main` contains no inherited STRATA logo, and then configure the approved product identity. A controlled disposable-repository provisioning test was completed in November 2026 (details below). Do not create further disposable repositories without explicit approval.
-
-## Recovery safeguards (factory resume)
-
-Resume now rechecks the expected seed PR's open state, target `main`, source branch, and repository identity before proceeding. A product-neutral README is not sufficient by itself to declare branding initialization complete: on the cleaned template the script checks that inherited branding and the template guide are absent. On the legacy path it checks that the inherited STRATA banner is absent, the product brand guide exists, and the template guide is removed. Ambiguous partial states fail closed for manual inspection.
-
-When a seed branch exists but no PR was opened, the workflow avoids overwriting an already-created governance seed document. If required checks fail, inspect the PR and its CI logs, correct the issue on the seed branch, and rerun the factory in `resume` mode. Governance Apply/Verify requirements are unchanged.
-
-**Known limit:** Resume may still require manual recovery for partial states that cannot be identified safely. The live test covered a normal create/resume sequence, not every possible interruption point.
-
-## Factory v1 live validation — November 2026
-
-A temporary public repository, `sunstriker2009/sun-foundry-validation`, was created through Repository Factory and subsequently deleted after validation. Observed results:
-
-| Test | Outcome |
+| Input | Meaning |
 | --- | --- |
-| STRATA template provisioning | Passed |
-| Product-neutral branding on seed branch | Passed |
-| Required PR checks | Passed |
-| Governance Plan, Apply and strict Verify on initial creation | Passed |
-| Resume against an already protected repository | Initially failed; fixed by FOUNDRY PR #41 |
-| Repeat resume after idempotency fix | Passed (owner-reported successful workflow run) |
-| Squash-merge and automatic seed branch deletion | Passed (verified: only `main` remained; seed content on `main`) |
-| Disposable repository cleanup | Passed (GitHub repository lookup returned 404 after deletion) |
+| `product_name` | Base display name, using ASCII letters, digits, spaces or hyphens, starting and ending with a letter or digit and containing at least one letter. Omit `sun-` and `by Sun`. |
+| `product_family` | `productivity` assigns the next `SUN-PNNN`; `application_component` assigns the next `SUN-CNNN`. Governance IDs are outside this form. |
+| `short_description` | Optional single line, up to 180 characters after trimming. Exclude `<`, `>`, `\|`, `[`, and `]`. |
 
-**Recovery defect found:** Initial resume failed because Apply rejected an existing `SUN Main Protection` ruleset unconditionally. PR #41 changed Apply to verify an existing ruleset and settings exactly, without overwriting it; policy drift still fails closed.
+Foundry checks availability and uses the next ID in its [product catalog](../registry/product-catalog.json). The repository slug is the lowercased name prefixed with `sun-`, with runs of spaces and hyphens collapsed to a single hyphen. `CodeFolio` becomes `sun-codefolio` and publishes as **CodeFolio by Sun**. Assigned IDs stay stable across renames. An omitted description is stored as JSON `null` in Foundry and the product manifest, with a family-specific fallback used for the Ecosystem summary.
 
-**Validation boundaries:** This is evidence for the exercised public-repository path, not blanket certification of private-repository ruleset availability, all failure/retry boundaries, GitHub permissions, or future API behavior. Repeat controlled integration tests after material governance changes.
+1. The owner dispatch opens and approves the Foundry catalog PR. After the required `build` validates the proposal against current `main`, Foundry squash-merges the tested PR head using the owner's credential.
+2. The merged registration triggers the Factory relay, which dispatches [Repository Factory](#repository-factory) on `main`. The factory verifies the approved registration, provisions a public repository from STRATA, and adds `branding/manifest.json` and `branding/revisions/.gitkeep` in the seed PR. The manifest carries `family-id`, `product-name`, and `short-description`.
+3. The factory waits for seed CI, applies and strictly verifies governance, checks the tested seed head, and squash-merges it. After verifying the manifest and revision marker on product `main`, it opens the Ecosystem publication PR and requests protected squash auto-merge. Once the entry is on Ecosystem `main`, inherited branding can recognize the product.
 
-## SUN governance fleet audit
+If a proposal is stale because another registration advanced the counter, run a fresh owner dispatch for the new ID and close the superseded PR. If the relay fails, dispatch Factory on `main` with `approved_registration_pr` set to the merged Foundry PR number and `confirm_repository` set to the exact short slug. Leave other inputs at their defaults. Reuse the same approved registration on retry. Factory can resume a matching seed or continue from a matching product `main`; inspect an existing repository that lacks either verified match before retrying. An identical Ecosystem proposal can be reused. Inspect changed or stale publication branches before retrying.
 
-The manual-only fleet audit is implemented for an explicit five-repository allowlist, with two concurrent strict verifier processes and a per-repository JSON report. It invokes only `verify`, never Apply or provisioning. Missing check policy, drift, private-plan limits and access errors cannot be reported as compliance.
+### Repository Factory
 
-See [fleet audit setup and result meanings](GOVERNANCE-FLEET-AUDIT.md) and [milestone status](ROADMAP.md). The operator reported the final five-repository audit successful; this is historical evidence, not a fresh compliance claim. No audit schedule or remediation is enabled.
+[Repository Factory](https://github.com/sunstriker2009/sun-foundry/actions/workflows/repository-factory-v1.yml) handles the approved product path above and direct repository setup. Direct creation uses `mode: create`, `repository: other-repository`, the new short `repository_name`, `visibility`, and the matching confirmation. For interrupted direct setup, use `mode: resume` with the original target and matching confirmation. The direct path accepts the owner or the configured GitHub App bot actor ID `358136762`; the automated product relay dispatch is independently validated against the merged approval.
 
-## SUN ecosystem registration (phase 2)
+Factory generates from STRATA and opens a seed PR to initialize `repository-validation` and `conventional-title`. The seed removes template-specific artwork and replaces the STRATA README with a product-neutral README. Factory applies and strictly verifies governance. On the direct path, Factory proposes a **pending-only** Ecosystem registration and the operator squash-merges the seed PR after successful verification. If seed CI fails, correct the seed branch and resume the existing setup. Review an unexpected seed branch or PR before retrying.
 
-After strict governance Verify succeeds, Repository Factory proposes a **pending-only** registration PR in `sunstriker2009/sun-ecosystem`. This also runs on resume, allowing recovery if an earlier registration step failed. Registration does not assign SUN IDs, approve product identities, or auto-merge.
+### Repository Maintenance
 
-For existing repositories, run [Register SUN Repository](https://github.com/sunstriker2009/sun-foundry/actions/workflows/register-sun-repository.yml) on `main` with a repository dropdown selection (or `other-repository` plus its short name), matching short-name confirmation, and `preview` (read-only) or `apply` (propose PR). The workflow uses the protected `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`, which must have repository read access and contents/PR write permissions on `sun-ecosystem`.
+Run [Repository Maintenance](https://github.com/sunstriker2009/sun-foundry/actions/workflows/repository-factory-resume.yml) on an existing repository.
 
-The script refuses to overwrite an existing registration branch, rejects mismatched confirmations and duplicate catalog entries, and refuses to create a pending duplicate for a repository already assigned an approved ID. Resolve existing branches or reconcile approved identities manually. The resulting PR updates `registry/repositories.json` and the generated README gallery only; it requires review and CI before squash merge.
+| Operation | Purpose |
+| --- | --- |
+| `diagnose` | Check authenticated access and basic repository identity. |
+| `plan` | Read live settings and report proposed governance changes or capability limits. |
+| `apply` | Apply supported settings and protection. Requires exact check names and short-name confirmation. |
+| `verify` | Read-only strict verification. Requires exact check names. |
 
-**Limits:** This milestone does not synchronize PNG icons, install branding hooks in member repositories, or auto-merge any PR. The factory registration step is deliberately after governance Verify: if it fails, the repository may already be successfully provisioned; rerun `resume` or use manual registration to recover.
+Use comma-separated check job names from the target policy; the form defaults to STRATA's `repository-validation,conventional-title`. For example, use those checks and `other-repository` / `sun-codefolio` to verify CodeFolio. Use controlled alignment for a supported existing ruleset that needs changes.
 
-## Branding merge approval and automatic registry synchronization
+### Register SUN Repository
 
-Merging a branding PR that publishes or updates `branding/assets/symbol.png` on a confirmed SUN repository's `main` branch approves that artwork for the ecosystem registry. There is no second approval-ledger PR or SHA-256 allowlist. The historical `registry/symbol-approvals.json` ledger is no longer consumed.
+Use [Register SUN Repository](https://github.com/sunstriker2009/sun-foundry/actions/workflows/register-sun-repository.yml) to propose an Ecosystem entry for an existing repository through the pending-registration path. Choose the repository, repeat its short name, and use `preview` for a read-only check or `apply` to open a pending PR. This path leaves ID assignment and identity confirmation to separate review. Use [Propose SUN Product Registration](#propose-sun-product-registration) for the automated new-product lifecycle.
 
-FOUNDRY scans confirmed entries in `registry/repositories.json` daily at 08:17 UTC (03:17 Toronto standard time / 04:17 daylight time). Pending identities and repositories without the canonical asset are skipped. Changed symbols produce an ecosystem PR containing only the copied PNG, catalog metadata and generated gallery changes. Native squash auto-merge is requested; required GitHub checks and protections remain enforced. Unchanged symbols produce no PR or CI run. This is scheduled reconciliation, not an immediate cross-repository merge webhook; GitHub may delay scheduled runs.
+## Governance
 
-SHA-256 remains as change-detection metadata (`iconSha256`), never as an approval restriction. PNG signature, decoded byte count, the 2,000,000-byte limit, registered identity checks, and the large-file Git Blobs API fallback remain enforced. Legacy source-path overrides require manual synchronization and manual merge.
+### Strict verification and fleet audit
 
-Use **Reconcile Approved SUN Symbols** with manual dispatch to scan immediately, or **Sync Approved SUN Symbol** with a confirmed repository and preview/apply mode for a single target. The compatibility approval entry point is retired; use the canonical sync or reconciliation workflow. See the [cleanup record](WORKFLOW-CLEANUP.md).
+The strict baseline checks repository merge and branch-cleanup settings, the active `SUN Main Protection` ruleset restricted to `main`, its bypass list, PR protections and exact required checks with up-to-date enforcement. Coverage is limited to the named baseline; additional rulesets, stronger review profiles, secrets and operational merge behavior need separate evidence. The branch-deletion setting can be read back; observing deletion requires a real squash merge.
 
-### Credentials and prerequisites
+If GitHub reports the applicable private-repository plan restriction, Plan/Audit reports that enforcement is unavailable and Apply/Verify fails closed. Investigate other access errors separately.
 
-The unattended workflow uses the `repository-symbol-sync` environment on `main` with secret `SUN_SYMBOL_SYNC_TOKEN`, requiring member-repository read and ecosystem contents/PR write access. Configure it without a reviewer gate for unattended execution. Owner-dispatched single-target workflows retain `repository-administration` and `SUN_REPO_ADMIN_TOKEN`.
+[SUN Governance Fleet Audit](https://github.com/sunstriker2009/sun-foundry/actions/workflows/governance-fleet-audit.yml) is a manual read-only run over the explicit [allowlist](../config/governance-fleet.json). It reports each target's strict result and publishes JSON evidence. A failed run with a complete report can indicate drift. Missing credentials or an incomplete report cannot establish compliance.
 
-Repositories must adopt the canonical path through their normal branding PR process. Product identity registration and governance controls are unchanged. Existing sync branches are preserved for inspection rather than overwritten; resolve a stale branch before retrying that repository. An error for one repository does not prevent subsequent sync attempts.
+For local verification, use the .NET 10 SDK and set `GH_TOKEN` securely in the shell.
 
-## Controlled governance alignment
+```sh
+dotnet run --project src/Sun.RepoBootstrap -- --repo sunstriker2009/sun-codefolio --mode verify --checks repository-validation,conventional-title
+```
 
-Use [SUN Governance Alignment](GOVERNANCE-ALIGNMENT.md) for reviewed in-place changes to the explicitly mapped existing ruleset IDs. Run Plan, review the artifact, then Apply using its run ID and exact repository confirmation. Apply rechecks state and policy, strengthens the selected ruleset, updates merge settings and verifies the readback. This is separate from Factory Apply, which still refuses to overwrite an existing ruleset. The workflow uses `repository-administration` and `SUN_REPO_ADMIN_TOKEN`; no schedule or automatic fleet-wide Apply is enabled.
+### SUN Governance Alignment
 
-## Repository rename and reference migration
+[SUN Governance Alignment](https://github.com/sunstriker2009/sun-foundry/actions/workflows/governance-alignment.yml) updates an existing ruleset identified by ID in the [alignment policy](../config/governance-alignment.json). It retains the ruleset ID, stronger supported reviews and existing check app bindings. Conflicting rulesets, unexpected check names, bypass actors or wider branch scopes require separate review.
 
-Use **SUN Rename Repository** with operation `execute` for automatic Plan → validate → Apply in one job. No separate plan review, Plan run ID or confirmation input is needed. Operation `plan` remains read-only. Apply prepares content writes before renaming and proposes reference updates through normal PRs; default branches and merge policy remain protected. The existing administration environment may require upfront approval to access its credential. See [rename guide](REPOSITORY-RENAME.md) for scope, recovery, live pilot evidence and external follow-ups. FOUNDRY self-renames remain excluded while it hosts shared Actions.
+1. Run `plan` for the selected repository. Review the summary and `governance-alignment-plan` artifact containing `plan.json` and `result.json`.
+2. Run `apply` for the same repository with the successful `plan_run_id` and its short name in `confirm_repository`. Apply recomputes the plan and refuses expired artifacts or policy and live-state drift. Plan artifacts expire after seven days.
+3. Inspect the readback, or run `verify` independently. If the ruleset write succeeds and the settings write fails, keep the stronger ruleset and make a fresh Plan from live state.
 
+## Branding and gallery
 
+### Install branding ZIP on this branch
 
-## Product rename with optional repository rename
+The [branch hook](../.github/workflows/branding-auto-install.yml) calls the [shared installer](../actions/install-branding-zip/action.yml) at a pinned Foundry commit. STRATA supplies the hook to newly generated repositories. Existing repositories and older branches need the hook present before the upload push.
 
-Use **SUN Rename Product** to rename a registered public product identity, optionally chaining the existing repository rename engine. It scans only the target plus STRATA, FOUNDRY and Ecosystem, deduplicates governance targets, preserves SUN IDs/technical compatibility and opens combined PRs. Default Execute is automatic; read-only Plan remains available. No owner-wide scan or separate plan review is introduced. See [product rename guide](PRODUCT-RENAME.md).
+Commit one ZIP under its original, unnumbered filename directly in `branding/revisions/` on a feature branch. An owner push triggers the installation. Member repositories must be confirmed in the live Ecosystem catalog. The hook adds an installation commit on the same branch and removes the upload only after successful preparation. Review the output and required checks before squash-merging the artwork PR.
 
-## Current checkpoint
+The hook uses the repository `GITHUB_TOKEN` with Contents write, Actions write, and Pull requests read. For an existing PR, it explicitly dispatches the configured validation workflows on the new tip; those workflows must support dispatch and perform equivalent checks. Opening a PR after installation triggers the normal PR checks. Inspect the branch tip and validation results before retrying a failed push or dispatch.
 
-See the [resumption handoff](GOVERNANCE-HANDOFF.md), [issues and gaps](ISSUES-AND-GAPS.md), and [workflow cleanup record](WORKFLOW-CLEANUP.md). The automatic combined ORYVA → OUTPOST product/repository pilot succeeded and its three migration PRs are merged. Product development and its recurring schedules remain paused.
+### SUN Branding ZIP Installer
+
+Use the [manual installer](https://github.com/sunstriker2009/sun-foundry/actions/workflows/branding-zip-install.yml) for a listed target, including snapshot rollback. For installation, merge the uploaded ZIP to target `main` under `branding/revisions/`. This fallback also accepts the legacy `branding/inbox/` path. Select the target and use `operation: preview` with the ZIP basename in `filename` (default `branding.zip`). Inspect the changed paths and proposed revision. Run `apply` with the same inputs and the short target name in `confirm_repository` to open an installation PR. For rollback, set `rollback_revision` to an existing snapshot such as `v2.zip`; the filename is ignored.
+
+Review and squash-merge the installer PR. Only one `chore/branding-install` proposal branch can be pending per target. If the push succeeded but PR creation failed, open its PR from the existing branch. If main's assets or revision history changed, close the stale proposal, remove its branch and preview again.
+
+#### Packages and revisions
+
+The ZIP contains `branding/assets/` at the archive root or inside one enclosing export directory.
+
+- Include a landscape `readme-banner.png` up to 8192 px wide, a square `symbol.png` from 128 to 4096 px, and exact square `icons/icon-{size}.png` for 16, 24, 32, 48, 64, 128, 256, 512 and 1024 px.
+- An optional `preview.png` installs as `concept-artwork.png`; see the [SUN branding standard](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/PRODUCT-BRANDING.md) for canonical layout. The current installer accepts supported legacy asset paths for compatibility. ZIP limits are 20 MB compressed, 64 MB expanded, 12 MB per entry and 256 entries.
+- Imagery writes stay under `branding/assets/`. Revision bookkeeping is under `branding/revisions/`; product metadata stays in `branding/manifest.json`. The first installation snapshots the prior asset tree as `v1.zip` (empty if no prior assets) and the installed tree as `v2.zip`. `current.json` records the result. Later installs and rollbacks create the next numbered snapshot. Rollback restores the full selected asset tree.
+- Keep numbered snapshots immutable. Invalid or ambiguous uploads consume no revision; identical assets produce no commit or revision and leave the upload in place. Revision gaps and stale branch tips require inspection before retrying.
+
+Local preview uses `python3 scripts/install-branding.py --repository-root /path/to/checkout --zip /path/to/package.zip` after installing [dependencies](../assets/requirements.txt). Use `--apply` to write assets, `--rollback` to interpret a ZIP as a snapshot, and `--record-revision` for workflow-style revision bookkeeping.
+
+### Symbol synchronization
+
+Merging the approved `branding/assets/symbol.png` to a confirmed member's `main` approves it for the Ecosystem gallery. The catalog's SHA-256 records integrity and change detection.
+
+- [Sync Approved SUN Symbol](https://github.com/sunstriker2009/sun-foundry/actions/workflows/sync-approved-sun-symbol.yml) handles a single confirmed member. Choose the target and matching short-name confirmation, then `preview` or `apply`. The optional `source` overrides the canonical path for legacy layouts. Apply proposes an Ecosystem PR and requests protected squash auto-merge.
+- [Reconcile Approved SUN Symbols](https://github.com/sunstriker2009/sun-foundry/actions/workflows/reconcile-approved-symbols.yml) runs daily at 08:17 UTC and supports manual dispatch on `main`. It uses `repository-symbol-sync` and `SUN_SYMBOL_SYNC_TOKEN` with member read access and Ecosystem Contents/PR write access. An unattended run requires an environment without a reviewer gate. Review existing proposal branches if a retry reports a conflict.
+
+## Renames
+
+| Workflow | Inputs and effect |
+| --- | --- |
+| [SUN Rename Repository](https://github.com/sunstriker2009/sun-foundry/actions/workflows/rename-repository.yml) | Enter a configured short `repository` and unused lowercase `new_name`. Renames the GitHub repository and proposes exact reference updates. |
+| [SUN Rename Product](https://github.com/sunstriker2009/sun-foundry/actions/workflows/rename-product.yml) | Enter a registered short `repository` and `new_product_name` without the endorsement. Set `rename_repository` and enter `new_repository_name` only for a combined rename. The product ID and technical identity are preserved. |
+
+Both offer read-only `plan`; `execute` prepares and validates a fresh plan in the same job. They scan the target plus STRATA, Foundry and Ecosystem, deduplicated. Workflows prepare content writes before any GitHub repository rename and open reference PRs through normal review and squash merge. Cross-repository renames and PR merges are separate operations. Foundry's own repository rename is blocked while it hosts shared Actions.
+
+Inspect the `repository-rename-run` or `product-rename-run` artifact, including `result.json`, before retrying. Resume matching proposals and resolve edited or stale branches through review. After the registry PR merges, finish outstanding PRs against the recorded migration. Review retained display or packaging references, artwork, deployments, integrations and local remotes where applicable. Avoid global replacement of namespaces, package IDs, environment variables or persisted data identifiers.
+
+## CI and developer validation
+
+[CI](../.github/workflows/ci.yml) publishes Foundry's required `build` check. Scoped validation workflows exercise [workflow inputs](../.github/workflows/workflow-input-validation.yml), [factory recovery](../.github/workflows/factory-recovery-validation.yml), [Ecosystem registration](../.github/workflows/ecosystem-registration-validation.yml), [governance alignment](../.github/workflows/governance-alignment-validation.yml), [fleet audit](../.github/workflows/governance-fleet-validation.yml), [governance idempotency](../.github/workflows/governance-idempotency-validation.yml), [ZIP installation](../.github/workflows/branding-installer-validation.yml), [symbol sync](../.github/workflows/symbol-sync-validation.yml), and the [rename pipeline](../.github/workflows/product-rename-validation.yml).
+
+[Asset preparation validation](../.github/workflows/asset-validation.yml) runs manually or on relevant paths. It runs generator and initializer regression tests, then generates and checks synthetic fixtures and Foundry's own configured assets. See the [local asset preparation guide](ASSET-ADOPTION.md) for inputs and outputs.

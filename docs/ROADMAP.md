@@ -1,17 +1,22 @@
-# FOUNDRY milestones
+# Foundry roadmap checklist
 
-Checkpoint: 2026-11-16. Read [the handoff](GOVERNANCE-HANDOFF.md) before resuming; use [issues and gaps](ISSUES-AND-GAPS.md) for unfinished work.
+## Finished
 
-| Milestone | Verified status | Next work |
-| --- | --- | --- |
-| Repository Factory and maintenance | Public create/resume pilot completed; safety checks retained | Broader interruption/private-plan testing when authorized |
-| Governance alignment and fleet audit | Five-repository completion operator-reported; current FOUNDRY `build` and Ecosystem `gallery` rules read back | Manual audit after material governance changes; no schedule |
-| Registration and gallery | Implemented; OUTPOST/WORKBENCH identities now current | Explicit review for new identities |
-| Canonical PNG reconciliation | Daily 08:17 UTC and manual dispatch; merge is artwork approval | Monitor actual failures; no separate digest gate |
-| Branding ZIP installation | OUTPOST existing-PR checks passed after automated installation. Branch rollback and restore verified. OUTPOST main pin fixed in #178. | All five hooks now use the live Ecosystem catalog. Next validate the registration handoff during an authorized new-repository run. |
-| Branding revision folders | Present in all five core repositories, including STRATA | Folder alone does not enable automatic installation |
-| Product and repository rename | Automatic combined ORYVA → OUTPOST run succeeded; three migration PRs merged | Review retained display/packaging/artwork references and non-atomic recovery limits |
-| Workflow cleanup | Redundant rename validator, legacy sync alias and historical ledger validator retired by cleanup PRs | Merge cleanup PRs and retain current handoff |
-| Branding archive migration / further hook adoption | Separate work | Preserve archives and immutable revisions; require explicit opt-in |
+- [x] Provision public STRATA repositories with seed CI, governance Apply/Verify, and direct-path resume.
+- [x] Assign product identities from Foundry's catalog and validate proposals against current `main`.
+- [x] Verify the owner-triggered registration flow end to end. The [registration run](https://github.com/sunstriker2009/sun-foundry/actions/runs/44656473998) automatically merged the proposal, and the [Factory run](https://github.com/sunstriker2009/sun-foundry/actions/runs/44656556761) provisioned the repository, verified governance, merged the seed and proposed Ecosystem publication. The [Foundry rollback](https://github.com/sunstriker2009/sun-foundry/pull/99) and [Ecosystem rollback](https://github.com/sunstriker2009/sun-ecosystem/pull/59) restored the live registries, and the disposable repository was deleted.
+- [x] Implement read-only governance fleet auditing and reviewed alignment for mapped rulesets. A previous five-repository pass was operator-reported. Use a fresh audit for current compliance.
+- [x] Implement the local asset generator and scoped validation. Validate STRATA's inherited ZIP hook and its required-check dispatches in a [newly provisioned pilot](https://github.com/sunstriker2009/sun-foundry-pilot/actions/runs/44260221893). Verify snapshot rollback and restore with the installer CLI on a [product feature branch](https://github.com/sunstriker2009/sun-outpost/pull/177).
+- [x] Synchronize approved symbols through single-repository and daily reconciliation.
+- [x] Exercise the shared repository-rename engine through a successful [combined product and repository rename](https://github.com/sunstriker2009/sun-foundry/actions/runs/43934714433).
 
-Functional development and recurring product schedules remain paused. No new rename, live rollback, fleet-wide rollout or automatic governance remediation is started by this roadmap.
+## Remaining
+
+- [ ] Exercise approved-registration recovery after interruptions at creation, seed merge and Ecosystem publication. Confirm the operator experience when the administration environment requests deployment approval.
+- [ ] Decide when to retire the pending-registration path for direct Factory runs and existing repositories. Confirm how incomplete registrations will be surfaced.
+- [ ] Verify the new registration records survive a product or repository rename consistently across Foundry's catalog, the product manifest and the published Ecosystem registry.
+- [ ] Exercise manual ZIP installer Preview, Apply and rollback through GitHub Actions on an approved disposable target. Verify the required-check dispatches when onboarding or updating an adopter.
+- [ ] Expand live governance coverage for private-plan limits and stronger review profiles when those cases are needed. Run the existing fleet audit after material governance changes.
+- [ ] Review retained product display, packaging and baked-in artwork references where needed. Review legacy branding archives and recycling folders separately after migration validation.
+
+See the [workflow handbook](WORKFLOWS.md) for procedures and the [handoff](GOVERNANCE-HANDOFF.md) for continuing work.
