@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "updated": "2026-11-19",
+  "updated": "2026-11-20",
   "parentBrand": "SUN",
   "products": [
     {
@@ -55,6 +55,17 @@
       "repository": "sun-codefolio",
       "commercialClearance": "PENDING",
       "confirmedOn": "2026-11-19",
+      "family": "productivity"
+    },
+    {
+      "id": "SUN-P003",
+      "name": "Recovery Validation",
+      "status": "CONFIRMED",
+      "purpose": "Recovery Validation",
+      "publicName": "Recovery Validation by Sun",
+      "repository": "sun-recovery-validation",
+      "commercialClearance": "PENDING",
+      "confirmedOn": "2026-11-20",
       "family": "productivity"
     }
   ],
@@ -142,7 +153,7 @@
     "productivitySeries": {
       "format": "SUN-PNNN",
       "assignment": "sequential_on_confirmation",
-      "nextId": "SUN-P003",
+      "nextId": "SUN-P004",
       "proposalsReserveIds": false
     },
     "applicationComponentSeries": {
