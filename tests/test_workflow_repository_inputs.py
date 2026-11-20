@@ -29,20 +29,13 @@ class RepositoryInputTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 inputs.resolve('sun-foundry', '', confirmation, 'alignment', 'apply')
 
-    def test_custom_repository_and_create_target_are_short_but_owner_is_fixed(self):
-        result = inputs.resolve(inputs.OTHER, 'sun-example', 'sun-example', 'factory', 'create')
-        self.assertEqual(result['factory_target'], 'sun-example')
-        self.assertEqual(result['factory_confirmation'], 'sun-example')
+    def test_custom_repository_name_is_expanded_with_the_fixed_owner(self):
+        result = inputs.resolve(inputs.OTHER, 'sun-example', 'sun-example', 'registration', 'apply')
         self.assertEqual(result['repository'], 'sunstriker2009/sun-example')
+        self.assertEqual(result['confirmation'], result['repository'])
 
-    def test_resume_target_and_confirmation_remain_fully_qualified_in_backend(self):
-        result = inputs.resolve('sun-foundry', '', 'sun-foundry', 'factory', 'resume')
-        self.assertEqual(result['factory_target'], 'sunstriker2009/sun-foundry')
-        self.assertEqual(result['factory_confirmation'], result['factory_target'])
-
-    def test_known_create_accidental_other_field_and_empty_custom_are_rejected(self):
-        cases = [('sun-foundry', '', 'sun-foundry', 'factory', 'create'),
-                 ('sun-foundry', 'sun-other', '', 'maintenance', 'plan'),
+    def test_stale_other_field_and_empty_custom_are_rejected(self):
+        cases = [('sun-foundry', 'sun-other', '', 'maintenance', 'plan'),
                  (inputs.OTHER, '', '', 'maintenance', 'plan')]
         for args in cases:
             with self.assertRaises(ValueError):
@@ -56,13 +49,10 @@ class RepositoryInputTests(unittest.TestCase):
 
     def test_pasted_confirmation_whitespace_is_normalized_in_every_profile(self):
         for profile, operation in [('alignment', 'apply'), ('maintenance', 'apply'),
-                                   ('registration', 'apply'), ('symbol', 'apply'), ('factory', 'resume')]:
+                                   ('registration', 'apply'), ('symbol', 'apply')]:
             result = inputs.resolve(' sun-foundry ', '   ', '\t sun-foundry \n', profile, operation)
             self.assertEqual(result['repository'], 'sunstriker2009/sun-foundry')
             self.assertEqual(result['confirmation'], result['repository'])
-        result = inputs.resolve(inputs.OTHER, ' sun-example ', ' sun-example ', 'factory', 'create')
-        self.assertEqual(result['factory_target'], 'sun-example')
-        self.assertEqual(result['factory_confirmation'], 'sun-example')
 
     def test_whitespace_only_confirmation_stays_empty_and_does_not_confirm_apply(self):
         result = inputs.resolve('sun-foundry', '', ' \t\n ', 'alignment', 'plan')
@@ -100,9 +90,7 @@ class RepositoryInputTests(unittest.TestCase):
         for filename in inputs.WORKFLOWS:
             text = (inputs.ROOT / '.github/workflows' / filename).read_text()
             self.assertEqual(text.count('${{ inputs.repository }}'), 1, filename)
-            # The factory has separate resolvers for manual operations and approved registrations.
-            confirmation_resolvers = 2 if filename == "repository-factory-v1.yml" else 1
-            self.assertEqual(text.count('${{ inputs.confirm_repository }}'), confirmation_resolvers, filename)
+            self.assertEqual(text.count('${{ inputs.confirm_repository }}'), 1, filename)
             self.assertIn('id: target', text, filename)
             self.assertIn('steps.target.outputs.', text, filename)
             self.assertIn("github.actor == 'sunstriker2009'", text, filename)

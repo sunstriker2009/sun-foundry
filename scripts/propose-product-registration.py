@@ -144,7 +144,7 @@ def main():
             "short-description": product["shortDescription"],
         }
         with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
-            output.write(f"factory_target={product['repository']}\nfactory_confirmation={product['repository']}\n")
+            output.write(f"factory_target={product['repository']}\n")
             output.write(f"manifest={json.dumps(manifest, separators=(',', ':'))}\n")
             output.write(f"product={json.dumps(product, separators=(',', ':'))}\n")
         return
