@@ -22,6 +22,8 @@ jobs:
           trap 'rm -f "$base_catalog"' EXIT
           git show HEAD^1:registry/product-catalog.json > "$base_catalog"
           python3 scripts/propose-product-registration.py --validate-pr "$base_catalog"
+      - name: Validate the Foundry registry and gallery
+        run: python3 scripts/render-repository-gallery.py --check
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'

@@ -14,7 +14,7 @@
 
 - [ ] Exercise approved-registration recovery after interruptions at creation, seed merge and Ecosystem publication. Confirm the operator experience when the administration environment requests deployment approval.
 - [ ] Decide when to retire the pending-registration path for direct Factory runs and existing repositories. Confirm how incomplete registrations will be surfaced.
-- [ ] Verify the new registration records survive a product or repository rename consistently across Foundry's catalog, the product manifest and the published Ecosystem registry.
+- [ ] Verify a live product or repository rename across Foundry’s operational catalog, published registry, gallery, and the product manifest.
 - [ ] Exercise manual ZIP installer Preview, Apply and rollback through GitHub Actions on an approved disposable target. Verify the required-check dispatches when onboarding or updating an adopter.
 - [ ] Expand live governance coverage for private-plan limits and stronger review profiles when those cases are needed. Run the existing fleet audit after material governance changes.
 - [ ] Review retained product display, packaging and baked-in artwork references where needed. Review legacy branding archives and recycling folders separately after migration validation.

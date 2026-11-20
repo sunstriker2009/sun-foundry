@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Publish the verified Foundry identity through an Ecosystem pull request."""
+"""Publish the verified Foundry identity through a Foundry pull request."""
 
 import base64
 from datetime import date
@@ -11,12 +11,12 @@ import subprocess
 import tempfile
 
 
-ECOSYSTEM = "sunstriker2009/sun-ecosystem"
+FOUNDRY = "sunstriker2009/sun-foundry"
 AUTHORITY = Path("registry/products.json")
 CATALOG = Path("registry/repositories.json")
 REGISTRY_PAGE = Path("registry/PRODUCTS.md")
-README = Path("README.md")
-PUBLICATION_PATHS = (AUTHORITY, CATALOG, REGISTRY_PAGE, README)
+GALLERY = Path("registry/GALLERY.md")
+PUBLICATION_PATHS = (AUTHORITY, CATALOG, REGISTRY_PAGE, GALLERY)
 FAMILIES = {
     "productivity": ("productivitySeries", "SUN-P", "Productivity", "Productivity product by Sun"),
     "application_component": ("applicationComponentSeries", "SUN-C", "Application components", "Application component by Sun"),
@@ -26,11 +26,11 @@ FAMILIES = {
 def replace_line(pattern, value, text):
     text, count = re.subn(pattern, lambda _: value, text, flags=re.MULTILINE)
     if count != 1:
-        raise ValueError("An Ecosystem document marker is missing or duplicated. Review its format before publishing.")
+        raise ValueError("An Foundry document marker is missing or duplicated. Review its format before publishing.")
     return text
 
 
-def update_pages(root, authority, product, label):
+def update_registry_page(root, authority, product, label):
     ident, name, slug, description = (product[key] for key in ("id", "name", "repository", "purpose"))
     url = f"https://github.com/sunstriker2009/{slug}"
     counters = authority["idPolicy"]
@@ -39,26 +39,16 @@ def update_pages(root, authority, product, label):
     registry = (root / REGISTRY_PAGE).read_text(encoding="utf-8")
     registry = replace_line(r"^\*\*Updated:\*\* [0-9-]+\.",
                             f"**Updated:** {authority['updated']}.", registry)
-    registry = replace_line(r"\n\nThe next IDs are \*\*SUN-P[0-9]{3}\*\* and \*\*SUN-C[0-9]{3}\*\*\.",
+    registry = replace_line(r"\n\nThe next publication counters are \*\*SUN-P[0-9]{3}\*\* and \*\*SUN-C[0-9]{3}\*\*\.",
                             f"\n| {ident} | **{name}** | {label} | {description} | **CONFIRMED** | TBD |\n\n"
-                            f"The next IDs are **{productivity}** and **{component}**.", registry)
+                            f"The next publication counters are **{productivity}** and **{component}**.", registry)
     registry = registry.rstrip() + (
         f"\n\n## {ident} — {name}\n"
         f"- **Public identity:** {product['publicName']}.\n"
         f"- **Repository:** [{slug}]({url}) (established).\n"
         "- **Commercial clearance:** PENDING.\n"
     )
-    readme = (root / README).read_text(encoding="utf-8")
-    products = ", ".join(f"{row['name']} ({row['id']})" for row in authority["products"] if row["status"] == "CONFIRMED")
-    readme = replace_line(r"^\*\*Confirmed products:\*\* .*?(?=\. \*\*Governance & infrastructure:\*\*)",
-                          f"**Confirmed products:** {products}", readme)
-    readme = replace_line(r"The next IDs are \*\*SUN-P[0-9]{3}\*\* for productivity, \*\*SUN-C[0-9]{3}\*\* for application components",
-                          f"The next IDs are **{productivity}** for productivity, **{component}** for application components", readme)
-    anchor = "| Independent application |"
-    if readme.count(anchor) != 1:
-        raise ValueError("The Ecosystem at-a-glance table has changed. Review it before publishing.")
-    readme = readme.replace(anchor, f"| Confirmed product | [{name}]({url}) | {description} — {ident} |\n{anchor}")
-    return registry, readme
+    return registry
 
 
 def project_registration(root, approved, confirmed_on):
@@ -72,12 +62,15 @@ def project_registration(root, approved, confirmed_on):
         raise ValueError("Invalid approved repository slug.")
     description = approved["shortDescription"] or fallback
     if not isinstance(description, str) or len(description) > 180 or re.search(r"[<>|\[\]\r\n]", description):
-        raise ValueError("The approved description is incompatible with the Ecosystem gallery.")
+        raise ValueError("The approved description is incompatible with the Foundry gallery.")
 
     authority = json.loads((root / AUTHORITY).read_text(encoding="utf-8"))
     catalog = json.loads((root / CATALOG).read_text(encoding="utf-8"))
+    operational = json.loads((root / "registry/product-catalog.json").read_text(encoding="utf-8"))
+    if approved not in operational["products"]:
+        raise ValueError("The approved registration is no longer active in Foundry.")
     if catalog.get("schemaVersion") != 1:
-        raise ValueError("Unsupported Ecosystem repository catalog schema.")
+        raise ValueError("Unsupported Foundry repository catalog schema.")
     product = {
         "id": ident, "name": name, "status": "CONFIRMED", "purpose": description,
         "publicName": approved["publicName"], "repository": slug,
@@ -104,11 +97,11 @@ def project_registration(root, approved, confirmed_on):
                and listings[0]["classification"] == "pending" and listings[0]["registryId"] is None
                and listings[0].get("icon") is None and listings[0].get("iconSha256") is None)
     if identities or (listings and not pending):
-        raise ValueError("The approved identity conflicts with an existing Ecosystem entry. Review before publishing.")
+        raise ValueError("The approved identity conflicts with an existing Foundry entry. Review before publishing.")
 
     counter = authority["idPolicy"][series]
     if not re.fullmatch(re.escape(prefix) + r"[0-9]{3}", counter["nextId"]):
-        raise ValueError("Invalid Ecosystem family counter.")
+        raise ValueError("Invalid Foundry family counter.")
     counter["nextId"] = max(counter["nextId"], f"{prefix}{int(ident[-3:]) + 1:03d}")
     authority["updated"] = max(authority["updated"], announced)
     authority["products"].append(product)
@@ -118,11 +111,10 @@ def project_registration(root, approved, confirmed_on):
     else:
         catalog["repositories"].append(row)
 
-    registry_page, readme = update_pages(root, authority, product, label)
+    registry_page = update_registry_page(root, authority, product, label)
     for path, data in ((AUTHORITY, authority), (CATALOG, catalog)):
         (root / path).write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (root / REGISTRY_PAGE).write_text(registry_page, encoding="utf-8")
-    (root / README).write_text(readme, encoding="utf-8")
     subprocess.run(["python3", "scripts/render-repository-gallery.py"], cwd=root, check=True)
     subprocess.run(["python3", "scripts/render-repository-gallery.py", "--check"], cwd=root, check=True)
     return True
@@ -138,7 +130,7 @@ def publish(approved, confirmed_on, token):
         def git(*args):
             return subprocess.check_output(["git", *args], cwd=root, env=git_env, text=True).strip()
 
-        git("clone", "--quiet", "--depth=1", "--branch", "main", f"https://github.com/{ECOSYSTEM}.git", ".")
+        git("clone", "--quiet", "--depth=1", "--branch", "main", f"https://github.com/{FOUNDRY}.git", ".")
         if not project_registration(root, approved, confirmed_on):
             return None
         branch = f"chore/publish-product-{approved['id']}-{approved['repository']}"
@@ -153,23 +145,23 @@ def publish(approved, confirmed_on, token):
             git("fetch", "--depth=2", "origin", ref)
             head = git("rev-parse", "FETCH_HEAD")
             if git("show", "-s", "--format=%P", head) != base or git("rev-parse", f"{head}^{{tree}}") != git("rev-parse", "HEAD^{tree}"):
-                raise ValueError("The existing Ecosystem proposal differs from the current projection. Review it before retrying.")
+                raise ValueError("The existing Foundry proposal differs from the current projection. Review it before retrying.")
         else:
             head = git("rev-parse", "HEAD")
             git("push", "--quiet", f"--force-with-lease={ref}:", "origin", f"{head}:{ref}")
 
         pr = subprocess.check_output(
-            ["gh", "pr", "list", "--repo", ECOSYSTEM, "--head", branch, "--base", "main",
+            ["gh", "pr", "list", "--repo", FOUNDRY, "--head", branch, "--base", "main",
              "--state", "open", "--json", "url", "--jq", ".[0].url // empty"], text=True).strip()
         if not pr:
             pr = subprocess.check_output(
-                ["gh", "pr", "create", "--repo", ECOSYSTEM, "--head", branch, "--base", "main",
+                ["gh", "pr", "create", "--repo", FOUNDRY, "--head", branch, "--base", "main",
                  "--title", title, "--body",
                  f"Publish the Foundry-approved identity for {approved['repository']} after verification on the product repository's main."],
                 text=True).strip()
-        if not re.fullmatch(rf"https://github\.com/{re.escape(ECOSYSTEM)}/pull/[0-9]+", pr):
-            raise ValueError("GitHub did not return an Ecosystem PR URL.")
-        print(f"Ecosystem PR {pr}", flush=True)
+        if not re.fullmatch(rf"https://github\.com/{re.escape(FOUNDRY)}/pull/[0-9]+", pr):
+            raise ValueError("GitHub did not return an Foundry PR URL.")
+        print(f"Foundry PR {pr}", flush=True)
         subprocess.run(["gh", "pr", "merge", pr, "--auto", "--squash", "--match-head-commit", head], check=True)
         return pr
 
@@ -178,7 +170,7 @@ if __name__ == "__main__":
     try:
         pr = publish(json.loads(os.environ["APPROVED_PRODUCT"]), os.environ["APPROVED_ON"], os.environ["GH_TOKEN"])
         with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as summary:
-            summary.write(f"[Ecosystem publication PR]({pr}) has protected squash auto-merge requested.\n" if pr
-                          else "Ecosystem already lists the approved product identity.\n")
+            summary.write(f"[Foundry publication PR]({pr}) has protected squash auto-merge requested.\n" if pr
+                          else "Foundry already lists the approved product identity.\n")
     except (KeyError, OSError, ValueError, subprocess.CalledProcessError) as error:
         raise SystemExit(str(error))

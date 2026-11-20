@@ -14,6 +14,9 @@ SPEC = importlib.util.spec_from_file_location('repository_rename', Path(__file__
 repository = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(repository)
 ROOT = Path(__file__).resolve().parents[1]
+GALLERY_SPEC = importlib.util.spec_from_file_location('gallery', Path(__file__).with_name('render-repository-gallery.py'))
+gallery = importlib.util.module_from_spec(GALLERY_SPEC)
+GALLERY_SPEC.loader.exec_module(gallery)
 HISTORY = ('branding/archive/', 'branding/revisions/', 'branding/assets/refs/', 'branding/recycling/',
            'decisions/', 'docs/adr/', 'docs/brand/000')
 CODE = {'.cs', '.mjs', '.cjs', '.js', '.ts', '.tsx', '.jsx', '.html', '.csproj', '.yml', '.yaml'}
@@ -56,7 +59,7 @@ def rewrite_product(path, text, old, new):
         return prose(text, old, new)
     if suffix == '.json':
         # Only human display fields. Technical identifiers and history are left intact.
-        if path in ('registry/products.json', 'registry/repositories.json', 'registry/symbol-approvals.json'):
+        if path in ('registry/products.json', 'registry/repositories.json', 'registry/symbol-approvals.json', 'registry/product-catalog.json'):
             return text
         data = json.loads(text)
         changed = False
@@ -207,7 +210,8 @@ def make_plan(api, target, new_name, rename_repo=False, new_repository='', scann
         if next(row for row in plan['repositories'] if row['name'] == target)['id'] != plan['sourceId']:
             raise ValueError('Target repository identity changed during planning')
         ecosystem = roots['sun-ecosystem']
-        authority = json.loads((ecosystem / 'registry/products.json').read_text())
+        foundry = roots['sun-foundry']
+        authority = json.loads((foundry / 'registry/products.json').read_text())
         identity = resolve_product(authority, target, actual, new_name)
         old_name, ident = identity['name'], identity['id']
         plan.update(productId=ident, oldProductName=old_name, newProductName=new_name)
@@ -224,7 +228,7 @@ def make_plan(api, target, new_name, rename_repo=False, new_repository='', scann
         for entry in plan['repositories']:
             root = roots[entry['name']]
             entry['changes'], entry['retained'], entry['skipped'] = scan(root, old_name, new_name, target, new_repo)
-        entry = next(row for row in plan['repositories'] if row['name'] == 'sun-ecosystem')
+        entry = next(row for row in plan['repositories'] if row['name'] == 'sun-foundry')
         # Registry authority is matched by stable SUN ID, never a global JSON substitution.
         prior_names = list(dict.fromkeys([*identity.get('previousNames', []), identity.get('supersedes', ''), old_name]))
         identity.update(name=new_name, supersedes=old_name, previousNames=[n for n in prior_names if n])
@@ -232,7 +236,7 @@ def make_plan(api, target, new_name, rename_repo=False, new_repository='', scann
             identity['publicName'] = new_name + ' by Sun'
         if rename_repo:
             identity['repository'] = new_repo
-        catalog = json.loads((ecosystem / 'registry/repositories.json').read_text())
+        catalog = json.loads((foundry / 'registry/repositories.json').read_text())
         rows = [row for row in catalog['repositories'] if row.get('registryId') == ident]
         if len(rows) != 1 or rows[0]['repository'] not in (f'{repository.OWNER}/{target}', f'{repository.OWNER}/{actual}'):
             raise ValueError('Product registry and repository catalog disagree')
@@ -241,7 +245,30 @@ def make_plan(api, target, new_name, rename_repo=False, new_repository='', scann
             rows[0]['repository'] = f'{repository.OWNER}/{new_repo}'
         replacements = {c['path']: c for c in entry['changes']}
         for path, value in [('registry/products.json', authority), ('registry/repositories.json', catalog)]:
-            replacements[path] = change(ecosystem, path, json.dumps(value, indent=2, ensure_ascii=False) + '\n')
+            replacements[path] = change(foundry, path, json.dumps(value, indent=2, ensure_ascii=False) + '\n')
+        operational_path = 'registry/product-catalog.json'
+        operational = json.loads((foundry / operational_path).read_text())
+        operational_items = [item for group in ('products', 'infrastructure')
+                             for item in operational[group] if item['id'] == ident]
+        if len(operational_items) != 1:
+            raise ValueError('Product identity is missing or duplicated in the Foundry operational catalog')
+        operational_item = operational_items[0]
+        if operational_item['name'] != old_name or operational_item['repository'] not in (target, actual):
+            raise ValueError('Foundry operational and published identities disagree')
+        operational_item.update(name=new_name, previousNames=identity['previousNames'])
+        if 'publicName' in operational_item:
+            operational_item['publicName'] = new_name + ' by Sun'
+        if rename_repo:
+            operational_item['repository'] = new_repo
+        replacements[operational_path] = change(foundry, operational_path, json.dumps(operational, indent=2, ensure_ascii=False) + '\n')
+        gallery_path = 'registry/GALLERY.md'
+        generated = gallery.START + '\n' + gallery.render(foundry, catalog, authority) + gallery.END + '\n'
+        if (foundry / gallery_path).read_text() != generated:
+            replacements[gallery_path] = change(foundry, gallery_path, generated)
+        else:
+            replacements.pop(gallery_path, None)
+        entry['changes'] = list(replacements.values())
+
         decision = f'decisions/product-renames/{ident.lower()}-{slug}.md'
         if (ecosystem / decision).exists():
             raise ValueError('Naming decision already exists; inspect previous migration before retrying')
@@ -252,8 +279,8 @@ def make_plan(api, target, new_name, rename_repo=False, new_repository='', scann
                 'SUN ID, capability namespaces, package IDs, purpose and tagline are unchanged. '
                 'Original naming decisions and historical artwork remain preserved. '
                 'This naming approval does not establish commercial clearance or resume paused development.\n')
-        replacements[decision] = change(ecosystem, decision, text)
-        entry['changes'] = list(replacements.values())
+        ecosystem_entry = next(row for row in plan['repositories'] if row['name'] == 'sun-ecosystem')
+        ecosystem_entry['changes'].append(change(ecosystem, decision, text))
     return plan
 
 

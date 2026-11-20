@@ -29,16 +29,15 @@ class ProductPublicationTests(unittest.TestCase):
             "**Updated:** 2026-11-19. Product registry.\n\n"
             "| ID | Name | Family | Purpose | Status | Technical identity |\n"
             "|---|---|---|---|---|---|\n\n"
-            "The next IDs are **SUN-P003** and **SUN-C002**.\n", encoding="utf-8")
-        (self.root / publication.README).write_text(
-            "| Independent application | Linked system | Independent |\n"
-            "**Confirmed products:** None. **Governance & infrastructure:** Foundry.\n"
-            "The next IDs are **SUN-P003** for productivity, **SUN-C002** for application components.\n",
+            "The next publication counters are **SUN-P003** and **SUN-C002**.\n", encoding="utf-8")
+        (self.root / publication.GALLERY).write_text(
+            "<!-- SUN-REPOSITORY-GALLERY:START -->\n<!-- SUN-REPOSITORY-GALLERY:END -->\n",
             encoding="utf-8")
         self.approved = {
             "id": "SUN-P003", "name": "Data Studio", "family": "productivity",
             "repository": "sun-data-studio", "shortDescription": None, "publicName": "Data Studio by Sun",
         }
+        self.write_json(Path("registry/product-catalog.json"), {"products": [self.approved]})
         renderer = patch.object(publication.subprocess, "run")
         self.render = renderer.start()
         self.addCleanup(renderer.stop)
@@ -58,7 +57,7 @@ class ProductPublicationTests(unittest.TestCase):
         row, = self.read_json(publication.CATALOG)["repositories"]
         self.assertEqual((row["registryId"], row["classification"], row["summary"], row["icon"]),
                          ("SUN-P003", "product", "Productivity product by Sun", None))
-        self.assertIn("Data Studio (SUN-P003)", (self.root / publication.README).read_text())
+        self.assertEqual(self.render.call_args_list[0].args[0], ["python3", "scripts/render-repository-gallery.py"])
         self.assertIn("## SUN-P003 — Data Studio", (self.root / publication.REGISTRY_PAGE).read_text())
         self.assertFalse(publication.project_registration(self.root, self.approved, "2026-11-19"))
         self.assertEqual(self.render.call_count, 2)
@@ -72,6 +71,7 @@ class ProductPublicationTests(unittest.TestCase):
             "classification": "pending", "name": "sun-data-studio", "icon": None, "iconSha256": None,
         }]})
         self.approved["shortDescription"] = "Explore data"
+        self.write_json(Path("registry/product-catalog.json"), {"products": [self.approved]})
         self.assertTrue(publication.project_registration(self.root, self.approved, "2026-11-18"))
         authority = self.read_json(publication.AUTHORITY)
         self.assertEqual(authority["idPolicy"]["productivitySeries"]["nextId"], "SUN-P006")

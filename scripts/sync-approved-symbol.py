@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Propose a synchronized approved PNG symbol via an ecosystem pull request."""
+"""Propose a synchronized approved PNG symbol via a Foundry pull request."""
 import argparse
 import base64
 import hashlib
@@ -50,9 +50,9 @@ def main():
         raise SystemExit("Source must be an explicitly approved canonical symbol or approved icon export")
     if not os.getenv("GH_TOKEN"):
         raise SystemExit("Missing GH_TOKEN")
-    eco = "sunstriker2009/sun-ecosystem"
+    foundry = "sunstriker2009/sun-foundry"
     slug = target.split("/")[1]
-    catalog = json.loads(gh(f"repos/{eco}/contents/registry/repositories.json", "-H", "Accept: application/vnd.github.raw+json"))
+    catalog = json.loads(gh(f"repos/{foundry}/contents/registry/repositories.json", "-H", "Accept: application/vnd.github.raw+json"))
     matching = [r for r in catalog["repositories"] if r["repository"] == target]
     if len(matching) != 1 or matching[0]["classification"] == "pending":
         raise SystemExit("Only confirmed, registered repositories may sync icons")
@@ -75,15 +75,15 @@ def main():
         return
     # The merged canonical asset is the approval source.
     branch = f"chore/sync-symbol-{slug}"
-    existing = subprocess.run(["gh", "api", f"repos/{eco}/branches/{branch}"], capture_output=True)
+    existing = subprocess.run(["gh", "api", f"repos/{foundry}/branches/{branch}"], capture_output=True)
     if existing.returncode == 0:
         raise SystemExit("Existing symbol-sync branch; inspect its PR before retrying")
     with tempfile.TemporaryDirectory() as directory:
-        repo_dir = Path(directory) / "ecosystem"
+        repo_dir = Path(directory) / "foundry"
         token = os.environ["GH_TOKEN"]
         auth = base64.b64encode(f"x-access-token:{token}".encode()).decode()
         header = f"http.extraheader=AUTHORIZATION: basic {auth}"
-        subprocess.run(["git", "-c", header, "clone", "--quiet", f"https://github.com/{eco}.git", str(repo_dir)], check=True)
+        subprocess.run(["git", "-c", header, "clone", "--quiet", f"https://github.com/{foundry}.git", str(repo_dir)], check=True)
         subprocess.run(["git", "checkout", "-q", "-b", branch], cwd=repo_dir, check=True)
         live = json.loads((repo_dir / "registry/repositories.json").read_text())
         if live.get("galleryDirectory", "branding/registry") != gallery:
@@ -99,20 +99,20 @@ def main():
         (repo_dir / "registry/repositories.json").write_text(json.dumps(live, indent=2) + "\n")
         subprocess.run(["python3", "scripts/render-repository-gallery.py"], cwd=repo_dir, check=True)
         subprocess.run(["python3", "scripts/render-repository-gallery.py", "--check"], cwd=repo_dir, check=True)
-        subprocess.run(["git", "add", dest, "registry/repositories.json", "README.md"], cwd=repo_dir, check=True)
+        subprocess.run(["git", "add", dest, "registry/repositories.json", "registry/GALLERY.md"], cwd=repo_dir, check=True)
         changed = subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=repo_dir, text=True).splitlines()
-        expected = {dest, "registry/repositories.json", "README.md"}
+        expected = {dest, "registry/repositories.json", "registry/GALLERY.md"}
         if not changed or not set(changed) <= expected or dest not in changed or "registry/repositories.json" not in changed:
             raise SystemExit(f"Unexpected sync diff: {changed}; expected exactly {sorted(expected)}")
         subprocess.run(["git", "-c", "user.name=sun-foundry[bot]", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com", "commit", "-qm", f"chore(registry): sync {slug} approved symbol"], cwd=repo_dir, check=True)
-        subprocess.run(["git", "-c", header, "push", "--quiet", "-u", "origin", branch], cwd=repo_dir, check=True)
-    body = f"Approved symbol synchronization from `{target}/blob/main/{args.source}`. SHA-256: `{digest}`. Only catalog, generated README and PNG are changed. Artwork approval is inherited from the source branding PR merged to main."
-    number = gh("-X", "POST", f"repos/{eco}/pulls", "-f", f"head={branch}", "-f", "base=main", "-f", f"title=chore(registry): sync {slug} approved symbol", "-f", f"body={body}", "--jq", ".number")
-    print(f"PR: https://github.com/{eco}/pull/{number}")
+        subprocess.run(["git", "-c", header, "push", "--quiet", f"--force-with-lease=refs/heads/{branch}:", "origin", f"HEAD:refs/heads/{branch}"], cwd=repo_dir, check=True)
+    body = f"Approved symbol synchronization from `{target}/blob/main/{args.source}`. SHA-256: `{digest}`. Only catalog, generated gallery and PNG are changed. Artwork approval is inherited from the source branding PR merged to main."
+    number = gh("-X", "POST", f"repos/{foundry}/pulls", "-f", f"head={branch}", "-f", "base=main", "-f", f"title=chore(registry): sync {slug} approved symbol", "-f", f"body={body}", "--jq", ".number")
+    print(f"PR: https://github.com/{foundry}/pull/{number}")
     # Only the canonical, owner-selected source is eligible for automatic merge.
     # Native auto-merge continues to enforce GitHub's required checks and reviews.
     if args.source == "branding/assets/symbol.png":
-        subprocess.run(["gh", "pr", "merge", number, "--repo", eco, "--auto", "--squash", "--delete-branch"], check=True)
+        subprocess.run(["gh", "pr", "merge", number, "--repo", foundry, "--auto", "--squash", "--delete-branch"], check=True)
         print("Protected squash auto-merge requested")
     else:
         print("Legacy source path: manual merge required")
