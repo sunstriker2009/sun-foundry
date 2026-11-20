@@ -3,7 +3,7 @@
   "families": {
     "productivity": {
       "format": "SUN-PNNN",
-      "nextId": "SUN-P004",
+      "nextId": "SUN-P003",
       "repositoryClassification": "product"
     },
     "application_component": {
@@ -55,14 +55,6 @@
       "repository": "sun-codefolio",
       "shortDescription": "code management",
       "publicName": "CodeFolio by Sun"
-    },
-    {
-      "id": "SUN-P003",
-      "name": "Registration Smoke Test",
-      "family": "productivity",
-      "repository": "sun-registration-smoke-test",
-      "shortDescription": null,
-      "publicName": "Registration Smoke Test by Sun"
     }
   ],
   "infrastructure": [
