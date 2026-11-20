@@ -29,7 +29,6 @@ SUN Ecosystem (SUN-G001), Strata (SUN-G002), Foundry (SUN-G003), and Foundry Pil
 ## SUN-C001 — Outpost
 - **Public identity:** Outpost by Sun
 - **Tagline:** Identity. Trust. Protection.
-- **Name:** Outpost supersedes ORYVA. ORYVA previously superseded HALO on 2026-10-30. See the [Outpost rename decision](https://github.com/sunstriker2009/sun-ecosystem/blob/main/decisions/product-renames/sun-001-outpost.md).
 - **Repository:** [sun-outpost](https://github.com/sunstriker2009/sun-outpost) (established).
 - **Backend packages:** Sun.Security.*
 - **Frontend packages:** @sun-security/*
