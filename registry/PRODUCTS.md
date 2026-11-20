@@ -1,14 +1,15 @@
 # SUN Product Registry v1.1
 
-**Updated:** 2026-11-19. Each family numbers its products independently. **SUN-PNNN** identifies productivity products and **SUN-CNNN** identifies application components. Foundry allocates IDs through an approved registration. See [the operational catalog](product-catalog.json) for the current allocation counters. IDs remain stable across renames and repository moves. Proposals do not reserve IDs or authorize repository creation.
+**Updated:** 2026-11-20. Each family numbers its products independently. **SUN-PNNN** identifies productivity products and **SUN-CNNN** identifies application components. Foundry allocates IDs through an approved registration. See [the operational catalog](product-catalog.json) for the current allocation counters. IDs remain stable across renames and repository moves. Proposals do not reserve IDs or authorize repository creation.
 
 | ID | Name | Family | Purpose | Status | Technical identity |
 |---|---|---|---|---|---|
 | SUN-C001 | **Outpost** | Application components | Identity, authentication, authorization, security | **CONFIRMED** | Sun.Security |
 | SUN-P001 | **Workbench** | Productivity | Interactive scripting workspace and saved connections | **CONFIRMED** | Sun.Workspace |
 | SUN-P002 | **CodeFolio** | Productivity | code management | **CONFIRMED** | TBD |
+| SUN-P003 | **Recovery Validation** | Productivity | Recovery Validation | **CONFIRMED** | TBD |
 
-The next publication counters are **SUN-P003** and **SUN-C002**. The [ID migration decision](https://github.com/sunstriker2009/sun-ecosystem/blob/main/decisions/sun-family-ids.md) records the previous IDs.
+The next publication counters are **SUN-P004** and **SUN-C002**. The [ID migration decision](https://github.com/sunstriker2009/sun-ecosystem/blob/main/decisions/sun-family-ids.md) records the previous IDs.
 
 ## Unnumbered product proposals
 
@@ -52,4 +53,9 @@ The proposed names ORBIT, NOVA, PRISM, PULSAR, LUMEN, BEACON and FORGE have pote
 ## SUN-P002 — CodeFolio
 - **Public identity:** CodeFolio by Sun.
 - **Repository:** [sun-codefolio](https://github.com/sunstriker2009/sun-codefolio) (established).
+- **Commercial clearance:** PENDING.
+
+## SUN-P003 — Recovery Validation
+- **Public identity:** Recovery Validation by Sun.
+- **Repository:** [sun-recovery-validation](https://github.com/sunstriker2009/sun-recovery-validation) (established).
 - **Commercial clearance:** PENDING.
