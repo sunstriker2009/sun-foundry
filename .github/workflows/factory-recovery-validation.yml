@@ -33,6 +33,10 @@ jobs:
           assert 'docs/TEMPLATE-GUIDE.md?ref=$BRANCH' in branding
           assert 'github.event.pull_request.merged == true' in factory
           assert 'github.event.pull_request.head.repo.full_name == github.repository' in factory
+          relay = factory.split('  relay-approved-registration:', 1)[1].split('  authorize-approved-registration:', 1)[0]
+          assert 'actions: write' in relay and 'environment:' not in relay
+          assert 'ref:"main"' in relay and '/dispatches" --input -' in relay
+          assert "needs.authorize-approved-registration.result == 'success'" in factory
           assert 'bash scripts/verify-approved-product-seed.sh "$REPO" "$VERIFIED_HEAD"' in factory
           assert '-f sha="$VERIFIED_HEAD" -f merge_method=squash' in factory
           print("Recovery guards present; no remote GitHub mutations performed")

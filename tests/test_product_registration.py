@@ -131,3 +131,12 @@ class ProductRegistrationTests(unittest.TestCase):
             proposal.validate_pull_request(self.catalog, updated, "chore/edit-catalog")
         with self.assertRaisesRegex(ValueError, "ID-bound proposal"):
             proposal.validate_pull_request(self.catalog, updated, "chore/propose-product-sun-data-studio")
+
+    def test_approved_merge_can_resume_only_while_its_identity_is_active(self):
+        product, next_id = proposal.registration(self.catalog, "Data Studio", "productivity", "")
+        approved = deepcopy(self.catalog)
+        proposal.add_registration(approved, product, next_id)
+        head = f"{proposal.PROPOSAL_PREFIX}{product['id']}-{product['repository']}"
+        self.assertEqual(proposal.resolve_active_registration(self.catalog, approved, approved, head), product)
+        with self.assertRaisesRegex(ValueError, "no longer active"):
+            proposal.resolve_active_registration(self.catalog, approved, self.catalog, head)

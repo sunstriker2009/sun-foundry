@@ -100,7 +100,9 @@ class RepositoryInputTests(unittest.TestCase):
         for filename in inputs.WORKFLOWS:
             text = (inputs.ROOT / '.github/workflows' / filename).read_text()
             self.assertEqual(text.count('${{ inputs.repository }}'), 1, filename)
-            self.assertEqual(text.count('${{ inputs.confirm_repository }}'), 1, filename)
+            # The factory has separate resolvers for manual operations and approved registrations.
+            confirmation_resolvers = 2 if filename == "repository-factory-v1.yml" else 1
+            self.assertEqual(text.count('${{ inputs.confirm_repository }}'), confirmation_resolvers, filename)
             self.assertIn('id: target', text, filename)
             self.assertIn('steps.target.outputs.', text, filename)
             self.assertIn("github.actor == 'sunstriker2009'", text, filename)
