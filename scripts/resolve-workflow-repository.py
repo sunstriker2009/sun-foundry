@@ -10,7 +10,6 @@ ROOT = Path(__file__).resolve().parents[1]
 OWNER = "sunstriker2009"
 OTHER = "other-repository"
 WORKFLOWS = {
-    "repository-factory-v1.yml": "factory",
     "repository-factory-resume.yml": "maintenance",
     "register-sun-repository.yml": "registration",
     "sync-approved-sun-symbol.yml": "symbol",
@@ -18,7 +17,7 @@ WORKFLOWS = {
     "branding-zip-install.yml": "branding",
 }
 OPERATIONS = {
-    "factory": ("create", "resume"), "maintenance": ("diagnose", "plan", "apply", "verify"),
+    "maintenance": ("diagnose", "plan", "apply", "verify"),
     "registration": ("preview", "apply"), "symbol": ("preview", "apply"),
     "alignment": ("plan", "apply", "verify"), "branding": ("preview", "apply"),
 }
@@ -62,9 +61,7 @@ def resolve(selection, other, confirmation, profile, operation):
         name = short_name(selection)
         if name not in choices(profile):
             raise ValueError("Select Other repository for names outside the dropdown")
-    if profile == "factory" and operation == "create" and selection != OTHER:
-        raise ValueError("To create a repository select other-repository and enter its new short name")
-    required = profile in ("factory", "registration", "symbol") or operation == "apply"
+    required = profile in ("registration", "symbol") or operation == "apply"
     confirm = short_name(confirmation) if confirmation else ""
     if required and confirm != name:
         raise ValueError("Confirmation must match the short repository name")
@@ -72,9 +69,7 @@ def resolve(selection, other, confirmation, profile, operation):
         raise ValueError("Repository confirmation mismatch")
     repository = f"{OWNER}/{name}"
     return {"name": name, "repository": repository,
-            "confirmation": f"{OWNER}/{confirm}" if confirm else "",
-            "factory_target": name if operation == "create" else repository,
-            "factory_confirmation": confirm if operation == "create" else (f"{OWNER}/{confirm}" if confirm else "")}
+            "confirmation": f"{OWNER}/{confirm}" if confirm else ""}
 
 
 def check_workflows():
