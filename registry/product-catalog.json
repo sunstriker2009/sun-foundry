@@ -3,7 +3,7 @@
   "families": {
     "productivity": {
       "format": "SUN-PNNN",
-      "nextId": "SUN-P002",
+      "nextId": "SUN-P003",
       "repositoryClassification": "product"
     },
     "application_component": {
@@ -47,6 +47,14 @@
         "SUN-002",
         "SUN-009"
       ]
+    },
+    {
+      "id": "SUN-P002",
+      "name": "CodeFolio",
+      "family": "productivity",
+      "repository": "sun-codefolio",
+      "shortDescription": "code management",
+      "publicName": "CodeFolio by Sun"
     }
   ],
   "infrastructure": [
