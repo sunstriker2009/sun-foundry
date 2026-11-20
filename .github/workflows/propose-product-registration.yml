@@ -10,6 +10,7 @@ on:
         description: 'SUN product family'
         required: true
         type: choice
+        default: productivity
         options:
           - productivity
           - application_component
