@@ -24,7 +24,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'sunstriker2009' && github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: repository-administration
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,6 +39,7 @@ jobs:
           SHORT_DESCRIPTION: ${{ inputs.short_description }}
         run: python3 scripts/propose-product-registration.py
       - name: Open the Foundry registry PR
+        id: proposal_pr
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
@@ -57,12 +58,14 @@ jobs:
           existing=$(git ls-remote --heads origin "$ref")
           if [[ -z "$existing" ]]; then
             git push --force-with-lease="$ref:" origin "HEAD:$ref"
+            head=$(git rev-parse HEAD)
           else
             git fetch --depth=2 origin "$ref"
             if [[ "$(git show -s --format=%P FETCH_HEAD)" != "$base" ]] || ! git diff --quiet HEAD FETCH_HEAD; then
               echo "::error::Existing proposal branch $branch differs from this proposal. Review the existing branch and PR."
               exit 1
             fi
+            head=$(git rev-parse FETCH_HEAD)
           fi
 
           pr=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --base main --state open --json url --jq '.[0].url // empty')
@@ -71,9 +74,19 @@ jobs:
               "Proposed family ID: \`$FAMILY_ID\`" \
               "Proposed repository: \`sunstriker2009/$REPOSITORY\`" \
               "" \
-              "Review the name, family, description, ID and next counter in the catalog diff. Owner review and squash merge required.")
+              "The owner approved this registration by dispatching the workflow. Foundry will squash-merge the exact proposal after the required check passes.")
             pr=$(gh pr create --repo "$GITHUB_REPOSITORY" --head "$branch" --base main \
               --title "chore(registry): propose $REPOSITORY" --body "$body")
           fi
           printf "Proposed family ID: \`%s\`\n\nRepository: \`sunstriker2009/%s\`\n\n[Registration PR](%s)\n" \
             "$FAMILY_ID" "$REPOSITORY" "$pr" >> "$GITHUB_STEP_SUMMARY"
+          [[ "$pr" =~ ^https://github\.com/sunstriker2009/sun-foundry/pull/([1-9][0-9]*)$ ]]
+          printf 'number=%s\nhead=%s\nbranch=%s\n' "${BASH_REMATCH[1]}" "$head" "$branch" >> "$GITHUB_OUTPUT"
+      - name: Squash-merge the owner-approved registration
+        if: github.triggering_actor == 'sunstriker2009'
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REGISTRATION_PR: ${{ steps.proposal_pr.outputs.number }}
+          REGISTRATION_HEAD: ${{ steps.proposal_pr.outputs.head }}
+          REGISTRATION_BRANCH: ${{ steps.proposal_pr.outputs.branch }}
+        run: bash scripts/merge-owner-approved-registration.sh

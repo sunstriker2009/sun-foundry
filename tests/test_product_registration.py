@@ -1,6 +1,10 @@
 import importlib.util
+import json
+import os
 from copy import deepcopy
 from pathlib import Path
+import subprocess
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -140,3 +144,50 @@ class ProductRegistrationTests(unittest.TestCase):
         self.assertEqual(proposal.resolve_active_registration(self.catalog, approved, approved, head), product)
         with self.assertRaisesRegex(ValueError, "no longer active"):
             proposal.resolve_active_registration(self.catalog, approved, self.catalog, head)
+
+    def test_automatic_squash_requires_owner_credential_exact_head_and_successful_build(self):
+        repo = "sunstriker2009/sun-foundry"
+        head = "a" * 40
+        branch = "chore/propose-product-SUN-P002-sun-data-studio"
+        pull = {
+            "state": "open", "draft": False, "merged": False, "mergeable_state": "clean",
+            "base": {"ref": "main", "repo": {"full_name": repo}},
+            "head": {"sha": head, "ref": branch, "repo": {"full_name": repo}},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "gh").write_text("""#!/usr/bin/env bash
+case "$2" in
+  user) printf '%s\n' "$MOCK_ACTOR" ;;
+  */check-runs) printf '%s\n' "$MOCK_BUILD" ;;
+  -X)
+    [[ "$3" == PUT && "$4" == */pulls/95/merge &&
+       "$6" == "sha=$REGISTRATION_HEAD" && "$8" == merge_method=squash ]] || exit 1
+    printf '{"merged":true}\n' ;;
+  */pulls/95) printf '%s\n' "$MOCK_PULL" ;;
+  *) exit 1 ;;
+esac
+""", encoding="utf-8")
+            (root / "gh").chmod(0o755)
+            env = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}", GITHUB_REPOSITORY=repo,
+                       GITHUB_STEP_SUMMARY=str(root / "summary"), REGISTRATION_PR="95",
+                       REGISTRATION_HEAD=head, REGISTRATION_BRANCH=branch, MOCK_PULL=json.dumps(pull),
+                       MOCK_ACTOR="sunstriker2009", MOCK_BUILD="success")
+            script = ROOT / "scripts/merge-owner-approved-registration.sh"
+            result = subprocess.run(["bash", script], env=env, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("squash-merged", (root / "summary").read_text(encoding="utf-8"))
+
+            (root / "summary").unlink()
+            changed_pull = {**pull, "head": {**pull["head"], "sha": "b" * 40}}
+            for name, changes, expected in (
+                ("failed build", {"MOCK_BUILD": "failure"}, "required build check"),
+                ("foreign credential", {"MOCK_ACTOR": "other"}, "owner's credential"),
+                ("changed head", {"MOCK_PULL": json.dumps(changed_pull)}, "no longer matches"),
+                ("behind main", {"MOCK_PULL": json.dumps({**pull, "mergeable_state": "behind"})}, "is stale"),
+            ):
+                with self.subTest(name=name):
+                    result = subprocess.run(["bash", script], env=dict(env, **changes), text=True, capture_output=True)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(expected, result.stdout)
+                    self.assertFalse((root / "summary").exists())

@@ -4,6 +4,7 @@ on:
     paths:
       - 'scripts/resolve-workflow-repository.py'
       - 'scripts/propose-product-registration.py'
+      - 'scripts/merge-owner-approved-registration.sh'
       - 'config/workflow-repositories.json'
       - 'config/governance-alignment.json'
       - 'tests/test_workflow_repository_inputs.py'
@@ -21,4 +22,5 @@ jobs:
         with:
           python-version: '3.12'
       - run: python3 -m unittest discover -s tests -p 'test_workflow_repository_inputs.py' -v
+      - run: bash -n scripts/merge-owner-approved-registration.sh
       - run: python3 -m unittest discover -s tests -p 'test_product_registration.py' -v
