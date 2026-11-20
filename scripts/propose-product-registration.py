@@ -123,6 +123,7 @@ def main():
     operation = parser.add_mutually_exclusive_group()
     operation.add_argument("--validate-pr", type=Path, metavar="BASE_CATALOG")
     operation.add_argument("--resolve-approved", type=Path, metavar="BASE_CATALOG")
+    parser.add_argument("--approved-catalog", type=Path)
     args = parser.parse_args()
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     if args.validate_pr:
@@ -130,10 +131,13 @@ def main():
         validate_pull_request(base, catalog, os.environ["GITHUB_HEAD_REF"])
         return
     if args.resolve_approved:
+        if args.approved_catalog is None:
+            parser.error("--resolve-approved requires --approved-catalog")
         base = json.loads(args.resolve_approved.read_text(encoding="utf-8"))
-        product = validate_pull_request(base, catalog, os.environ["APPROVED_HEAD_REF"])
-        if product is None:
-            raise ValueError("The merge does not contain an approved product registration.")
+        approved = json.loads(args.approved_catalog.read_text(encoding="utf-8"))
+        product = resolve_active_registration(base, approved, catalog, os.environ["APPROVED_HEAD_REF"])
+        if product["repository"] != os.environ["CONFIRM_SHORT"]:
+            raise ValueError("Repository confirmation does not match the approved registration.")
         manifest = {
             "family-id": product["id"],
             "product-name": product["name"],
@@ -156,6 +160,15 @@ def main():
     CATALOG.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
         output.write(f"repository={product['repository']}\nfamily_id={product['id']}\n")
+
+
+def resolve_active_registration(base, approved, active, head_ref):
+    product = validate_pull_request(base, approved, head_ref)
+    if product is None:
+        raise ValueError("The merge does not contain an approved product registration.")
+    if product not in active["products"]:
+        raise ValueError("The approved product record has changed or is no longer active on Foundry main.")
+    return product
 
 
 if __name__ == "__main__":
