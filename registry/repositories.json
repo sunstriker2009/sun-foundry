@@ -55,15 +55,6 @@
       "summary": "code management",
       "icon": null,
       "iconSha256": null
-    },
-    {
-      "repository": "sunstriker2009/sun-recovery-validation",
-      "registryId": "SUN-P003",
-      "classification": "product",
-      "name": "Recovery Validation",
-      "summary": "Recovery Validation",
-      "icon": null,
-      "iconSha256": null
     }
   ]
 }
