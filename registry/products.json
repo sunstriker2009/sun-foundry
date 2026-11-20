@@ -1,0 +1,157 @@
+{
+  "version": "1.1",
+  "updated": "2026-11-19",
+  "parentBrand": "SUN",
+  "products": [
+    {
+      "id": "SUN-C001",
+      "name": "Outpost",
+      "status": "CONFIRMED",
+      "purpose": "Identity, authentication, authorization and security",
+      "publicName": "Outpost by Sun",
+      "tagline": "Identity. Trust. Protection.",
+      "namespace": "Sun.Security",
+      "repository": "sun-outpost",
+      "backendPackages": "Sun.Security.*",
+      "frontendPackages": "@sun-security/*",
+      "commercialClearance": "PENDING",
+      "supersedes": "ORYVA",
+      "initialIntegration": "MarketPilot AI",
+      "previousNames": [
+        "HALO",
+        "ORYVA"
+      ],
+      "family": "application_component",
+      "previousIds": [
+        "SUN-001"
+      ]
+    },
+    {
+      "id": "SUN-P001",
+      "name": "Workbench",
+      "status": "CONFIRMED",
+      "purpose": "Local code organizer and interactive scripting workspace with extensible language execution adapters",
+      "publicName": "Workbench by Sun",
+      "tagline": "Organize. Script. Explore.",
+      "namespace": "Sun.Workspace",
+      "repository": "sun-workbench",
+      "backendPackages": "Sun.Workspace.*",
+      "frontendPackages": "@sun-workspace/*",
+      "commercialClearance": "PENDING",
+      "confirmedOn": "2026-11-12",
+      "supersedes": "ASTELVO",
+      "family": "productivity",
+      "previousIds": [
+        "SUN-002",
+        "SUN-009"
+      ]
+    },
+    {
+      "id": "SUN-P002",
+      "name": "CodeFolio",
+      "status": "CONFIRMED",
+      "purpose": "code management",
+      "publicName": "CodeFolio by Sun",
+      "repository": "sun-codefolio",
+      "commercialClearance": "PENDING",
+      "confirmedOn": "2026-11-19",
+      "family": "productivity"
+    }
+  ],
+  "infrastructure": [
+    {
+      "id": "SUN-G001",
+      "name": "SUN Ecosystem",
+      "status": "ESTABLISHED",
+      "classification": "GOVERNANCE_AUTHORITY",
+      "purpose": "SUN portfolio registry, branding and governance",
+      "repository": "sun-ecosystem"
+    },
+    {
+      "id": "SUN-G002",
+      "name": "Strata",
+      "status": "ESTABLISHED",
+      "classification": "REPOSITORY_TEMPLATE",
+      "tagline": "Structure. Foundation. Growth.",
+      "repository": "sun-strata"
+    },
+    {
+      "id": "SUN-G003",
+      "name": "Foundry",
+      "status": "ESTABLISHED",
+      "classification": "REPOSITORY_FACTORY",
+      "tagline": "Build. Standardize. Launch.",
+      "repository": "sun-foundry"
+    },
+    {
+      "id": "SUN-G004",
+      "name": "Foundry Pilot",
+      "status": "ESTABLISHED",
+      "classification": "VALIDATION_REPOSITORY",
+      "purpose": "Isolated repository for validating Foundry provisioning and inherited branding",
+      "repository": "sun-foundry-pilot"
+    }
+  ],
+  "proposals": [
+    {
+      "name": "ORBIT",
+      "status": "PROPOSED",
+      "purpose": "Workflow orchestration and coordination",
+      "suggestedNamespace": "Sun.Orchestration"
+    },
+    {
+      "name": "NOVA",
+      "status": "PROPOSED",
+      "purpose": "AI agents and intelligent automation",
+      "suggestedNamespace": "Sun.Agents"
+    },
+    {
+      "name": "PRISM",
+      "status": "PROPOSED",
+      "purpose": "AI intelligence, research and insights"
+    },
+    {
+      "name": "PULSAR",
+      "status": "PROPOSED",
+      "purpose": "Event processing and messaging"
+    },
+    {
+      "name": "LUMEN",
+      "status": "PROPOSED",
+      "purpose": "Analytics and visualization",
+      "suggestedNamespace": "Sun.Analytics"
+    },
+    {
+      "name": "BEACON",
+      "status": "PROPOSED",
+      "purpose": "Monitoring and observability"
+    },
+    {
+      "name": "FORGE",
+      "status": "PROPOSED",
+      "purpose": "Developer tools and utilities"
+    }
+  ],
+  "idPolicy": {
+    "governanceSeries": {
+      "format": "SUN-GNNN",
+      "assignment": "sequential_on_establishment",
+      "nextId": "SUN-G005",
+      "proposalsReserveIds": false
+    },
+    "productivitySeries": {
+      "format": "SUN-PNNN",
+      "assignment": "sequential_on_confirmation",
+      "nextId": "SUN-P003",
+      "proposalsReserveIds": false
+    },
+    "applicationComponentSeries": {
+      "format": "SUN-CNNN",
+      "assignment": "sequential_on_confirmation",
+      "nextId": "SUN-C002",
+      "proposalsReserveIds": false
+    },
+    "retiredIdsReusable": false,
+    "renamePreservesId": true
+  }
+}

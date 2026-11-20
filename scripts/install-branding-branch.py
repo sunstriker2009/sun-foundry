@@ -39,7 +39,7 @@ def guard(repository, branch, expected):
         raise ValueError('Expected an exact triggering commit SHA')
 
 
-REGISTRY_OWNER = 'sunstriker2009/sun-ecosystem'
+REGISTRY_OWNER = 'sunstriker2009/sun-foundry'
 REGISTRY_URL = f'https://raw.githubusercontent.com/{REGISTRY_OWNER}/main/registry/repositories.json'
 
 
@@ -52,8 +52,8 @@ def require_registration(repository):
     registry = read_registry()
     if registry.get('schemaVersion') != 1 or not isinstance(registry.get('repositories'), list):
         raise ValueError('Unsupported SUN repository registry schema')
-    # The registry authority is intentionally omitted from its own gallery catalog.
-    if repository == REGISTRY_OWNER:
+    # The SUN parent brand is intentionally omitted from the gallery catalog.
+    if repository == 'sunstriker2009/sun-ecosystem':
         return
     matches = [row for row in registry['repositories'] if row.get('repository') == repository]
     patterns = {'product': r'SUN-[PC]?[0-9]{3}', 'infrastructure': r'SUN-G[0-9]{3}'}
@@ -61,7 +61,7 @@ def require_registration(repository):
     pattern = patterns.get(row.get('classification'))
     ident = row.get('registryId')
     if pattern is None or not isinstance(ident, str) or not re.fullmatch(pattern, ident):
-        raise ValueError('Repository needs a confirmed registration in the SUN Ecosystem registry')
+        raise ValueError('Repository needs a confirmed registration in the Foundry registry')
 
 
 def output(**values):

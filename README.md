@@ -8,7 +8,7 @@
 
 </div>
 
-FOUNDRY provisions SUN repositories from [STRATA](https://github.com/sunstriker2009/sun-strata), initializes CI and governance, and publishes approved product registrations to [SUN Ecosystem](https://github.com/sunstriker2009/sun-ecosystem). It also maintains shared tools for governance, branding, and renames.
+FOUNDRY provisions SUN repositories from [STRATA](https://github.com/sunstriker2009/sun-strata), initializes CI and governance, and publishes approved product registrations in its registry. [SUN Ecosystem](https://github.com/sunstriker2009/sun-ecosystem) links to Foundry’s registry. It also maintains shared tools for governance, branding, and renames.
 
 | I want to… | Start here |
 | --- | --- |
@@ -17,5 +17,7 @@ FOUNDRY provisions SUN repositories from [STRATA](https://github.com/sunstriker2
 | Install artwork or sync a gallery icon | [Branding and gallery workflows](docs/WORKFLOWS.md#branding-and-gallery) |
 | Check delivery status | [Roadmap checklist](docs/ROADMAP.md) |
 | Resume operational work | [Handoff](docs/GOVERNANCE-HANDOFF.md) |
+
+[Product registry](registry/PRODUCTS.md) · [Infrastructure registry](registry/INFRASTRUCTURE.md) · [Repository gallery](registry/GALLERY.md)
 
 [Workflow handbook](docs/WORKFLOWS.md) · [Local asset preparation](docs/ASSET-ADOPTION.md) · [SUN Git policy](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/GIT-WORKFLOW.md)

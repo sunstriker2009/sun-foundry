@@ -59,17 +59,20 @@ class ProductTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.source = self.root / 'fixture'
         self.source.mkdir()
-        authority = {'products': [{'id': 'SUN-001', 'name': 'WIDGET', 'publicName': 'WIDGET by Sun',
+        authority = {'products': [{'id': 'SUN-P001', 'family': 'productivity', 'name': 'WIDGET', 'publicName': 'WIDGET by Sun',
                                  'repository': 'sun-widget', 'namespace': 'Sun.Widget', 'status': 'CONFIRMED',
                                  'backendPackages': 'Sun.Widget.*', 'frontendPackages': '@sun-widget/*',
                                  'tagline': 'Work. Together.', 'supersedes': 'ANCIENT'}],
                      'infrastructure': [{'id': 'SUN-G003', 'name': 'FOUNDRY', 'repository': 'sun-foundry', 'status': 'ESTABLISHED'}]}
-        catalog = {'schemaVersion': 1, 'repositories': [
-            {'registryId': 'SUN-001', 'repository': 'sunstriker2009/sun-widget', 'name': 'WIDGET',
-             'icon': 'branding/registry/sun-widget.png', 'iconSha256': '0' * 64},
-            {'registryId': 'SUN-G003', 'repository': 'sunstriker2009/sun-foundry', 'name': 'FOUNDRY'}]}
+        catalog = {'schemaVersion': 1, 'galleryDirectory': 'gallery', 'repositories': [
+            {'registryId': 'SUN-P001', 'repository': 'sunstriker2009/sun-widget', 'name': 'WIDGET',
+             'classification': 'product', 'summary': 'Local workspace', 'icon': None, 'iconSha256': None},
+            {'registryId': 'SUN-G003', 'repository': 'sunstriker2009/sun-foundry', 'name': 'FOUNDRY',
+             'classification': 'infrastructure', 'summary': 'Repository Factory'}]}
         files = {'registry/products.json': json.dumps(authority),
                  'registry/repositories.json': json.dumps(catalog),
+                 'registry/product-catalog.json': json.dumps(authority),
+                 'registry/GALLERY.md': product.gallery.START + '\n' + product.gallery.END + '\n',
                  'README.md': '# WIDGET by Sun\n[WIDGET](https://github.com/sunstriker2009/sun-widget)\n',
                  'desktop/main.mjs': "app.setName('WIDGET by Sun');\nconst profile = app.getPath('userData') + '/WIDGET by Sun';\nconst title = 'WIDGET';\nconst format = 'widget-workspace';\n",
                  'ui/main.tsx': 'const ORYVA = 1; const WIDGET = 2;\n<h1>WIDGET by Sun</h1>\n<div>{WIDGET}</div>\n',
@@ -93,6 +96,10 @@ class ProductTests(unittest.TestCase):
     def scanner(self, repo, branch, head, destination):
         self.scans.append(repo)
         shutil.copytree(self.source, destination)
+        if repo != 'sunstriker2009/sun-foundry':
+            subprocess.run(['git', 'rm', '-qr', 'registry'], cwd=destination, check=True)
+            subprocess.run(['git', '-c', 'user.name=test', '-c', 'user.email=test@example.invalid',
+                            'commit', '-qm', 'fixture without registry'], cwd=destination, check=True)
 
     def build(self, api=None, **options):
         return product.make_plan(api or API(), 'sun-widget', 'GATEHOUSE', scanner=self.scanner, **options)
@@ -108,11 +115,11 @@ class ProductTests(unittest.TestCase):
 
     def test_registry_identity_technical_names_and_history_are_preserved(self):
         plan = self.build()
-        changes = {c['path']: c['content'] for c in plan['repositories'][-1]['changes']}
+        changes = {c['path']: c['content'] for c in next(r['changes'] for r in plan['repositories'] if r['name'] == 'sun-foundry')}
         entry = json.loads(changes['registry/products.json'])['products'][0]
         self.assertEqual(entry['name'], 'GATEHOUSE')
         self.assertEqual(entry['publicName'], 'GATEHOUSE by Sun')
-        self.assertEqual(entry['id'], 'SUN-001')
+        self.assertEqual(entry['id'], 'SUN-P001')
         self.assertEqual(entry['namespace'], 'Sun.Widget')
         self.assertEqual(entry['backendPackages'], 'Sun.Widget.*')
         self.assertEqual(entry['frontendPackages'], '@sun-widget/*')
@@ -122,7 +129,11 @@ class ProductTests(unittest.TestCase):
         self.assertEqual(entry['previousNames'], ['ANCIENT', 'WIDGET'])
         self.assertNotIn('decisions/original.md', changes)
         self.assertNotIn('docs/adr/0001.md', changes)
-        self.assertIn('decisions/product-renames/sun-001-gatehouse.md', changes)
+        self.assertIn('GATEHOUSE', changes['registry/GALLERY.md'])
+        operational = json.loads(changes['registry/product-catalog.json'])['products'][0]
+        self.assertEqual((operational['name'], operational['previousNames']), ('GATEHOUSE', ['ANCIENT', 'WIDGET']))
+        self.assertIn('decisions/product-renames/sun-p001-gatehouse.md',
+                      [c['path'] for c in plan['repositories'][-1]['changes']])
 
     def test_resolves_family_ids_and_legacy_product_ids(self):
         authority = json.loads((self.source / 'registry/products.json').read_text())
@@ -181,7 +192,7 @@ class ProductTests(unittest.TestCase):
         self.assertTrue(report['renamed'])
         writes = [(endpoint, data) for method, endpoint, data in api.calls if method == 'PATCH']
         self.assertEqual(writes, [('repos/sunstriker2009/sun-widget', {'name': 'sun-next'})])
-        entries = [r for r in plan['repositories'] if r['name'] == 'sun-ecosystem'][0]
+        entries = [r for r in plan['repositories'] if r['name'] == 'sun-foundry'][0]
         registry = json.loads(next(c['content'] for c in entries['changes'] if c['path'] == 'registry/products.json'))
         self.assertEqual(registry['products'][0]['repository'], 'sun-next')
         self.assertEqual(len(report['pullRequests']), 4)

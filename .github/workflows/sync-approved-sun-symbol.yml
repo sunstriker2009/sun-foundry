@@ -26,7 +26,7 @@ on:
         type: string
         default: 'branding/assets/symbol.png'
       mode:
-        description: 'Preview or open ecosystem symbol-sync PR'
+        description: 'Preview or open Foundry symbol-sync PR'
         required: true
         type: choice
         options: [preview, apply]

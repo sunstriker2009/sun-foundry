@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 
 
-ECO = "sunstriker2009/sun-ecosystem"
+FOUNDRY = "sunstriker2009/sun-foundry"
 SOURCE = "branding/assets/symbol.png"
 
 
@@ -40,7 +40,7 @@ def read_png_blob(repo, source, meta):
 
 
 def main():
-    catalog = json.loads(api(f"repos/{ECO}/contents/registry/repositories.json", True))
+    catalog = json.loads(api(f"repos/{FOUNDRY}/contents/registry/repositories.json", True))
     if catalog.get("schemaVersion") != 1:
         raise SystemExit("Unsupported registry schema")
     gallery = catalog.get("galleryDirectory", "branding/registry")

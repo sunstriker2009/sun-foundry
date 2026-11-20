@@ -54,4 +54,4 @@ jobs:
           TARGET: ${{ steps.target.outputs.repository }}
           CONFIRM: ${{ steps.target.outputs.confirmation }}
           MODE: ${{ inputs.mode }}
-        run: bash scripts/register-ecosystem-repository.sh
+        run: bash scripts/register-foundry-repository.sh

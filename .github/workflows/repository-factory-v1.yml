@@ -286,14 +286,14 @@ jobs:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           REPO: ${{ steps.prepare.outputs.repository }}
         run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode verify --checks repository-validation,conventional-title
-      - name: Propose SUN ecosystem registration
+      - name: Propose pending SUN repository registration
         if: inputs.approved_registration_pr == ''
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           TARGET: ${{ steps.prepare.outputs.repository }}
           CONFIRM: ${{ steps.prepare.outputs.repository }}
           MODE: apply
-        run: bash scripts/register-ecosystem-repository.sh
+        run: bash scripts/register-foundry-repository.sh
       - name: Completion summary
         if: inputs.approved_registration_pr == ''
         env:
@@ -301,7 +301,7 @@ jobs:
           PR: ${{ steps.prepare.outputs.pr }}
         run: |
           echo "Governance applied and strictly verified for $REPO." >> "$GITHUB_STEP_SUMMARY"
-          echo "Confirm the registration in Ecosystem main before using the branding upload hook." >> "$GITHUB_STEP_SUMMARY"
+          echo "Confirm the registration in Foundry main before using the branding upload hook." >> "$GITHUB_STEP_SUMMARY"
           echo "Final manual smoke test: squash merge https://github.com/$REPO/pull/$PR and confirm automatic branch deletion." >> "$GITHUB_STEP_SUMMARY"
       - name: Squash merge the verified product seed
         if: inputs.approved_registration_pr != '' && steps.prepare.outputs.complete != 'true'
@@ -323,7 +323,7 @@ jobs:
         env:
           REPO: ${{ steps.prepare.outputs.repository }}
         run: echo "Verified repository and seeded product identity for $REPO." >> "$GITHUB_STEP_SUMMARY"
-      - name: Verify main and publish the approved identity to Ecosystem
+      - name: Verify main and publish the approved identity to Foundry
         if: inputs.approved_registration_pr != ''
         shell: bash
         env:

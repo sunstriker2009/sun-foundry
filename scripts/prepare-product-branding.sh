@@ -167,7 +167,7 @@ guide_text=$(cat <<'EOF'
 
 This is a product-neutral scaffold, **not** an approved visual identity.
 
-- Confirm the product name, tagline and SUN product ID in the ecosystem registry.
+- Confirm the product name, tagline and SUN product ID in the Foundry registry.
 - Obtain owner-approved panoramic artwork; save as `branding/assets/readme-banner.png`.
 - Keep byte-identical approved originals under `branding/archive/originals/`.
 - Prepare compact symbol/lockup/icon exports in appropriate SVG/PNG variants.

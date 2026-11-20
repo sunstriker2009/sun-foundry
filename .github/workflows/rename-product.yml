@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       repository:
-        description: 'Current short product repository name (registered in Ecosystem)'
+        description: 'Current short product repository name (registered in Foundry)'
         type: string
         required: true
       new_product_name:
