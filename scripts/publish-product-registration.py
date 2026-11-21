@@ -63,6 +63,10 @@ def project_registration(root, approved, confirmed_on):
     description = approved["shortDescription"] or fallback
     if not isinstance(description, str) or len(description) > 180 or re.search(r"[<>|\[\]\r\n]", description):
         raise ValueError("The approved description is incompatible with the Foundry gallery.")
+    visibility = approved.get("repositoryVisibility", "public")
+    copy_approved = approved.get("publishPrivateSymbol", False)
+    if visibility not in ("public", "private") or not isinstance(copy_approved, bool) or (copy_approved and visibility != "private"):
+        raise ValueError("Invalid approved visibility or public symbol copy approval.")
 
     authority = json.loads((root / AUTHORITY).read_text(encoding="utf-8"))
     catalog = json.loads((root / CATALOG).read_text(encoding="utf-8"))
@@ -105,7 +109,7 @@ def project_registration(root, approved, confirmed_on):
     counter["nextId"] = max(counter["nextId"], f"{prefix}{int(ident[-3:]) + 1:03d}")
     authority["updated"] = max(authority["updated"], announced)
     authority["products"].append(product)
-    row = {**listing, "symbolMode": "text"}
+    row = {**listing, "symbolMode": "copy" if copy_approved else "text"}
     if pending:
         catalog["repositories"][catalog["repositories"].index(listings[0])] = row
     else:

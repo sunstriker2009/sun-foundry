@@ -90,3 +90,23 @@ class ProductPublicationTests(unittest.TestCase):
             publication.project_registration(self.root, self.approved, "2026-11-19")
         self.assertEqual([(self.root / path).read_bytes() for path in publication.PUBLICATION_PATHS], before)
         self.render.assert_not_called()
+
+    def test_only_approved_private_symbol_gets_copy_mode(self):
+        self.approved.update(repositoryVisibility="public", publishPrivateSymbol=True)
+        self.write_json(Path("registry/product-catalog.json"), {"products": [self.approved]})
+        with self.assertRaisesRegex(ValueError, "copy approval"):
+            publication.project_registration(self.root, self.approved, "2026-11-19")
+
+        self.approved["repositoryVisibility"] = "private"
+        self.write_json(Path("registry/product-catalog.json"), {"products": [self.approved]})
+        self.assertTrue(publication.project_registration(self.root, self.approved, "2026-11-19"))
+        catalog = self.read_json(publication.CATALOG)
+        row, = catalog["repositories"]
+        self.assertEqual(row["symbolMode"], "copy")
+        self.assertNotIn("icon", row)
+
+        # Replaying this registration cannot restore a later-revoked copy approval.
+        row["symbolMode"] = "text"
+        self.write_json(publication.CATALOG, catalog)
+        self.assertFalse(publication.project_registration(self.root, self.approved, "2026-11-19"))
+        self.assertEqual(self.read_json(publication.CATALOG), catalog)

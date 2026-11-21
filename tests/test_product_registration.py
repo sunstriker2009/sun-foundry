@@ -145,6 +145,25 @@ class ProductRegistrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "no longer active"):
             proposal.resolve_active_registration(self.catalog, approved, self.catalog, head)
 
+    def test_private_symbol_approval_is_bound_to_the_merged_registration(self):
+        for approval in (False, True):
+            with self.subTest(approval=approval):
+                product, next_id = proposal.registration(self.catalog, "Data Studio", "productivity", "", "private", approval)
+                catalog = deepcopy(self.catalog)
+                proposal.add_registration(catalog, product, next_id)
+                ref = f"{proposal.PROPOSAL_PREFIX}{product['id']}-{product['repository']}"
+                self.assertEqual(product["repositoryVisibility"], "private")
+                self.assertIs(product["publishPrivateSymbol"], approval)
+                self.assertEqual(proposal.resolve_active_registration(self.catalog, catalog, catalog, ref), product)
+                active = deepcopy(catalog)
+                active["products"][-1]["publishPrivateSymbol"] = not approval
+                with self.assertRaisesRegex(ValueError, "no longer active"):
+                    proposal.resolve_active_registration(self.catalog, catalog, active, ref)
+
+        for visibility, approval in (("public", True), ("private", "true"), ("internal", False)):
+            with self.subTest(visibility=visibility, approval=approval), self.assertRaises(ValueError):
+                proposal.registration(self.catalog, "Data Studio", "productivity", "", visibility, approval)
+
     def test_automatic_squash_requires_owner_credential_exact_head_and_successful_build(self):
         repo = "sunstriker2009/sun-foundry"
         head = "a" * 40
