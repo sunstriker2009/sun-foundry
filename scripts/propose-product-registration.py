@@ -16,7 +16,11 @@ OWNER = "sunstriker2009"
 PROPOSAL_PREFIX = "chore/propose-product-"
 
 
-def registration(catalog, name, family, description):
+def registration(catalog, name, family, description, visibility="public", publish_private_symbol=False):
+    if visibility not in ("public", "private") or not isinstance(publish_private_symbol, bool):
+        raise ValueError("Choose public or private visibility and a boolean symbol approval.")
+    if visibility == "public" and publish_private_symbol:
+        raise ValueError("Public gallery copy approval is only applicable to private repositories.")
     name = name.strip(" ")
     if not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9 -]*[A-Za-z0-9])?", name) or not re.search(r"[A-Za-z]", name):
         raise ValueError("Use ASCII letters, digits, spaces, and hyphens. Include a letter and start and end with a letter or digit.")
@@ -62,6 +66,8 @@ def registration(catalog, name, family, description):
         "shortDescription": description,
         "publicName": f"{name} by Sun",
     }
+    if visibility == "private":
+        product.update(repositoryVisibility=visibility, publishPrivateSymbol=publish_private_symbol)
     return product, f"{series[:-3]}{number + 1:03d}"
 
 
@@ -105,7 +111,10 @@ def validate_pull_request(base, proposed, head_ref):
     if len(records) != 1:
         raise ValueError("The proposal must contain exactly one product for its repository.")
     record = records[0]
-    product, next_id = registration(base, record["name"], record["family"], record["shortDescription"] or "")
+    product, next_id = registration(
+        base, record["name"], record["family"], record["shortDescription"] or "",
+        record.get("repositoryVisibility", "public"), record.get("publishPrivateSymbol", False),
+    )
     if branch_id != product["id"]:
         raise ValueError(
             f"Proposed ID {branch_id} is stale. Current main proposes {product['id']}. "
@@ -147,9 +156,14 @@ def main():
             output.write(f"factory_target={product['repository']}\n")
             output.write(f"manifest={json.dumps(manifest, separators=(',', ':'))}\n")
             output.write(f"product={json.dumps(product, separators=(',', ':'))}\n")
+            write_publication_options(output, product)
         return
+    approval = os.environ.get("PUBLISH_PRIVATE_SYMBOL", "false")
+    if approval not in ("true", "false"):
+        raise ValueError("Public gallery copy approval must be true or false.")
     product, next_id = registration(
-        catalog, os.environ["PRODUCT_NAME"], os.environ["PRODUCT_FAMILY"], os.environ["SHORT_DESCRIPTION"]
+        catalog, os.environ["PRODUCT_NAME"], os.environ["PRODUCT_FAMILY"], os.environ["SHORT_DESCRIPTION"],
+        os.environ.get("REPOSITORY_VISIBILITY", "public"), approval == "true",
     )
     token = os.environ.get("GH_TOKEN")
     if not token:
@@ -160,6 +174,12 @@ def main():
     CATALOG.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
         output.write(f"repository={product['repository']}\nfamily_id={product['id']}\n")
+        write_publication_options(output, product)
+
+
+def write_publication_options(output, product):
+    output.write(f"repository_visibility={product.get('repositoryVisibility', 'public')}\n")
+    output.write(f"publish_private_symbol={json.dumps(product.get('publishPrivateSymbol', False))}\n")
 
 
 def resolve_active_registration(base, approved, active, head_ref):

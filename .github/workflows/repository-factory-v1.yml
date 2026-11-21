@@ -70,6 +70,8 @@ jobs:
       manifest: ${{ steps.approval.outputs.manifest }}
       product: ${{ steps.approval.outputs.product }}
       approved_on: ${{ steps.approval.outputs.approved_on }}
+      repository_visibility: ${{ steps.approval.outputs.repository_visibility }}
+      publish_private_symbol: ${{ steps.approval.outputs.publish_private_symbol }}
     steps:
       - uses: actions/checkout@v4
       - name: Verify the owner-approved registration
@@ -113,6 +115,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: repository-administration
     timeout-minutes: 25
+    env:
+      APPROVED_VISIBILITY: ${{ needs.authorize-approved-registration.outputs.repository_visibility }}
+      APPROVED_SYMBOL_COPY: ${{ needs.authorize-approved-registration.outputs.publish_private_symbol }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -132,7 +137,15 @@ jobs:
             echo "::error::Missing verified registration identity"; exit 1
           }
           REPO="sunstriker2009/$TARGET"
-          if gh api "repos/$REPO" >/dev/null 2>&1; then
+          case "$APPROVED_VISIBILITY" in
+            public) private=false ;;
+            private) private=true ;;
+            *) echo '::error::Missing verified repository visibility'; exit 1 ;;
+          esac
+          if visibility=$(gh api "repos/$REPO" --jq .visibility 2>/dev/null); then
+            [[ "$visibility" == "$APPROVED_VISIBILITY" ]] || {
+              echo '::error::Existing repository visibility differs from the approved registration'; exit 1
+            }
             if bash scripts/verify-approved-product-seed.sh "$REPO" main; then
               echo "repository=$REPO" >> "$GITHUB_OUTPUT"
               echo "complete=true" >> "$GITHUB_OUTPUT"
@@ -143,7 +156,7 @@ jobs:
             fi
           else
             gh api -X POST repos/sunstriker2009/sun-strata/generate \
-              -f owner=sunstriker2009 -f name="$TARGET" -F private=false -F include_all_branches=false >/dev/null
+              -f owner=sunstriker2009 -f name="$TARGET" -F private="$private" -F include_all_branches=false >/dev/null
           fi
           echo "repository=$REPO" >> "$GITHUB_OUTPUT"
           # Template generation is asynchronous: the repository may exist before
@@ -162,6 +175,10 @@ jobs:
             sleep 5
           done
           [[ "$ready" == true ]] || { echo "::error::Repository template not ready after 120 seconds; resume after checking its main branch and workflows"; exit 1; }
+          visibility=$(gh api "repos/$REPO" --jq .visibility)
+          [[ "$visibility" == "$APPROVED_VISIBILITY" ]] || {
+            echo '::error::Repository visibility differs from the approved registration'; exit 1
+          }
           branch=chore/sun-governance-ci-seed
           pr=$(gh api "repos/$REPO/pulls?state=open&head=sunstriker2009:$branch" --jq '.[0].number // empty')
           if [[ -n "$pr" ]]; then
@@ -248,7 +265,9 @@ jobs:
       - name: Approved product completion summary
         env:
           REPO: ${{ steps.prepare.outputs.repository }}
-        run: echo "Verified repository and seeded product identity for $REPO." >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          printf 'Verified repository `%s` (`%s`) and seeded its product identity.\n\nPublic gallery copy of private symbol approved: `%s`\n' \
+            "$REPO" "$APPROVED_VISIBILITY" "$APPROVED_SYMBOL_COPY" >> "$GITHUB_STEP_SUMMARY"
       - name: Verify main and publish the approved identity to Foundry
         shell: bash
         env:
@@ -265,8 +284,11 @@ jobs:
           [[ "$product_main" =~ ^[0-9a-f]{40}$ ]]
           bash scripts/verify-approved-product-seed.sh "$REPO" "$product_main"
           visibility=$(gh api "repos/$REPO" --jq .visibility)
-          if [[ "$visibility" != private ]]; then
-            echo 'Gallery copy relay credentials are only used by private repositories.'
+          [[ "$visibility" == "$APPROVED_VISIBILITY" ]] || {
+            echo '::error::Repository visibility differs from the approved registration'; exit 1
+          }
+          if [[ "$APPROVED_SYMBOL_COPY" != true ]]; then
+            echo 'This registration does not approve a public copy of a private symbol.'
           elif [[ -z "$SYMBOL_RELAY_APP_ID" && -z "$SYMBOL_RELAY_APP_PRIVATE_KEY" ]]; then
             echo '::warning::Symbol relay credentials are absent. Daily reconciliation remains available.'
           elif [[ -z "$SYMBOL_RELAY_APP_ID" || -z "$SYMBOL_RELAY_APP_PRIVATE_KEY" ]]; then

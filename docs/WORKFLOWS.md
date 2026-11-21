@@ -19,18 +19,22 @@ Run [Propose SUN Product Registration](https://github.com/sunstriker2009/sun-fou
 | `product_name` | Base display name, using ASCII letters, digits, spaces or hyphens, starting and ending with a letter or digit and containing at least one letter. Omit `sun-` and `by Sun`. |
 | `product_family` | `productivity` assigns the next `SUN-PNNN`; `application_component` assigns the next `SUN-CNNN`. Governance IDs are outside this form. |
 | `short_description` | Optional single line, up to 180 characters after trimming. Exclude `<`, `>`, `\|`, `[`, and `]`. |
+| `repository_visibility` | `public` by default. Choose `private` to restrict GitHub repository access. The Foundry registration and product metadata are public for either choice. |
+| `publish_private_symbol` | Defaults to false. Enable only for a private repository to approve a public gallery copy of its canonical symbol from `main`. This approval includes future symbol updates until revoked. |
 
 Foundry checks availability and uses the next ID in its [product catalog](../registry/product-catalog.json). The repository slug is the lowercased name prefixed with `sun-`, with runs of spaces and hyphens collapsed to a single hyphen. `CodeFolio` becomes `sun-codefolio` and publishes as **CodeFolio by Sun**. Assigned IDs stay stable across renames. An omitted description is stored as JSON `null` in Foundry and the product manifest, with a family-specific fallback used for the published gallery summary.
 
 1. The owner dispatch opens and approves the Foundry catalog PR. After the required `build` validates the proposal against current `main`, Foundry squash-merges the tested PR head using the owner's credential.
-2. The merged registration triggers the Factory relay, which dispatches [Repository Factory](#repository-factory) on `main`. The factory verifies the approved registration, provisions a public repository from STRATA, and adds `branding/manifest.json` and `branding/revisions/.gitkeep` in the seed PR. The manifest carries `family-id`, `product-name`, and `short-description`.
-3. The factory waits for seed CI, applies and strictly verifies governance, checks the tested seed head, and squash-merges it. After verifying the manifest and revision marker on product `main`, it opens a separate Foundry publication PR and requests protected squash auto-merge. Once the published entry is on Foundry `main`, inherited branding can recognize the product.
+2. The merged registration triggers the Factory relay, which dispatches [Repository Factory](#repository-factory) on `main`. The factory verifies the approved registration, provisions the requested repository visibility from STRATA, and adds `branding/manifest.json` and `branding/revisions/.gitkeep` in the seed PR. The manifest carries `family-id`, `product-name`, and `short-description`.
+3. The factory waits for seed CI, applies and strictly verifies governance, checks the tested seed head, and squash-merges it. It verifies the manifest, revision marker and approved visibility on product `main`. For approved private copies, it configures the relay if credentials are available and proposes `symbolMode: copy` in the Foundry publication PR. Other registrations start as text tiles. Once the publication PR merges, inherited branding can recognize the product.
 
 If a proposal is stale because another registration advanced the counter, run a fresh owner dispatch for the new ID and close the superseded PR. For provisioning failures after approval, use the Factory recovery dispatch below.
 
 ### Repository Factory
 
 [Repository Factory](https://github.com/sunstriker2009/sun-foundry/actions/workflows/repository-factory-v1.yml) provisions an owner-approved product registration. The proposal merge triggers the Factory relay. If the relay fails or provisioning is interrupted, the owner can dispatch Factory on `main` using the same merged Foundry PR number as `approved_registration_pr` and the exact short slug as `confirm_repository`. Both dispatch paths validate the merged approval and the current catalog before entering the administration environment.
+
+The factory takes visibility and public symbol copy approval from the merged registration. A recovery run rejects an existing repository with different visibility. Private creation requires a GitHub plan and credential that can enforce the existing private-repository governance ruleset. Factory stops before seed merge and publication if strict verification fails.
 
 The seed replaces STRATA artwork and the template README with a product-neutral README. If `repository-validation` or `conventional-title` fails, fix the seed branch and retry the approved registration. Factory resumes a matching seed or continues from a matching product `main`. Inspect an existing repository that lacks either verified match. Factory can reuse an identical publication PR. Inspect changed or stale publication branches before retrying.
 
@@ -109,7 +113,7 @@ Local preview uses `python3 scripts/install-branding.py --repository-root /path/
 
 ### Symbol synchronization
 
-Set a confirmed member's `symbolMode` in `registry/repositories.json` through a reviewed Foundry PR. Run `python3 scripts/render-repository-gallery.py` and include the generated gallery in the same PR.
+Approve private public copies during product registration with `publish_private_symbol`. For changes after registration, set the member's `symbolMode` in `registry/repositories.json` through a reviewed Foundry PR. Run `python3 scripts/render-repository-gallery.py` and include the generated gallery in the same PR.
 
 | Mode | When to use it | How the gallery reads the symbol |
 | --- | --- | --- |

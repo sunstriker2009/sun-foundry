@@ -28,6 +28,12 @@ endpoint = next(a for a in args if a.startswith("repos/"))
 route = endpoint.removeprefix("repos/" + os.environ["TEST_REPO"])
 state = os.environ["TEST_STATE"]
 fixture = Path(os.environ["TEST_FIXTURE"])
+if endpoint == "repos/sunstriker2009/sun-strata/generate":
+    flag = next(a for a in args if a.startswith("private="))
+    with (fixture / "writes").open("a") as log:
+        print("GENERATE", flag, file=log)
+    (fixture / "generated").touch()
+    raise SystemExit(0)
 if "-X" in args:
     with (fixture / "writes").open("a") as log:
         print(args[args.index("-X") + 1], route, file=log)
@@ -36,7 +42,9 @@ if "-X" in args:
     elif not route.startswith("/contents/docs/SUN-GOVERNANCE-CI-SEED.md"):
         raise SystemExit(2)
 elif route == "":
-    print("main" if "--jq" in args else "{}")
+    if state == "missing" and not (fixture / "generated").exists():
+        raise SystemExit(1)
+    print(os.environ["TEST_VISIBILITY"] if ".visibility" in args else "main")
 elif route.startswith("/contents/branding/"):
     ref = args[args.index("-f") + 1]
     if ref == "ref=main" or state == "unseeded":
@@ -70,7 +78,7 @@ else:
 
 
 class FactorySeedRecoveryTests(unittest.TestCase):
-    def run_preparation(self, state):
+    def run_preparation(self, state, approved="public", visibility="public"):
         workflow = (ROOT / ".github/workflows/repository-factory-v1.yml").read_text()
         step = workflow.split("      - name: Create or locate repository and seed PR\n", 1)[1]
         step = step.split("\n      - name:", 1)[0]
@@ -100,10 +108,10 @@ class FactorySeedRecoveryTests(unittest.TestCase):
             writes = fixture / "writes"
             writes.touch()
             env = dict(os.environ, PATH=f"{fixture}{os.pathsep}{os.environ['PATH']}",
-                       GH_TOKEN="fixture", TARGET=TARGET, APPROVED_MANIFEST=manifest,
+                       GH_TOKEN="fixture", TARGET=TARGET, APPROVED_MANIFEST=manifest, APPROVED_VISIBILITY=approved,
                        GITHUB_OUTPUT=str(output), GITHUB_STEP_SUMMARY=str(fixture / "summary"),
                        TEST_REPO=REPO, TEST_BRANCH=SEED_BRANCH, TEST_STATE=state,
-                       TEST_EMPTY_BLOB=EMPTY_BLOB, TEST_FIXTURE=directory)
+                       TEST_EMPTY_BLOB=EMPTY_BLOB, TEST_FIXTURE=directory, TEST_VISIBILITY=visibility)
             result = subprocess.run(["bash", "-c", shell], cwd=ROOT, env=env,
                                     capture_output=True, text=True, timeout=15)
             return result, output.read_text().splitlines(), writes.read_text().splitlines()
@@ -132,3 +140,16 @@ class FactorySeedRecoveryTests(unittest.TestCase):
         self.assertIn("does not match expected seed PR", result.stdout)
         self.assertEqual(outputs, [f"repository={REPO}"])
         self.assertEqual(writes, [])
+
+    def test_generation_uses_approved_visibility(self):
+        for visibility in ("public", "private"):
+            with self.subTest(visibility=visibility):
+                result, _, writes = self.run_preparation("missing", visibility, visibility)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual(writes[0], f"GENERATE private={str(visibility == 'private').lower()}")
+
+    def test_recovery_refuses_visibility_mismatch_before_writing(self):
+        result, outputs, writes = self.run_preparation("open", "private", "public")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("visibility differs from the approved registration", result.stdout)
+        self.assertEqual((outputs, writes), ([], []))

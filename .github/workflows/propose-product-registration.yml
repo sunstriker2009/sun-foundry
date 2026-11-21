@@ -18,6 +18,16 @@ on:
         description: 'Optional single-line product description'
         required: false
         type: string
+      repository_visibility:
+        description: 'GitHub repository visibility. Product registration metadata is public.'
+        required: true
+        default: public
+        type: choice
+        options: [public, private]
+      publish_private_symbol:
+        description: 'Approve a public gallery copy of this private repository’s canonical symbol'
+        default: false
+        type: boolean
 permissions:
   contents: read
 jobs:
@@ -38,6 +48,8 @@ jobs:
           PRODUCT_NAME: ${{ inputs.product_name }}
           PRODUCT_FAMILY: ${{ inputs.product_family }}
           SHORT_DESCRIPTION: ${{ inputs.short_description }}
+          REPOSITORY_VISIBILITY: ${{ inputs.repository_visibility }}
+          PUBLISH_PRIVATE_SYMBOL: ${{ inputs.publish_private_symbol }}
         run: python3 scripts/propose-product-registration.py
       - name: Open the Foundry registry PR
         id: proposal_pr
@@ -46,6 +58,8 @@ jobs:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           REPOSITORY: ${{ steps.proposal.outputs.repository }}
           FAMILY_ID: ${{ steps.proposal.outputs.family_id }}
+          REPOSITORY_VISIBILITY: ${{ steps.proposal.outputs.repository_visibility }}
+          PUBLISH_PRIVATE_SYMBOL: ${{ steps.proposal.outputs.publish_private_symbol }}
         run: |
           set -euo pipefail
           branch="chore/propose-product-$FAMILY_ID-$REPOSITORY"
@@ -74,13 +88,15 @@ jobs:
             body=$(printf '%s\n' \
               "Proposed family ID: \`$FAMILY_ID\`" \
               "Proposed repository: \`sunstriker2009/$REPOSITORY\`" \
+              "Repository visibility: \`$REPOSITORY_VISIBILITY\`" \
+              "Public gallery copy of private symbol approved: \`$PUBLISH_PRIVATE_SYMBOL\`" \
               "" \
               "The owner approved this registration by dispatching the workflow. Foundry will squash-merge the exact proposal after the required check passes.")
             pr=$(gh pr create --repo "$GITHUB_REPOSITORY" --head "$branch" --base main \
               --title "chore(registry): propose $REPOSITORY" --body "$body")
           fi
-          printf "Proposed family ID: \`%s\`\n\nRepository: \`sunstriker2009/%s\`\n\n[Registration PR](%s)\n" \
-            "$FAMILY_ID" "$REPOSITORY" "$pr" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Repository: `sunstriker2009/%s` (`%s`)\n\nFamily ID: `%s`\n\nPublic gallery copy of private symbol approved: `%s`\n\n[Registration PR](%s)\n' \
+            "$REPOSITORY" "$REPOSITORY_VISIBILITY" "$FAMILY_ID" "$PUBLISH_PRIVATE_SYMBOL" "$pr" >> "$GITHUB_STEP_SUMMARY"
           [[ "$pr" =~ ^https://github\.com/sunstriker2009/sun-foundry/pull/([1-9][0-9]*)$ ]]
           printf 'number=%s\nhead=%s\nbranch=%s\n' "${BASH_REMATCH[1]}" "$head" "$branch" >> "$GITHUB_OUTPUT"
       - name: Squash-merge the owner-approved registration
