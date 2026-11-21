@@ -13,9 +13,11 @@
 - [x] Replay Factory after successful provisioning and recover from a restored pre-publication checkpoint. [Factory replay](https://github.com/sunstriker2009/sun-foundry/actions/runs/44831045380) · [Registry republication](https://github.com/sunstriker2009/sun-foundry/pull/110)
 - [x] Exercise seed branch and seed PR recovery in CI against controlled GitHub API responses. Verify Factory reuses matching work and stops when the seed identity or PR is unexpected.
 
+- [x] Recover from a live interruption before seed merge. Factory stopped on a draft seed PR, then reused the same repository and PR to publish the same SUN ID. [Factory attempts](https://github.com/sunstriker2009/sun-foundry/actions/runs/44844970501) · [Publication PR](https://github.com/sunstriker2009/sun-foundry/pull/113)
+
 ## Remaining
 
-- [ ] Validate recovery from a live interruption during repository creation or before seed merge. Confirm the operator experience when the administration environment requests deployment approval.
+- [ ] Validate behavior after a live interruption between repository creation and writing the approved seed. Confirm the operator experience when the administration environment requests deployment approval.
 - [ ] Decide the future of pending registration for existing repositories and how incomplete product registrations will be surfaced.
 - [ ] Verify a live product or repository rename across Foundry’s operational catalog, published registry, gallery, and the product manifest.
 - [ ] Exercise manual ZIP installer Preview, Apply and rollback through GitHub Actions on an approved disposable target. Verify the required-check dispatches when onboarding or updating an adopter.
