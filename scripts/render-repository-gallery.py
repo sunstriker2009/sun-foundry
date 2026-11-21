@@ -66,12 +66,20 @@ def render(root: Path, catalog=None, authority=None) -> str:
         if any(c in name + summary for c in "<>\n\r|[]"):
             raise ValueError(f"Unsafe Markdown metadata for {repo}")
         icon, digest = item.get("icon"), item.get("iconSha256")
-        if icon is None:
+        mode = item.get("symbolMode", "text")
+        if mode not in ("text", "live", "copy") or (category == "pending" and mode != "text"):
+            raise ValueError(f"Invalid gallery symbol mode for {repo}: {mode}")
+        if mode != "copy" and (icon is not None or digest is not None):
+            raise ValueError(f"Only copied symbols may have a local image or digest: {repo}")
+        if mode == "live":
+            source = f"https://raw.githubusercontent.com/{repo}/main/branding/assets/symbol.png"
+            tile = f'<img src="{source}" alt="{name} icon" width="72" height="72">'
+        elif icon is None:
             if digest is not None:
                 raise ValueError(f"Icon digest without icon for {repo}")
             tile = f"<strong>{name}</strong>"
         else:
-            if not isinstance(icon, str) or not re.fullmatch(r"gallery/[a-z0-9-]+\.png", icon):
+            if not isinstance(icon, str) or not re.fullmatch(r"gallery/[a-z0-9][a-z0-9._-]*\.png", icon):
                 raise ValueError(f"Unsafe icon path for {repo}")
             path = root / icon
             if not path.is_file() or path.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":

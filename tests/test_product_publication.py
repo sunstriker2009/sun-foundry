@@ -55,8 +55,9 @@ class ProductPublicationTests(unittest.TestCase):
         self.assertEqual(authority["idPolicy"]["productivitySeries"]["nextId"], "SUN-P004")
         self.assertEqual(authority["idPolicy"]["applicationComponentSeries"]["nextId"], "SUN-C002")
         row, = self.read_json(publication.CATALOG)["repositories"]
-        self.assertEqual((row["registryId"], row["classification"], row["summary"], row["icon"]),
-                         ("SUN-P003", "product", "Productivity product by Sun", None))
+        self.assertEqual((row["registryId"], row["classification"], row["summary"], row["symbolMode"]),
+                         ("SUN-P003", "product", "Productivity product by Sun", "text"))
+        self.assertNotIn("iconSha256", row)
         self.assertEqual(self.render.call_args_list[0].args[0], ["python3", "scripts/render-repository-gallery.py"])
         self.assertIn("## SUN-P003 — Data Studio", (self.root / publication.REGISTRY_PAGE).read_text())
         self.assertFalse(publication.project_registration(self.root, self.approved, "2026-11-19"))
