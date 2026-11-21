@@ -5,6 +5,7 @@ on:
       - 'scripts/sync-approved-symbol.py'
       - 'scripts/reconcile-approved-symbols.py'
       - '.github/workflows/reconcile-approved-symbols.yml'
+      - '.github/workflows/notify-gallery-symbol.yml'
       - '.github/workflows/sync-approved-sun-symbol.yml'
       - '.github/workflows/symbol-sync-validation.yml'
 permissions:
@@ -61,4 +62,47 @@ jobs:
                       pass
                   else:
                       raise AssertionError('Invalid PNG accepted')
+          PY
+      - name: Validate targeted reconciliation
+        run: |
+          python3 - <<'PY'
+          import base64, importlib.util, json, sys
+          from subprocess import CompletedProcess
+          from unittest.mock import patch
+
+          spec = importlib.util.spec_from_file_location('subject', 'scripts/reconcile-approved-symbols.py')
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          target = 'sunstriker2009/sun-codefolio'
+          other = 'sunstriker2009/sun-workbench'
+          pending = 'sunstriker2009/sun-pending'
+          catalog = {'schemaVersion': 1, 'galleryDirectory': 'gallery', 'repositories': [
+              {'repository': target, 'classification': 'product'},
+              {'repository': other, 'classification': 'product'},
+              {'repository': pending, 'classification': 'pending'},
+          ]}
+          png = bytes.fromhex('89504e470d0a1a0a')
+          meta = json.dumps({'type': 'file', 'size': len(png), 'encoding': 'base64',
+                             'content': base64.b64encode(png).decode()})
+          result = CompletedProcess([], 0, stdout=meta)
+          with patch.object(module, 'api', return_value=json.dumps(catalog)), \
+               patch.object(module.subprocess, 'run', return_value=result) as run:
+              for selection, expected in ((target, [target]), ('', [target, other])):
+                  run.reset_mock()
+                  with patch.object(sys, 'argv', ['reconcile', f'--repository={selection}']):
+                      module.main()
+                  calls = [call.args[0] for call in run.call_args_list]
+                  assert [args[2] for args in calls[::2]] == [
+                      f'repos/{repo}/contents/{module.SOURCE}?ref=main' for repo in expected]
+                  assert [args[3] for args in calls[1::2]] == expected
+              for selection in (pending, 'other/unknown'):
+                  run.reset_mock()
+                  with patch.object(sys, 'argv', ['reconcile', f'--repository={selection}']):
+                      try:
+                          module.main()
+                      except SystemExit as exc:
+                          assert str(exc) == 'Target must be a confirmed Foundry repository'
+                      else:
+                          raise AssertionError('Unconfirmed dispatch target was accepted')
+                  run.assert_not_called()
           PY

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Reconcile canonical SUN symbols merged to main; no separate approval ledger."""
+import argparse
 import base64
 import hashlib
 import json
@@ -40,15 +41,23 @@ def read_png_blob(repo, source, meta):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--repository', default='', help='Only reconcile this confirmed owner/repository')
+    args = parser.parse_args()
     catalog = json.loads(api(f"repos/{FOUNDRY}/contents/registry/repositories.json", True))
     if catalog.get("schemaVersion") != 1:
         raise SystemExit("Unsupported registry schema")
     gallery = catalog.get("galleryDirectory", "branding/registry")
     if gallery not in ("branding/registry", "gallery"):
         raise SystemExit("Unsupported gallery directory")
+    rows = catalog["repositories"]
+    if args.repository:
+        rows = [row for row in rows if row["repository"] == args.repository]
+        if len(rows) != 1 or rows[0]["classification"] not in ("product", "infrastructure"):
+            raise SystemExit("Target must be a confirmed Foundry repository")
     seen = set()
     failures = []
-    for row in catalog["repositories"]:
+    for row in rows:
         repo = row["repository"]
         if repo in seen:
             raise SystemExit(f"Duplicate repository: {repo}")
