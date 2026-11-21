@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "updated": "2026-11-20",
+  "updated": "2026-11-19",
   "parentBrand": "SUN",
   "products": [
     {
@@ -55,28 +55,6 @@
       "repository": "sun-codefolio",
       "commercialClearance": "PENDING",
       "confirmedOn": "2026-11-19",
-      "family": "productivity"
-    },
-    {
-      "id": "SUN-P003",
-      "name": "Recovery Validation",
-      "status": "CONFIRMED",
-      "purpose": "Recovery Validation",
-      "publicName": "Recovery Validation by Sun",
-      "repository": "sun-recovery-validation",
-      "commercialClearance": "PENDING",
-      "confirmedOn": "2026-11-20",
-      "family": "productivity"
-    },
-    {
-      "id": "SUN-P004",
-      "name": "Seed Interruption Validation",
-      "status": "CONFIRMED",
-      "purpose": "Disposable seed recovery test",
-      "publicName": "Seed Interruption Validation by Sun",
-      "repository": "sun-seed-interruption-validation",
-      "commercialClearance": "PENDING",
-      "confirmedOn": "2026-11-20",
       "family": "productivity"
     }
   ],
@@ -164,7 +142,7 @@
     "productivitySeries": {
       "format": "SUN-PNNN",
       "assignment": "sequential_on_confirmation",
-      "nextId": "SUN-P005",
+      "nextId": "SUN-P003",
       "proposalsReserveIds": false
     },
     "applicationComponentSeries": {
