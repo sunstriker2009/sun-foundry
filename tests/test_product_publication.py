@@ -3,7 +3,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from subprocess import CompletedProcess
+from unittest.mock import MagicMock, call, patch
+from urllib.error import HTTPError
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location("publication", ROOT / "scripts/publish-product-registration.py")
@@ -58,6 +60,7 @@ class ProductPublicationTests(unittest.TestCase):
         self.assertEqual((row["registryId"], row["classification"], row["summary"], row["symbolMode"]),
                          ("SUN-P003", "product", "Productivity product by Sun", "text"))
         self.assertNotIn("iconSha256", row)
+        self.assertIs(row["autoLiveSymbol"], True)
         self.assertEqual(self.render.call_args_list[0].args[0], ["python3", "scripts/render-repository-gallery.py"])
         self.assertIn("## SUN-P003 — Data Studio", (self.root / publication.REGISTRY_PAGE).read_text())
         self.assertFalse(publication.project_registration(self.root, self.approved, "2026-11-19"))
@@ -104,9 +107,52 @@ class ProductPublicationTests(unittest.TestCase):
         row, = catalog["repositories"]
         self.assertEqual(row["symbolMode"], "copy")
         self.assertNotIn("icon", row)
+        self.assertNotIn("autoLiveSymbol", row)
 
         # Replaying this registration cannot restore a later-revoked copy approval.
         row["symbolMode"] = "text"
         self.write_json(publication.CATALOG, catalog)
         self.assertFalse(publication.project_registration(self.root, self.approved, "2026-11-19"))
         self.assertEqual(self.read_json(publication.CATALOG), catalog)
+
+    def test_public_symbol_activation_only_updates_eligible_ready_products_once(self):
+        def row(slug, mode="text", *, waiting=False):
+            item = dict(repository=f"sunstriker2009/{slug}", classification="product", symbolMode=mode)
+            if waiting:
+                item["autoLiveSymbol"] = True
+            return item
+
+        ready = row("sun-ready", waiting=True)
+        missing = row("sun-missing", waiting=True)
+        others = [row("sun-text"), row("sun-private", "copy"), row("sun-live", "live")]
+        self.write_json(publication.CATALOG, {"schemaVersion": 1, "repositories": [ready, missing, *others]})
+        with patch.object(publication, "public_symbol_available", side_effect=[True, False, False]) as available:
+            self.assertTrue(publication.project_public_symbols(self.root))
+            self.assertFalse(publication.project_public_symbols(self.root))
+        self.assertEqual(available.call_args_list, [call(ready["repository"]), call(missing["repository"]),
+                                                   call(missing["repository"])])
+        ready["symbolMode"] = "live"
+        del ready["autoLiveSymbol"]
+        self.assertEqual(self.read_json(publication.CATALOG)["repositories"], [ready, missing, *others])
+        self.assertEqual(self.render.call_count, 2)
+
+    def test_public_symbol_requires_live_public_visibility_and_anonymous_png(self):
+        repository = 'sunstriker2009/sun-example'
+        image = MagicMock()
+        image.__enter__.return_value.headers.get_content_type.return_value = 'image/png'
+        image.__enter__.return_value.read.return_value = b'\x89PNG\r\n\x1a\n'
+        url = f'https://raw.githubusercontent.com/{repository}/main/branding/assets/symbol.png'
+        with patch.object(publication, 'urlopen', return_value=image) as fetch:
+            for visibility in ('public', 'private'):
+                api = CompletedProcess([], 0, stdout=json.dumps(dict(full_name=repository, visibility=visibility)))
+                with patch.object(publication.subprocess, 'run', return_value=api):
+                    self.assertEqual(publication.public_symbol_available(repository), visibility == 'public')
+            fetch.assert_called_once_with(url, timeout=15)
+
+        with patch.object(publication.subprocess, 'run', return_value=CompletedProcess(
+                [], 0, stdout=json.dumps(dict(full_name=repository, visibility='public')))):
+            with patch.object(publication, 'urlopen', side_effect=HTTPError(url, 404, 'Not found', None, None)):
+                self.assertFalse(publication.public_symbol_available(repository))
+            image.__enter__.return_value.read.return_value = b'not a PNG'
+            with patch.object(publication, 'urlopen', return_value=image):
+                self.assertFalse(publication.public_symbol_available(repository))

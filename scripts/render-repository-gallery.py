@@ -69,6 +69,8 @@ def render(root: Path, catalog=None, authority=None) -> str:
         mode = item.get("symbolMode", "text")
         if mode not in ("text", "live", "copy") or (category == "pending" and mode != "text"):
             raise ValueError(f"Invalid gallery symbol mode for {repo}: {mode}")
+        if "autoLiveSymbol" in item and (item["autoLiveSymbol"] is not True or category != "product" or mode != "text"):
+            raise ValueError(f"Automatic symbol activation requires a product text tile: {repo}")
         if mode != "copy" and (icon is not None or digest is not None):
             raise ValueError(f"Only copied symbols may have a local image or digest: {repo}")
         if mode == "live":
