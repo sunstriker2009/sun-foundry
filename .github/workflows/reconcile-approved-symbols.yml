@@ -26,3 +26,8 @@ jobs:
           GH_TOKEN: ${{ secrets.SUN_SYMBOL_SYNC_TOKEN }}
           TARGET_REPOSITORY: ${{ inputs.repository }}
         run: python3 scripts/reconcile-approved-symbols.py --repository="$TARGET_REPOSITORY"
+      - name: Activate first live symbols for public products
+        if: ${{ !cancelled() && !inputs.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.SUN_SYMBOL_SYNC_TOKEN }}
+        run: python3 scripts/publish-product-registration.py --activate-public-symbols
