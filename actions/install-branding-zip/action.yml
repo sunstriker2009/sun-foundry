@@ -2,8 +2,17 @@ name: Install SUN branding ZIP on this branch
 description: Validate a pending revision ZIP and commit installed assets to the same feature branch
 inputs:
   validation-workflows:
-    description: 'Comma-separated workflow basenames to dispatch if a PR is already open'
+    description: 'Comma-separated workflow basenames to dispatch when PR checks need refreshing'
     required: false
+    default: ''
+  update-readme:
+    description: 'Initialize the stock product README or refresh its managed branding section'
+    default: 'false'
+  publish-pr:
+    description: 'Open or reuse the branding PR and request protected squash auto-merge'
+    default: 'false'
+  publication-token:
+    description: 'Optional repository-scoped GitHub App token for PR creation and auto-merge'
     default: ''
 outputs:
   installed:
@@ -34,29 +43,69 @@ runs:
       shell: bash
       env:
         INSTALLER_ROOT: ${{ github.action_path }}/../..
-      run: python3 "$INSTALLER_ROOT/scripts/install-branding-branch.py" --repository-root "$GITHUB_WORKSPACE"
-    - name: Refresh checks for an existing PR
+        UPDATE_README: ${{ inputs.update-readme }}
+        PUBLISH_PR: ${{ inputs.publish-pr }}
+      run: |
+        args=(--repository-root "$GITHUB_WORKSPACE")
+        if [[ "$UPDATE_README" == true ]]; then args+=(--update-readme); fi
+        if [[ "$PUBLISH_PR" == true ]]; then args+=(--publish-pr); fi
+        python3 "$INSTALLER_ROOT/scripts/install-branding-branch.py" "${args[@]}"
+    - name: Publish installation and refresh PR checks
       if: steps.install.outputs.installed == 'true'
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        INSTALL_COMMIT: ${{ steps.install.outputs.commit }}
+        PUBLISH_PR: ${{ inputs.publish-pr }}
+        PUBLICATION_TOKEN: ${{ inputs.publication-token }}
         VALIDATION_WORKFLOWS: ${{ inputs.validation-workflows }}
       run: |
         set -euo pipefail
-        count=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REF_NAME" --state open --base main --json number --jq 'length')
-        if [[ "$count" == 0 ]]; then
+        pr=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REF_NAME" --state open --base main \
+          --json number,isCrossRepository --jq '.[] | select(.isCrossRepository | not) | .number')
+        dispatch_checks=true
+        if [[ "$PUBLISH_PR" == true ]]; then
+          live=$(git ls-remote --heads origin "refs/heads/$GITHUB_REF_NAME")
+          if [[ "${live%%$'\t'*}" != "$INSTALL_COMMIT" ]]; then
+            echo '::error::The installed commit is no longer the branch tip. Review the branch before publishing.'
+            exit 1
+          fi
+          if [[ -z "$pr" ]]; then
+            pr=$(GH_TOKEN="${PUBLICATION_TOKEN:-$GH_TOKEN}" gh api "repos/$GITHUB_REPOSITORY/pulls" \
+              -f head="$GITHUB_REF_NAME" -f base=main -f title='chore(branding): install approved artwork' \
+              -f body='Installs the approved SUN branding package and records its revision.' --jq .number)
+            if [[ -n "$PUBLICATION_TOKEN" ]]; then dispatch_checks=false; fi
+          fi
+          echo "[Branding pull request #$pr]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/$pr)" >> "$GITHUB_STEP_SUMMARY"
+        elif [[ -z "$pr" ]]; then
           echo 'No open PR; opening it later will trigger normal PR checks.'
           exit 0
         fi
-        if [[ -z "$VALIDATION_WORKFLOWS" ]]; then
-          echo '::error::An open PR needs configured workflow_dispatch validation workflows for the new commit.'
-          exit 1
-        fi
-        IFS=',' read -ra workflows <<< "$VALIDATION_WORKFLOWS"
-        for workflow in "${workflows[@]}"; do
-          if [[ ! "$workflow" =~ ^[A-Za-z0-9_-]+\.ya?ml$ ]]; then
-            echo '::error::Invalid validation workflow basename'
+        if [[ "$dispatch_checks" == true ]]; then
+          if [[ -z "$VALIDATION_WORKFLOWS" ]]; then
+            echo '::error::Configure workflow_dispatch validation workflows for the new commit.'
             exit 1
           fi
-          gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
-        done
+          IFS=',' read -ra workflows <<< "$VALIDATION_WORKFLOWS"
+          for workflow in "${workflows[@]}"; do
+            if [[ ! "$workflow" =~ ^[A-Za-z0-9_-]+\.ya?ml$ ]]; then
+              echo '::error::Invalid validation workflow basename'
+              exit 1
+            fi
+            gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
+          done
+        fi
+        if [[ "$PUBLISH_PR" != true ]]; then exit 0; fi
+
+        git fetch --no-tags origin main
+        changed=$(git diff --name-only --no-renames FETCH_HEAD..."$INSTALL_COMMIT")
+        if grep -qEv '^(README\.md|branding/(assets|revisions)/.+)$' <<< "$changed"; then
+          echo 'Auto-merge skipped because the PR includes changes outside branding and README.md.'
+          exit 0
+        fi
+        ready=$(gh pr view "$pr" --repo "$GITHUB_REPOSITORY" --json isDraft,autoMergeRequest \
+          --jq '(.isDraft | not) and (.autoMergeRequest == null)')
+        if [[ "$ready" == true ]]; then
+          GH_TOKEN="${PUBLICATION_TOKEN:-$GH_TOKEN}" gh pr merge "$pr" --repo "$GITHUB_REPOSITORY" \
+            --auto --squash --match-head-commit "$INSTALL_COMMIT"
+        fi

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Install one pending revision ZIP and fast-forward the same feature branch."""
 import argparse
+import html
 import importlib.util
 import json
 import os
@@ -12,6 +13,16 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = re.compile(r'v[1-9][0-9]*\.zip')
 UPLOAD = re.compile(r'[A-Za-z0-9][A-Za-z0-9._-]{0,119}\.zip')
+README_START = '<!-- SUN BRANDING START -->'
+README_END = '<!-- SUN BRANDING END -->'
+PRODUCT_SEED = '''# SUN Product Repository
+
+Product name, description and approved visual identity pending initialization.
+
+This repository was provisioned from STRATA by Sun through FOUNDRY. It must not use STRATA's logo or tagline as its own brand.
+
+See the [setup checklist](docs/REPOSITORY-SETUP.md) for product metadata and branding.
+'''
 
 
 def git(root, *args, env=None):
@@ -71,7 +82,47 @@ def output(**values):
                 stream.write(f'{key}={str(value).lower() if isinstance(value, bool) else value}\n')
 
 
-def install_branch(root, repository, branch, expected):
+def update_readme(root):
+    readme = root / 'README.md'
+    if readme.is_symlink():
+        raise ValueError('README.md must be a regular file')
+    original = readme.read_bytes().decode('utf-8')
+    seed = original.replace('\r\n', '\n').rstrip('\n') == PRODUCT_SEED.rstrip('\n')
+    start = original.find(README_START)
+    end = original.find(README_END)
+    if not seed and start == end == -1:
+        return False
+    if not seed and (start < 0 or end < start or original.count(README_START) != 1
+                     or original.count(README_END) != 1):
+        raise ValueError('README.md must have exactly one complete SUN branding section')
+
+    manifest = root / 'branding/manifest.json'
+    if manifest.is_symlink():
+        raise ValueError('branding/manifest.json must be a regular file')
+    metadata = json.loads(manifest.read_text(encoding='utf-8'))
+    name = metadata.get('product-name')
+    description = metadata.get('short-description')
+    if not isinstance(name, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9 -]*', name):
+        raise ValueError('branding/manifest.json needs a valid product-name')
+    if description is not None and (not isinstance(description, str) or '\n' in description or '\r' in description):
+        raise ValueError('branding/manifest.json needs a single-line short-description or null')
+
+    lines = [README_START, f'# {name} by Sun', '',
+             f'![{name} by Sun](branding/assets/readme-banner.png)']
+    if description:
+        lines.extend(['', html.escape(description)])
+    lines.append(README_END)
+    newline = '\r\n' if '\r\n' in original else '\n'
+    section = newline.join(lines)
+    updated = (section + newline if seed
+               else original[:start] + section + original[end + len(README_END):])
+    if updated == original:
+        return False
+    readme.write_bytes(updated.encode('utf-8'))
+    return True
+
+
+def install_branch(root, repository, branch, expected, *, readme=False, publish=False):
     guard(repository, branch, expected)
     root = Path(root).resolve()
     if git(root, 'rev-parse', 'HEAD') != expected or git(root, 'status', '--porcelain'):
@@ -88,14 +139,25 @@ def install_branch(root, repository, branch, expected):
     if not report['changed']:
         return {'installed': False, 'reason': 'Already identical; upload retained'}
     git(root, 'add', '-f', '--', 'branding/assets', 'branding/revisions')
+    readme_changed = readme and update_readme(root)
+    if readme_changed:
+        git(root, 'add', '--', 'README.md')
     changed = git(root, 'diff', '--cached', '--name-only', '-z').split('\0')
-    if any(p and not p.startswith(('branding/assets/', 'branding/revisions/')) for p in changed):
+    if any(p and not p.startswith(('branding/assets/', 'branding/revisions/'))
+           and not (readme_changed and p == 'README.md') for p in changed):
         raise ValueError('Unexpected installation diff')
     git(root, '-c', 'user.name=sun-foundry[bot]', '-c',
         'user.email=41898282+github-actions[bot]@users.noreply.github.com',
         'commit', '-qm', f"chore(branding): install {report['revision']} from {source.name}")
     # checkout supplies a short-lived GITHUB_TOKEN header only for the push.
     live = git(root, 'ls-remote', 'origin', 'refs/heads/' + branch).split()
+    if publish and live and live[0] != expected:
+        # A rerun can resume publication after the installation push succeeded.
+        git(root, 'fetch', '--no-tags', 'origin', 'refs/heads/' + branch)
+        head = git(root, 'rev-parse', 'FETCH_HEAD')
+        if (head == live[0] and git(root, 'show', '-s', '--format=%P', head) == expected
+                and git(root, 'rev-parse', f'{head}^{{tree}}') == git(root, 'rev-parse', 'HEAD^{tree}')):
+            return {'installed': True, 'revision': report['revision'], 'commit': head}
     if not live or live[0] != expected:
         raise ValueError('Branch advanced during installation; no push made. Retry at the new tip')
     git(root, 'push', 'origin', 'HEAD:refs/heads/' + branch)
@@ -106,6 +168,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repository-root', type=Path, required=True)
     parser.add_argument('--detect', action='store_true')
+    parser.add_argument('--update-readme', action='store_true')
+    parser.add_argument('--publish-pr', action='store_true')
     args = parser.parse_args()
     guard(os.environ['GITHUB_REPOSITORY'], os.environ['GITHUB_REF_NAME'], os.environ['GITHUB_SHA'])
     if args.detect:
@@ -114,7 +178,8 @@ def main():
         print('Pending branding ZIP detected' if found else 'No pending ZIP; numbered snapshots ignored')
         return
     report = install_branch(args.repository_root, os.environ['GITHUB_REPOSITORY'],
-                            os.environ['GITHUB_REF_NAME'], os.environ['GITHUB_SHA'])
+                            os.environ['GITHUB_REF_NAME'], os.environ['GITHUB_SHA'],
+                            readme=args.update_readme, publish=args.publish_pr)
     output(**report)
     print(json.dumps(report, indent=2))
     if os.getenv('GITHUB_STEP_SUMMARY'):
