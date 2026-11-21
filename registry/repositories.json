@@ -53,8 +53,8 @@
       "classification": "product",
       "name": "CodeFolio",
       "summary": "code management",
-      "icon": null,
-      "iconSha256": null
+      "icon": "gallery/sun-codefolio.png",
+      "iconSha256": "e1b5fee8917f5a7f27e76545ad94047e150db3dbe633332b51d1afd7d37c5987"
     }
   ]
 }

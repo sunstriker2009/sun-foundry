@@ -7,7 +7,7 @@ Generated from [the repository catalog](repositories.json). Approved identities 
 
 <table>
 <tr>
-<td align="center" width="180"><a href="https://github.com/sunstriker2009/sun-codefolio"><strong>CodeFolio</strong></a><p><strong>CodeFolio</strong></p><small>SUN-P002 · code management</small></td>
+<td align="center" width="180"><a href="https://github.com/sunstriker2009/sun-codefolio"><img src="../gallery/sun-codefolio.png" alt="CodeFolio icon" width="72" height="72"></a><p><strong>CodeFolio</strong></p><small>SUN-P002 · code management</small></td>
 <td align="center" width="180"><a href="https://github.com/sunstriker2009/sun-outpost"><img src="../gallery/sun-outpost.png" alt="Outpost icon" width="72" height="72"></a><p><strong>Outpost</strong></p><small>SUN-C001 · Identity, authentication, authorization and security</small></td>
 <td align="center" width="180"><a href="https://github.com/sunstriker2009/sun-workbench"><img src="../gallery/sun-workbench.png" alt="Workbench icon" width="72" height="72"></a><p><strong>Workbench</strong></p><small>SUN-P001 · Local code organizer and interactive scripting workspace</small></td>
 </tr>
