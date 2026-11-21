@@ -10,10 +10,12 @@
 - [x] Implement the local asset generator and scoped validation. Validate STRATA's inherited ZIP hook and its required-check dispatches in a [newly provisioned pilot](https://github.com/sunstriker2009/sun-foundry-pilot/actions/runs/44260221893). Verify snapshot rollback and restore with the installer CLI on a [product feature branch](https://github.com/sunstriker2009/sun-outpost/pull/177).
 - [x] Synchronize approved symbols through single-repository and daily reconciliation.
 - [x] Exercise the shared repository-rename engine through a successful [combined product and repository rename](https://github.com/sunstriker2009/sun-foundry/actions/runs/43934714433).
+- [x] Replay Factory after successful provisioning and recover from a restored pre-publication checkpoint. [Factory replay](https://github.com/sunstriker2009/sun-foundry/actions/runs/44831045380) · [Registry republication](https://github.com/sunstriker2009/sun-foundry/pull/110)
+- [x] Exercise seed branch and seed PR recovery in CI against controlled GitHub API responses. Verify Factory reuses matching work and stops when the seed identity or PR is unexpected.
 
 ## Remaining
 
-- [ ] Exercise approved-registration recovery after interruptions at creation, seed merge, and Foundry registry publication. Confirm the operator experience when the administration environment requests deployment approval.
+- [ ] Validate recovery from a live interruption during repository creation or before seed merge. Confirm the operator experience when the administration environment requests deployment approval.
 - [ ] Decide the future of pending registration for existing repositories and how incomplete product registrations will be surfaced.
 - [ ] Verify a live product or repository rename across Foundry’s operational catalog, published registry, gallery, and the product manifest.
 - [ ] Exercise manual ZIP installer Preview, Apply and rollback through GitHub Actions on an approved disposable target. Verify the required-check dispatches when onboarding or updating an adopter.

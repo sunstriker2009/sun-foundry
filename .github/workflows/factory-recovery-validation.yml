@@ -6,6 +6,7 @@ on:
       - '.github/workflows/factory-recovery-validation.yml'
       - 'scripts/prepare-product-branding.sh'
       - 'scripts/verify-approved-product-seed.sh'
+      - 'tests/test_factory_seed_recovery.py'
       - 'docs/WORKFLOWS.md'
 permissions:
   contents: read
@@ -18,6 +19,8 @@ jobs:
         run: |
           bash -n scripts/prepare-product-branding.sh
           bash -n scripts/verify-approved-product-seed.sh
+      - name: Exercise seed checkpoint recovery
+        run: python3 -m unittest discover -s tests -p 'test_factory_seed_recovery.py' -v
       - name: Verify resume guardrails
         shell: bash
         run: |
