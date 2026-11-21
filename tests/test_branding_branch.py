@@ -72,6 +72,37 @@ class BranchInstallerTests(unittest.TestCase):
         self.assertEqual(branch.git(self.repo, 'rev-parse', 'HEAD'), self.sha)
         self.assertEqual(list(self.revisions.iterdir()), [self.upload])
 
+    def test_opt_in_initializes_readme_and_can_resume_publication(self):
+        readme = self.repo / 'README.md'
+        readme.write_text(branch.PRODUCT_SEED)
+        (self.repo / 'branding/manifest.json').write_text(
+            '{"product-name":"CodeFolio","short-description":"Code management"}')
+        branch.git(self.repo, 'add', '.')
+        branch.git(self.repo, 'commit', '-qm', 'Add product seed')
+        branch.git(self.repo, 'push', '-q', 'origin', 'HEAD')
+        sha = branch.git(self.repo, 'rev-parse', 'HEAD')
+        result = branch.install_branch(self.repo, 'sunstriker2009/sun-workbench',
+                                       'branding/pilot', sha, readme=True, publish=True)
+        self.assertIn('# CodeFolio by Sun', readme.read_text())
+        self.assertIn('](branding/assets/readme-banner.png)', readme.read_text())
+        self.assertIn('Code management', readme.read_text())
+        branch.git(self.repo, 'reset', '--hard', sha)
+        resumed = branch.install_branch(self.repo, 'sunstriker2009/sun-workbench',
+                                        'branding/pilot', sha, readme=True, publish=True)
+        self.assertEqual(resumed, result)
+
+    def test_opt_in_refreshes_only_a_managed_readme_section(self):
+        readme = self.repo / 'README.md'
+        self.assertFalse(branch.update_readme(self.repo))
+        (self.repo / 'branding/manifest.json').write_text(
+            '{"product-name":"CodeFolio","short-description":null}')
+        readme.write_bytes(f'Custom intro\r\n{branch.README_START}\r\nOld\r\n'
+                           f'{branch.README_END}\r\nCustom footer\r\n'.encode())
+        self.assertTrue(branch.update_readme(self.repo))
+        self.assertTrue(readme.read_bytes().startswith(b'Custom intro\r\n'))
+        self.assertTrue(readme.read_bytes().endswith(b'\r\nCustom footer\r\n'))
+        self.assertFalse(branch.update_readme(self.repo))
+
     def test_multiple_pending_zips_fail_before_any_install(self):
         (self.revisions / 'another.zip').write_bytes(package('red'))
         with self.assertRaises(ValueError):
@@ -132,16 +163,17 @@ class BranchInstallerTests(unittest.TestCase):
 
     def test_action_dispatches_checks_only_for_an_existing_pr(self):
         action = (ROOT / 'actions/install-branding-zip/action.yml').read_text()
-        shell = textwrap.dedent(action.split('      run: |\n', 1)[1])
+        shell = textwrap.dedent(action.rsplit('      run: |\n', 1)[1])
         tool = Path(self.temp.name) / 'bin'
         tool.mkdir()
         gh = tool / 'gh'
-        gh.write_text('#!/bin/bash\nif [[ "$1 $2" == "pr list" ]]; then echo "$PR_COUNT"; else echo "$*" >> "$CALL_LOG"; fi\n')
+        gh.write_text('#!/bin/bash\nif [[ "$1 $2" == "pr list" ]]; then [[ "$PR_COUNT" == 0 ]] || echo 123;'
+                      ' else echo "$*" >> "$CALL_LOG"; fi\n')
         gh.chmod(0o755)
         log = tool / 'calls'
         env = dict(os.environ, PATH=str(tool) + ':' + os.environ['PATH'], CALL_LOG=str(log),
                    GITHUB_REPOSITORY='sunstriker2009/sun-workbench', GITHUB_REF_NAME='branding/pilot',
-                   VALIDATION_WORKFLOWS='ci.yml,pr-title.yml')
+                   VALIDATION_WORKFLOWS='ci.yml,pr-title.yml', PUBLISH_PR='false')
         for count, expected in [('0', 0), ('1', 2)]:
             log.write_text('')
             result = subprocess.run(['bash', '-c', shell], env=dict(env, PR_COUNT=count),
@@ -160,6 +192,51 @@ class BranchInstallerTests(unittest.TestCase):
         self.upload.symlink_to(self.repo / 'README.md')
         with self.assertRaises(ValueError):
             branch.pending(self.repo)
+
+    def test_action_publishes_pr_and_limits_auto_merge(self):
+        action = (ROOT / 'actions/install-branding-zip/action.yml').read_text()
+        shell = textwrap.dedent(action.rsplit('      run: |\n', 1)[1])
+        tool = Path(self.temp.name) / 'bin'
+        tool.mkdir()
+        log = tool / 'calls'
+        summary = tool / 'summary'
+        (tool / 'git').write_text('''#!/bin/bash
+case "$1" in
+  ls-remote) printf '%s\\trefs/heads/branding/pilot\\n' "$REMOTE_SHA" ;;
+  diff) printf '%s\\n' "$CHANGED" ;;
+esac
+''')
+        (tool / 'gh').write_text('''#!/bin/bash
+echo "$GH_TOKEN $*" >> "$CALL_LOG"
+case "$1 $2" in
+  'pr list') printf '%s' "$EXISTING_PR" ;;
+  'pr view') echo true ;;
+  'api '*) echo 123 ;;
+esac
+''')
+        for executable in ('git', 'gh'):
+            (tool / executable).chmod(0o755)
+        env = dict(os.environ, PATH=f'{tool}:{os.environ["PATH"]}', CALL_LOG=str(log),
+                   GITHUB_STEP_SUMMARY=str(summary), GITHUB_SERVER_URL='https://github.com',
+                   GITHUB_REPOSITORY='sunstriker2009/sun-workbench', GITHUB_REF_NAME='branding/pilot',
+                   VALIDATION_WORKFLOWS='ci.yml,pr-title.yml', GH_TOKEN='repo-token', PUBLISH_PR='true',
+                   INSTALL_COMMIT=self.sha, REMOTE_SHA=self.sha)
+        cases = [('', 'app-token', 'README.md', True, False, True),
+                 ('', '', 'branding/assets/symbol.png', True, True, True),
+                 ('123', 'app-token', 'branding/revisions/v2.zip', False, True, True),
+                 ('123', 'app-token', 'src/unrelated.py', False, True, False)]
+        for existing, token, changed, create, dispatch, merge in cases:
+            with self.subTest(existing=existing, token=token, changed=changed):
+                log.write_text('')
+                result = subprocess.run(['bash', '-c', shell], capture_output=True, text=True,
+                                        env=dict(env, EXISTING_PR=existing, PUBLICATION_TOKEN=token, CHANGED=changed))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                calls = log.read_text()
+                self.assertEqual('api repos/' in calls, create)
+                self.assertEqual('repo-token workflow run ci.yml' in calls, dispatch)
+                self.assertEqual(f'{token or "repo-token"} pr merge 123' in calls, merge)
+                if merge:
+                    self.assertIn(f'--auto --squash --match-head-commit {self.sha}', calls)
 
 
 if __name__ == '__main__':
