@@ -64,15 +64,6 @@
       "summary": "Recovery Validation",
       "icon": null,
       "iconSha256": null
-    },
-    {
-      "repository": "sunstriker2009/sun-seed-interruption-validation",
-      "registryId": "SUN-P004",
-      "classification": "product",
-      "name": "Seed Interruption Validation",
-      "summary": "Disposable seed recovery test",
-      "icon": null,
-      "iconSha256": null
     }
   ]
 }
