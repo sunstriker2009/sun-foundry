@@ -97,10 +97,11 @@ Review and squash-merge the installer PR. Only one `chore/branding-install` prop
 
 #### Packages and revisions
 
-The ZIP contains `branding/assets/` at the archive root or inside one enclosing export directory.
+Put `branding/assets/` directly at the root of a newly generated installation ZIP. Export only the approved banner, symbol, concept artwork and icons listed below. The installer also accepts one enclosing export directory.
 
 - Include a landscape `readme-banner.png` up to 8192 px wide, a square `symbol.png` from 128 to 4096 px, and exact square `icons/icon-{size}.png` for 16, 24, 32, 48, 64, 128, 256, 512 and 1024 px.
-- An optional `preview.png` installs as `concept-artwork.png`; see the [SUN branding standard](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/PRODUCT-BRANDING.md) for canonical layout. The current installer accepts supported legacy asset paths for compatibility. ZIP limits are 20 MB compressed, 64 MB expanded, 12 MB per entry and 256 entries.
+- Include the approved artwork reference as `branding/assets/concept-artwork.png`. When the banner is the approved artwork reference, include a copy under this filename. The installer continues to accept older ZIPs without concept artwork and maps a legacy `preview.png` to `concept-artwork.png`. See the [SUN branding standard](https://github.com/sunstriker2009/sun-ecosystem/blob/main/docs/governance/PRODUCT-BRANDING.md#5-branding-package-layout).
+- Exclude design handoff documents, repository metadata, revision snapshots, nested ZIPs, `__MACOSX/` and `.DS_Store` from the installation ZIP. ZIP limits are 20 MB compressed, 64 MB expanded, 12 MB per entry and 256 entries.
 - Imagery writes stay under `branding/assets/`. Revision bookkeeping is under `branding/revisions/`; product metadata stays in `branding/manifest.json`. The first installation snapshots the prior asset tree as `v1.zip` (empty if no prior assets) and the installed tree as `v2.zip`. `current.json` records the result. Later installs and rollbacks create the next numbered snapshot. Rollback restores the full selected asset tree.
 - Keep numbered snapshots immutable. Invalid or ambiguous uploads consume no revision; identical assets produce no commit or revision and leave the upload in place. Revision gaps and stale branch tips require inspection before retrying.
 
