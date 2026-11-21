@@ -15,9 +15,11 @@
 
 - [x] Recover from a live interruption before seed merge. Factory stopped on a draft seed PR, then reused the same repository and PR to publish the same SUN ID. [Factory attempts](https://github.com/sunstriker2009/sun-foundry/actions/runs/44844970501) · [Publication PR](https://github.com/sunstriker2009/sun-foundry/pull/113)
 
+- [x] Reconstruct the post-creation, pre-seed state on the live disposable repository. Factory stopped without writes when the approved seed was missing. Restoring the seeded tree by PR allowed Factory to republish the same SUN ID. [Factory attempts](https://github.com/sunstriker2009/sun-foundry/actions/runs/44844970501) · [Registry restoration](https://github.com/sunstriker2009/sun-foundry/pull/116)
+
 ## Remaining
 
-- [ ] Validate behavior after a live interruption between repository creation and writing the approved seed. Confirm the operator experience when the administration environment requests deployment approval.
+- [ ] Confirm the operator experience when the administration environment requests deployment approval.
 - [ ] Decide the future of pending registration for existing repositories and how incomplete product registrations will be surfaced.
 - [ ] Verify a live product or repository rename across Foundry’s operational catalog, published registry, gallery, and the product manifest.
 - [ ] Exercise manual ZIP installer Preview, Apply and rollback through GitHub Actions on an approved disposable target. Verify the required-check dispatches when onboarding or updating an adopter.
