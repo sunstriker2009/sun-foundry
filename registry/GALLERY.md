@@ -12,7 +12,6 @@ Generated from [the repository catalog](repositories.json). Approved identities 
 <td align="center" width="180"><a href="https://github.com/sunstriker2009/sun-recovery-validation"><strong>Recovery Validation</strong></a><p><strong>Recovery Validation</strong></p><small>SUN-P003 · Recovery Validation</small></td>
 </tr>
 <tr>
-<td align="center" width="180"><a href="https://github.com/sunstriker2009/sun-seed-interruption-validation"><strong>Seed Interruption Validation</strong></a><p><strong>Seed Interruption Validation</strong></p><small>SUN-P004 · Disposable seed recovery test</small></td>
 <td align="center" width="180"><a href="https://github.com/sunstriker2009/sun-workbench"><img src="../gallery/sun-workbench.png" alt="Workbench icon" width="72" height="72"></a><p><strong>Workbench</strong></p><small>SUN-P001 · Local code organizer and interactive scripting workspace</small></td>
 </tr>
 </table>

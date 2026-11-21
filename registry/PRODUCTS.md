@@ -8,9 +8,8 @@
 | SUN-P001 | **Workbench** | Productivity | Interactive scripting workspace and saved connections | **CONFIRMED** | Sun.Workspace |
 | SUN-P002 | **CodeFolio** | Productivity | code management | **CONFIRMED** | TBD |
 | SUN-P003 | **Recovery Validation** | Productivity | Recovery Validation | **CONFIRMED** | TBD |
-| SUN-P004 | **Seed Interruption Validation** | Productivity | Disposable seed recovery test | **CONFIRMED** | TBD |
 
-The next publication counters are **SUN-P005** and **SUN-C002**. The [ID migration decision](https://github.com/sunstriker2009/sun-ecosystem/blob/main/decisions/sun-family-ids.md) records the previous IDs.
+The next publication counters are **SUN-P004** and **SUN-C002**. The [ID migration decision](https://github.com/sunstriker2009/sun-ecosystem/blob/main/decisions/sun-family-ids.md) records the previous IDs.
 
 ## Unnumbered product proposals
 
@@ -59,9 +58,4 @@ The proposed names ORBIT, NOVA, PRISM, PULSAR, LUMEN, BEACON and FORGE have pote
 ## SUN-P003 — Recovery Validation
 - **Public identity:** Recovery Validation by Sun.
 - **Repository:** [sun-recovery-validation](https://github.com/sunstriker2009/sun-recovery-validation) (established).
-- **Commercial clearance:** PENDING.
-
-## SUN-P004 — Seed Interruption Validation
-- **Public identity:** Seed Interruption Validation by Sun.
-- **Repository:** [sun-seed-interruption-validation](https://github.com/sunstriker2009/sun-seed-interruption-validation) (established).
 - **Commercial clearance:** PENDING.
