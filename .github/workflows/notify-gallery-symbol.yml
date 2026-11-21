@@ -1,0 +1,37 @@
+name: Notify Foundry of a symbol update
+on:
+  workflow_call:
+    secrets:
+      app_id:
+        required: false
+      app_private_key:
+        required: false
+permissions: {}
+jobs:
+  notify:
+    if: github.repository_owner == 'sunstriker2009' && github.ref == 'refs/heads/main' && !github.event.deleted
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      RELAY_CONFIGURED: ${{ secrets.app_id != '' && secrets.app_private_key != '' }}
+    steps:
+      - name: Report missing relay configuration
+        if: env.RELAY_CONFIGURED != 'true'
+        run: echo '::warning::Gallery relay credentials are missing. Foundry will pick up the symbol during daily reconciliation.'
+      - name: Create a Foundry Actions token
+        id: relay-token
+        if: env.RELAY_CONFIGURED == 'true'
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        with:
+          app-id: ${{ secrets.app_id }}
+          private-key: ${{ secrets.app_private_key }}
+          owner: sunstriker2009
+          repositories: sun-foundry
+          permission-actions: write
+      - name: Dispatch targeted reconciliation
+        if: env.RELAY_CONFIGURED == 'true'
+        env:
+          GH_TOKEN: ${{ steps.relay-token.outputs.token }}
+        run: |
+          gh workflow run reconcile-approved-symbols.yml --repo sunstriker2009/sun-foundry \
+            --ref main --field "repository=$GITHUB_REPOSITORY"

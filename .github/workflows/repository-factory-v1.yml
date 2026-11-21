@@ -257,9 +257,22 @@ jobs:
           APPROVED_MANIFEST: ${{ needs.authorize-approved-registration.outputs.manifest }}
           APPROVED_PRODUCT: ${{ needs.authorize-approved-registration.outputs.product }}
           APPROVED_ON: ${{ needs.authorize-approved-registration.outputs.approved_on }}
+          SYMBOL_RELAY_APP_ID: ${{ secrets.SUN_SYMBOL_RELAY_APP_ID }}
+          SYMBOL_RELAY_APP_PRIVATE_KEY: ${{ secrets.SUN_SYMBOL_RELAY_APP_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           product_main=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
           [[ "$product_main" =~ ^[0-9a-f]{40}$ ]]
           bash scripts/verify-approved-product-seed.sh "$REPO" "$product_main"
+          if [[ -z "$SYMBOL_RELAY_APP_ID" && -z "$SYMBOL_RELAY_APP_PRIVATE_KEY" ]]; then
+            echo '::warning::Symbol relay credentials are absent. Daily reconciliation remains available.'
+          elif [[ -z "$SYMBOL_RELAY_APP_ID" || -z "$SYMBOL_RELAY_APP_PRIVATE_KEY" ]]; then
+            echo '::error::Configure both symbol relay App credentials in repository-administration.'
+            exit 1
+          else
+            relay_type=$(gh api "repos/$REPO/contents/.github/workflows/gallery-symbol-relay.yml?ref=$product_main" --jq .type)
+            [[ "$relay_type" == file ]]
+            printf '%s' "$SYMBOL_RELAY_APP_ID" | gh secret set SUN_SYMBOL_RELAY_APP_ID --repo "$REPO"
+            printf '%s' "$SYMBOL_RELAY_APP_PRIVATE_KEY" | gh secret set SUN_SYMBOL_RELAY_APP_PRIVATE_KEY --repo "$REPO"
+          fi
           python3 scripts/publish-product-registration.py
