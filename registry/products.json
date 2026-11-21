@@ -67,6 +67,17 @@
       "commercialClearance": "PENDING",
       "confirmedOn": "2026-11-20",
       "family": "productivity"
+    },
+    {
+      "id": "SUN-P004",
+      "name": "Seed Interruption Validation",
+      "status": "CONFIRMED",
+      "purpose": "Disposable seed recovery test",
+      "publicName": "Seed Interruption Validation by Sun",
+      "repository": "sun-seed-interruption-validation",
+      "commercialClearance": "PENDING",
+      "confirmedOn": "2026-11-20",
+      "family": "productivity"
     }
   ],
   "infrastructure": [
@@ -153,7 +164,7 @@
     "productivitySeries": {
       "format": "SUN-PNNN",
       "assignment": "sequential_on_confirmation",
-      "nextId": "SUN-P004",
+      "nextId": "SUN-P005",
       "proposalsReserveIds": false
     },
     "applicationComponentSeries": {
