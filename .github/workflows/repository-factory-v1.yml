@@ -264,7 +264,10 @@ jobs:
           product_main=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
           [[ "$product_main" =~ ^[0-9a-f]{40}$ ]]
           bash scripts/verify-approved-product-seed.sh "$REPO" "$product_main"
-          if [[ -z "$SYMBOL_RELAY_APP_ID" && -z "$SYMBOL_RELAY_APP_PRIVATE_KEY" ]]; then
+          visibility=$(gh api "repos/$REPO" --jq .visibility)
+          if [[ "$visibility" != private ]]; then
+            echo 'Gallery copy relay credentials are only used by private repositories.'
+          elif [[ -z "$SYMBOL_RELAY_APP_ID" && -z "$SYMBOL_RELAY_APP_PRIVATE_KEY" ]]; then
             echo '::warning::Symbol relay credentials are absent. Daily reconciliation remains available.'
           elif [[ -z "$SYMBOL_RELAY_APP_ID" || -z "$SYMBOL_RELAY_APP_PRIVATE_KEY" ]]; then
             echo '::error::Configure both symbol relay App credentials in repository-administration.'

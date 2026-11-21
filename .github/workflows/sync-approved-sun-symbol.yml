@@ -20,11 +20,6 @@ on:
         description: 'Repeat short repository name'
         required: true
         type: string
-      source:
-        description: 'Canonical approved PNG on main (override for legacy repositories)'
-        required: true
-        type: string
-        default: 'branding/assets/symbol.png'
       mode:
         description: 'Preview or open Foundry symbol-sync PR'
         required: true
@@ -57,6 +52,5 @@ jobs:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           REPOSITORY: ${{ steps.target.outputs.repository }}
           CONFIRM: ${{ steps.target.outputs.confirmation }}
-          SOURCE: ${{ inputs.source }}
           MODE: ${{ inputs.mode }}
-        run: python3 scripts/sync-approved-symbol.py --repository "$REPOSITORY" --confirm "$CONFIRM" --source "$SOURCE" --mode "$MODE"
+        run: python3 scripts/sync-approved-symbol.py --repository "$REPOSITORY" --confirm "$CONFIRM" --mode "$MODE"

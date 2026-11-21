@@ -105,7 +105,7 @@ def project_registration(root, approved, confirmed_on):
     counter["nextId"] = max(counter["nextId"], f"{prefix}{int(ident[-3:]) + 1:03d}")
     authority["updated"] = max(authority["updated"], announced)
     authority["products"].append(product)
-    row = {**listing, "icon": None, "iconSha256": None}
+    row = {**listing, "symbolMode": "text"}
     if pending:
         catalog["repositories"][catalog["repositories"].index(listings[0])] = row
     else:

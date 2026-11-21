@@ -31,7 +31,7 @@ if any(row["repository"] == target for row in c["repositories"]):
 slug=target.split("/")[1]
 if any(row.get("repository")==slug for group in ("products","infrastructure") for row in a[group]):
     raise SystemExit("Repository already has an approved SUN identity; reconcile manually, do not create pending duplicate")
-c["repositories"].append({"repository":target,"registryId":None,"classification":"pending","name":slug,"summary":"Repository registration pending owner review","icon":None,"iconSha256":None})
+c["repositories"].append({"repository":target,"registryId":None,"classification":"pending","name":slug,"summary":"Repository registration pending owner review","symbolMode":"text"})
 with open(out,"w") as f: json.dump(c,f,indent=2); f.write("\n")
 PY
 if [[ ! -s "$tmp/next.json" ]]; then

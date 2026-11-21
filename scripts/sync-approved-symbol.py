@@ -11,6 +11,9 @@ import subprocess
 import tempfile
 
 
+SOURCE = "branding/assets/symbol.png"
+
+
 def gh(*args):
     return subprocess.check_output(["gh", "api", *args], text=True).strip()
 
@@ -36,40 +39,49 @@ def read_png_blob(repo, source, meta):
     return data
 
 
+def approved_copy(catalog, target):
+    matches = [row for row in catalog["repositories"] if row["repository"] == target]
+    if len(matches) != 1 or matches[0]["classification"] not in ("product", "infrastructure"):
+        raise SystemExit("Only confirmed, registered repositories may sync icons")
+    return matches[0] if matches[0].get("symbolMode") == "copy" else None
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--repository", required=True)
     p.add_argument("--confirm", required=True)
-    p.add_argument("--source", required=True)
     p.add_argument("--mode", choices=["preview", "apply"], default="preview")
     args = p.parse_args()
     target = args.repository
     if target != args.confirm or not re.fullmatch(r"sunstriker2009/[a-z0-9][a-z0-9._-]*", target):
         raise SystemExit("Invalid repository or confirmation mismatch")
-    if not re.fullmatch(r"branding/assets/(?:symbol|symbol-canonical-v[0-9]+|icons/icon-(?:128|256|512))\.png", args.source):
-        raise SystemExit("Source must be an explicitly approved canonical symbol or approved icon export")
     if not os.getenv("GH_TOKEN"):
         raise SystemExit("Missing GH_TOKEN")
     foundry = "sunstriker2009/sun-foundry"
     slug = target.split("/")[1]
     catalog = json.loads(gh(f"repos/{foundry}/contents/registry/repositories.json", "-H", "Accept: application/vnd.github.raw+json"))
-    matching = [r for r in catalog["repositories"] if r["repository"] == target]
-    if len(matching) != 1 or matching[0]["classification"] == "pending":
-        raise SystemExit("Only confirmed, registered repositories may sync icons")
+    current = approved_copy(catalog, target)
+    if current is None:
+        print(f"SKIP {target}: no approval to publish a copy")
+        return
+    member = json.loads(gh(f"repos/{target}"))
+    if member.get("full_name") != target or member.get("visibility") != "private":
+        raise SystemExit(f"Copied symbols require a private registered repository: {target}")
     # Require a canonical, reviewed source file from the default branch, not a caller-supplied SHA.
-    meta = json.loads(gh(f"repos/{target}/contents/{args.source}?ref=main"))
-    data = read_png_blob(target, args.source, meta)
+    meta = json.loads(gh(f"repos/{target}/contents/{SOURCE}?ref=main"))
+    data = read_png_blob(target, SOURCE, meta)
     digest = hashlib.sha256(data).hexdigest()
     # Merging the canonical branding asset to main is artwork approval.
-    gallery = catalog.get("galleryDirectory", "branding/registry")
-    if gallery not in ("branding/registry", "gallery"):
+    gallery = catalog.get("galleryDirectory")
+    if gallery != "gallery":
         raise SystemExit("Unsupported gallery directory")
-    dest = f"{gallery}/{slug}.png"
-    current = matching[0]
+    dest = current.get("icon") or f"{gallery}/{slug}.png"
+    if not re.fullmatch(r"gallery/[a-z0-9][a-z0-9._-]*\.png", dest):
+        raise SystemExit("Invalid gallery icon path")
     if current.get("icon") == dest and current.get("iconSha256") == digest:
         print("Already synchronized; no PR required")
         return
-    print(f"Sync candidate: {target} {args.source} sha256={digest} destination={dest}")
+    print(f"Sync candidate: {target} {SOURCE} sha256={digest} destination={dest}")
     if args.mode == "preview":
         print("Preview only; no repository changes")
         return
@@ -86,16 +98,16 @@ def main():
         subprocess.run(["git", "-c", header, "clone", "--quiet", f"https://github.com/{foundry}.git", str(repo_dir)], check=True)
         subprocess.run(["git", "checkout", "-q", "-b", branch], cwd=repo_dir, check=True)
         live = json.loads((repo_dir / "registry/repositories.json").read_text())
-        if live.get("galleryDirectory", "branding/registry") != gallery:
+        if live.get("galleryDirectory") != gallery:
             raise SystemExit("Gallery directory changed; retry against the live catalog")
-        matches = [r for r in live["repositories"] if r["repository"] == target]
-        if len(matches) != 1 or matches[0]["classification"] == "pending":
-            raise SystemExit("Registry changed; retry after review")
+        approved = approved_copy(live, target)
+        if approved is None or approved.get("icon") != current.get("icon"):
+            raise SystemExit("Copy approval changed; retry after review")
         path = repo_dir / dest
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
-        matches[0]["icon"] = dest
-        matches[0]["iconSha256"] = digest
+        approved["icon"] = dest
+        approved["iconSha256"] = digest
         (repo_dir / "registry/repositories.json").write_text(json.dumps(live, indent=2) + "\n")
         subprocess.run(["python3", "scripts/render-repository-gallery.py"], cwd=repo_dir, check=True)
         subprocess.run(["python3", "scripts/render-repository-gallery.py", "--check"], cwd=repo_dir, check=True)
@@ -106,16 +118,12 @@ def main():
             raise SystemExit(f"Unexpected sync diff: {changed}; expected exactly {sorted(expected)}")
         subprocess.run(["git", "-c", "user.name=sun-foundry[bot]", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com", "commit", "-qm", f"chore(registry): sync {slug} approved symbol"], cwd=repo_dir, check=True)
         subprocess.run(["git", "-c", header, "push", "--quiet", f"--force-with-lease=refs/heads/{branch}:", "origin", f"HEAD:refs/heads/{branch}"], cwd=repo_dir, check=True)
-    body = f"Approved symbol synchronization from `{target}/blob/main/{args.source}`. SHA-256: `{digest}`. Only catalog, generated gallery and PNG are changed. Artwork approval is inherited from the source branding PR merged to main."
+    body = f"Approved public copy of the canonical symbol from `{target}` main. SHA-256: `{digest}`. Only catalog, generated gallery and PNG are changed."
     number = gh("-X", "POST", f"repos/{foundry}/pulls", "-f", f"head={branch}", "-f", "base=main", "-f", f"title=chore(registry): sync {slug} approved symbol", "-f", f"body={body}", "--jq", ".number")
     print(f"PR: https://github.com/{foundry}/pull/{number}")
-    # Only the canonical, owner-selected source is eligible for automatic merge.
     # Native auto-merge continues to enforce GitHub's required checks and reviews.
-    if args.source == "branding/assets/symbol.png":
-        subprocess.run(["gh", "pr", "merge", number, "--repo", foundry, "--auto", "--squash", "--delete-branch"], check=True)
-        print("Protected squash auto-merge requested")
-    else:
-        print("Legacy source path: manual merge required")
+    subprocess.run(["gh", "pr", "merge", number, "--repo", foundry, "--auto", "--squash", "--delete-branch"], check=True)
+    print("Protected squash auto-merge requested")
 
 
 if __name__ == "__main__":
