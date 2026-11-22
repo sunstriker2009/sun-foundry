@@ -53,7 +53,7 @@
       "name": "CodeFolio",
       "family": "productivity",
       "repository": "sun-codefolio",
-      "shortDescription": "code management",
+      "shortDescription": "A searchable reference for browsing, testing, and saving regular expressions.",
       "publicName": "CodeFolio by Sun"
     },
     {
@@ -61,7 +61,7 @@
       "name": "Playground",
       "family": "productivity",
       "repository": "sun-playground",
-      "shortDescription": null,
+      "shortDescription": "Customize and reuse Git, JavaScript, C#, and XPath snippets.",
       "publicName": "Playground by Sun"
     }
   ],

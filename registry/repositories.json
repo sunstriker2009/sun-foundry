@@ -47,7 +47,7 @@
       "registryId": "SUN-P002",
       "classification": "product",
       "name": "CodeFolio",
-      "summary": "code management",
+      "summary": "A searchable reference for browsing, testing, and saving regular expressions.",
       "symbolMode": "live"
     },
     {
@@ -55,7 +55,7 @@
       "registryId": "SUN-P003",
       "classification": "product",
       "name": "Playground",
-      "summary": "Productivity product by Sun",
+      "summary": "Customize and reuse Git, JavaScript, C#, and XPath snippets.",
       "symbolMode": "text",
       "autoLiveSymbol": true
     }

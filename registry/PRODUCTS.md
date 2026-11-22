@@ -6,8 +6,8 @@
 |---|---|---|---|---|---|
 | SUN-C001 | **Outpost** | Application components | Identity, authentication, authorization, security | **CONFIRMED** | Sun.Security |
 | SUN-P001 | **Workbench** | Productivity | Interactive scripting workspace and saved connections | **CONFIRMED** | Sun.Workspace |
-| SUN-P002 | **CodeFolio** | Productivity | code management | **CONFIRMED** | TBD |
-| SUN-P003 | **Playground** | Productivity | Productivity product by Sun | **CONFIRMED** | TBD |
+| SUN-P002 | **CodeFolio** | Productivity | A searchable reference for browsing, testing, and saving regular expressions. | **CONFIRMED** | TBD |
+| SUN-P003 | **Playground** | Productivity | Customize and reuse Git, JavaScript, C#, and XPath snippets. | **CONFIRMED** | TBD |
 
 The next publication counters are **SUN-P004** and **SUN-C002**. The [ID migration decision](https://github.com/sunstriker2009/sun-ecosystem/blob/main/decisions/sun-family-ids.md) records the previous IDs.
 
