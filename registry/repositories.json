@@ -49,6 +49,15 @@
       "name": "CodeFolio",
       "summary": "code management",
       "symbolMode": "live"
+    },
+    {
+      "repository": "sunstriker2009/sun-playground",
+      "registryId": "SUN-P003",
+      "classification": "product",
+      "name": "Playground",
+      "summary": "Productivity product by Sun",
+      "symbolMode": "text",
+      "autoLiveSymbol": true
     }
   ]
 }
