@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "updated": "2026-11-22",
+  "updated": "2026-11-24",
   "parentBrand": "SUN",
   "products": [
     {
@@ -66,6 +66,17 @@
       "repository": "sun-playground",
       "commercialClearance": "PENDING",
       "confirmedOn": "2026-11-22",
+      "family": "productivity"
+    },
+    {
+      "id": "SUN-P004",
+      "name": "TryPane",
+      "status": "CONFIRMED",
+      "purpose": "Productivity product by Sun",
+      "publicName": "TryPane by Sun",
+      "repository": "sun-trypane",
+      "commercialClearance": "PENDING",
+      "confirmedOn": "2026-11-24",
       "family": "productivity"
     }
   ],
@@ -153,7 +164,7 @@
     "productivitySeries": {
       "format": "SUN-PNNN",
       "assignment": "sequential_on_confirmation",
-      "nextId": "SUN-P004",
+      "nextId": "SUN-P005",
       "proposalsReserveIds": false
     },
     "applicationComponentSeries": {

@@ -1,6 +1,6 @@
 # SUN Product Registry v1.1
 
-**Updated:** 2026-11-22. Each family numbers its products independently. **SUN-PNNN** identifies productivity products and **SUN-CNNN** identifies application components. Foundry allocates IDs through an approved registration. See [the operational catalog](product-catalog.json) for the current allocation counters. IDs remain stable across renames and repository moves. Proposals do not reserve IDs or authorize repository creation.
+**Updated:** 2026-11-24. Each family numbers its products independently. **SUN-PNNN** identifies productivity products and **SUN-CNNN** identifies application components. Foundry allocates IDs through an approved registration. See [the operational catalog](product-catalog.json) for the current allocation counters. IDs remain stable across renames and repository moves. Proposals do not reserve IDs or authorize repository creation.
 
 | ID | Name | Family | Purpose | Status | Technical identity |
 |---|---|---|---|---|---|
@@ -8,8 +8,9 @@
 | SUN-P001 | **Workbench** | Productivity | Interactive scripting workspace and saved connections | **CONFIRMED** | Sun.Workspace |
 | SUN-P002 | **CodeFolio** | Productivity | A searchable reference for browsing, testing, and saving regular expressions. | **CONFIRMED** | TBD |
 | SUN-P003 | **Playground** | Productivity | Customize and reuse Git, JavaScript, C#, and XPath snippets. | **CONFIRMED** | TBD |
+| SUN-P004 | **TryPane** | Productivity | Productivity product by Sun | **CONFIRMED** | TBD |
 
-The next publication counters are **SUN-P004** and **SUN-C002**. The [ID migration decision](https://github.com/sunstriker2009/sun-ecosystem/blob/main/decisions/sun-family-ids.md) records the previous IDs.
+The next publication counters are **SUN-P005** and **SUN-C002**. The [ID migration decision](https://github.com/sunstriker2009/sun-ecosystem/blob/main/decisions/sun-family-ids.md) records the previous IDs.
 
 ## Unnumbered product proposals
 
@@ -58,4 +59,9 @@ The proposed names ORBIT, NOVA, PRISM, PULSAR, LUMEN, BEACON and FORGE have pote
 ## SUN-P003 — Playground
 - **Public identity:** Playground by Sun.
 - **Repository:** [sun-playground](https://github.com/sunstriker2009/sun-playground) (established).
+- **Commercial clearance:** PENDING.
+
+## SUN-P004 — TryPane
+- **Public identity:** TryPane by Sun.
+- **Repository:** [sun-trypane](https://github.com/sunstriker2009/sun-trypane) (established).
 - **Commercial clearance:** PENDING.
