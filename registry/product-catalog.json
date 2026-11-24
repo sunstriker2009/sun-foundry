@@ -3,7 +3,7 @@
   "families": {
     "productivity": {
       "format": "SUN-PNNN",
-      "nextId": "SUN-P004",
+      "nextId": "SUN-P005",
       "repositoryClassification": "product"
     },
     "application_component": {
@@ -63,6 +63,14 @@
       "repository": "sun-playground",
       "shortDescription": "Customize and reuse Git, JavaScript, C#, and XPath snippets.",
       "publicName": "Playground by Sun"
+    },
+    {
+      "id": "SUN-P004",
+      "name": "TryPane",
+      "family": "productivity",
+      "repository": "sun-trypane",
+      "shortDescription": null,
+      "publicName": "TryPane by Sun"
     }
   ],
   "infrastructure": [
