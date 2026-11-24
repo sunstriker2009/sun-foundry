@@ -136,6 +136,19 @@ class ProductPublicationTests(unittest.TestCase):
         self.assertEqual(self.read_json(publication.CATALOG)["repositories"], [ready, missing, *others])
         self.assertEqual(self.render.call_count, 2)
 
+    def test_targeted_public_activation_leaves_other_ready_products_pending(self):
+        first = dict(repository="sunstriker2009/sun-first", classification="product",
+                     symbolMode="text", autoLiveSymbol=True)
+        target = dict(first, repository="sunstriker2009/sun-target")
+        self.write_json(publication.CATALOG, {"schemaVersion": 1, "repositories": [first, target]})
+        with patch.object(publication, "public_symbol_available", return_value=True) as available:
+            self.assertTrue(publication.project_public_symbols(self.root, target["repository"]))
+            self.assertFalse(publication.project_public_symbols(self.root, target["repository"]))
+            available.assert_called_once_with(target["repository"])
+        target["symbolMode"] = "live"
+        del target["autoLiveSymbol"]
+        self.assertEqual(self.read_json(publication.CATALOG)["repositories"], [first, target])
+
     def test_public_symbol_requires_live_public_visibility_and_anonymous_png(self):
         repository = 'sunstriker2009/sun-example'
         image = MagicMock()

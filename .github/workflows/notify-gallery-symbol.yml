@@ -9,28 +9,35 @@ on:
 permissions: {}
 jobs:
   notify:
-    if: github.repository_owner == 'sunstriker2009' && github.event.repository.private && github.ref == 'refs/heads/main' && !github.event.deleted
+    if: github.repository_owner == 'sunstriker2009' && github.ref == 'refs/heads/main' && !github.event.deleted
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
+      SOURCE_PRIVATE: ${{ github.event.repository.private }}
       RELAY_CONFIGURED: ${{ secrets.app_id != '' && secrets.app_private_key != '' }}
     steps:
-      - name: Check public copy approval
+      - name: Check gallery notification eligibility
         id: approval
         run: |
           set -euo pipefail
           catalog=$(curl --fail --silent --show-error --max-time 20 \
             https://raw.githubusercontent.com/sunstriker2009/sun-foundry/main/registry/repositories.json)
-          copy=$(jq -r --arg repo "$GITHUB_REPOSITORY" '[.repositories[] | select(.repository == $repo)] |
-            length == 1 and (.[0] | (.classification == "product" or .classification == "infrastructure")
-            and .symbolMode == "copy")' <<< "$catalog")
-          echo "copy=$copy" >> "$GITHUB_OUTPUT"
+          eligible=$(jq -r --arg repo "$GITHUB_REPOSITORY" --arg private "$SOURCE_PRIVATE" '
+            [.repositories[] | select(.repository == $repo)] |
+            length == 1 and (.[0] |
+              if $private == "true" then
+                (.classification == "product" or .classification == "infrastructure") and .symbolMode == "copy"
+              else
+                .classification == "product" and .symbolMode == "text" and .autoLiveSymbol == true
+              end
+            )' <<< "$catalog")
+          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
       - name: Report missing relay configuration
-        if: steps.approval.outputs.copy == 'true' && env.RELAY_CONFIGURED != 'true'
+        if: steps.approval.outputs.eligible == 'true' && env.RELAY_CONFIGURED != 'true'
         run: echo '::warning::Gallery relay credentials are missing. Foundry will pick up the symbol during daily reconciliation.'
       - name: Create a Foundry Actions token
         id: relay-token
-        if: steps.approval.outputs.copy == 'true' && env.RELAY_CONFIGURED == 'true'
+        if: steps.approval.outputs.eligible == 'true' && env.RELAY_CONFIGURED == 'true'
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
           app-id: ${{ secrets.app_id }}
@@ -39,7 +46,7 @@ jobs:
           repositories: sun-foundry
           permission-actions: write
       - name: Dispatch targeted reconciliation
-        if: steps.approval.outputs.copy == 'true' && env.RELAY_CONFIGURED == 'true'
+        if: steps.approval.outputs.eligible == 'true' && env.RELAY_CONFIGURED == 'true'
         env:
           GH_TOKEN: ${{ steps.relay-token.outputs.token }}
         run: |

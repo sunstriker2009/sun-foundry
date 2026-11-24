@@ -287,8 +287,8 @@ jobs:
           [[ "$visibility" == "$APPROVED_VISIBILITY" ]] || {
             echo '::error::Repository visibility differs from the approved registration'; exit 1
           }
-          if [[ "$APPROVED_SYMBOL_COPY" != true ]]; then
-            echo 'This registration does not approve a public copy of a private symbol.'
+          if [[ "$APPROVED_VISIBILITY" != public && "$APPROVED_SYMBOL_COPY" != true ]]; then
+            echo 'This registration does not require a gallery symbol relay.'
           elif [[ -z "$SYMBOL_RELAY_APP_ID" && -z "$SYMBOL_RELAY_APP_PRIVATE_KEY" ]]; then
             echo '::warning::Symbol relay credentials are absent. Daily reconciliation remains available.'
           elif [[ -z "$SYMBOL_RELAY_APP_ID" || -z "$SYMBOL_RELAY_APP_PRIVATE_KEY" ]]; then
