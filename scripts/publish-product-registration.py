@@ -151,12 +151,14 @@ def public_symbol_available(repository):
         return False
 
 
-def project_public_symbols(root):
+def project_public_symbols(root, repository=""):
     catalog = json.loads((root / CATALOG).read_text(encoding="utf-8"))
     if catalog.get("schemaVersion") != 1:
         raise ValueError("Unsupported Foundry repository catalog schema.")
     activated = []
     for row in catalog["repositories"]:
+        if repository and row["repository"] != repository:
+            continue
         if (row.get("classification") == "product" and row.get("symbolMode") == "text"
                 and row.get("autoLiveSymbol") is True and public_symbol_available(row["repository"])):
             row["symbolMode"] = "live"
@@ -226,13 +228,21 @@ def publish(approved, confirmed_on, token):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--activate-public-symbols", action="store_true")
+    parser.add_argument("--repository", default="", help="Limit public activation to an owner/repository")
     args = parser.parse_args()
+    if args.repository and (not args.activate_public_symbols or not re.fullmatch(
+        r"sunstriker2009/[a-z0-9][a-z0-9._-]*", args.repository
+    )):
+        parser.error("--repository requires public activation and a valid SUN owner/repository")
     token = os.environ["GH_TOKEN"]
     if not token:
         raise ValueError("A Foundry publication token is required.")
     if args.activate_public_symbols:
+        branch = "chore/activate-public-gallery-symbols"
+        if args.repository:
+            branch += "-" + args.repository.split("/", 1)[1]
         pr = publish_changes(
-            project_public_symbols, token, "chore/activate-public-gallery-symbols", (CATALOG, GALLERY),
+            lambda root: project_public_symbols(root, args.repository), token, branch, (CATALOG, GALLERY),
             "chore(gallery): activate first public symbols",
             "Enable direct gallery links for registered public products with a canonical PNG available on main.",
         )
