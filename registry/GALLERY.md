@@ -12,6 +12,7 @@ Generated from [the repository catalog](repositories.json). Approved identities 
 <td align="center" width="180"><a href="https://github.com/sunstriker2009/sun-playground"><strong>Playground</strong></a><p><strong>Playground</strong></p><small>SUN-P003 · Customize and reuse Git, JavaScript, C#, and XPath snippets.</small></td>
 </tr>
 <tr>
+<td align="center" width="180"><a href="https://github.com/sunstriker2009/sun-trypane"><strong>TryPane</strong></a><p><strong>TryPane</strong></p><small>SUN-P004 · Productivity product by Sun</small></td>
 <td align="center" width="180"><a href="https://github.com/sunstriker2009/sun-workbench"><img src="https://raw.githubusercontent.com/sunstriker2009/sun-workbench/main/branding/assets/symbol.png" alt="Workbench icon" width="72" height="72"></a><p><strong>Workbench</strong></p><small>SUN-P001 · Local code organizer and interactive scripting workspace</small></td>
 </tr>
 </table>
