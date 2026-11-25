@@ -1,4 +1,4 @@
-name: Factory recovery validation
+name: "Registration: Validate provisioning recovery"
 on:
   pull_request:
     paths:

@@ -1,4 +1,4 @@
-name: SUN Governance Fleet Audit
+name: "Governance: Audit repository fleet"
 on:
   workflow_dispatch:
 permissions:

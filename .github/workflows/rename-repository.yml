@@ -1,4 +1,4 @@
-name: SUN Rename Repository
+name: "Rename: Repository only"
 on:
   workflow_dispatch:
     inputs:

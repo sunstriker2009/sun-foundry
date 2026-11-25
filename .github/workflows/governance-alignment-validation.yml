@@ -1,4 +1,4 @@
-name: Governance alignment validation
+name: "Governance: Validate ruleset alignment"
 on:
   pull_request:
     paths:

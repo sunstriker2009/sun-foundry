@@ -1,4 +1,4 @@
-name: Repository Maintenance
+name: "Governance: Diagnose or maintain repository"
 on:
   workflow_dispatch:
     inputs:

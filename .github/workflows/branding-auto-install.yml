@@ -1,4 +1,4 @@
-name: Install branding ZIP on this branch
+name: "Branding: Install ZIP on branch push"
 on:
   push:
     branches-ignore: [main]

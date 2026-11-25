@@ -1,4 +1,4 @@
-name: Workflow repository input validation
+name: "Validation: Check workflow inputs"
 on:
   pull_request:
     paths:

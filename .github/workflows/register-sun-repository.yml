@@ -1,4 +1,4 @@
-name: Register SUN Repository
+name: "Registration: Existing repository"
 on:
   workflow_dispatch:
     inputs:

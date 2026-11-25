@@ -1,4 +1,4 @@
-name: SUN Governance Alignment
+name: "Governance: Align repository rulesets"
 on:
   workflow_dispatch:
     inputs:

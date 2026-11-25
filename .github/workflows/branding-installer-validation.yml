@@ -1,4 +1,4 @@
-name: Branding installer validation
+name: "Branding: Validate ZIP installer"
 on:
   pull_request:
     paths:

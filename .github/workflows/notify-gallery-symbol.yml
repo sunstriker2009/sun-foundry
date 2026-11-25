@@ -1,4 +1,4 @@
-name: Notify Foundry of a symbol update
+name: "Gallery: Relay symbol update"
 on:
   workflow_call:
     secrets:

@@ -1,4 +1,4 @@
-name: Asset preparation validation
+name: "Branding: Validate asset preparation"
 on:
   workflow_dispatch:
   pull_request:
