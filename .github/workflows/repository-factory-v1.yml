@@ -1,4 +1,4 @@
-name: Repository Factory
+name: "Registration: Provision or recover repository"
 on:
   pull_request:
     types: [closed]

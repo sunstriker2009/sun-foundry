@@ -1,4 +1,4 @@
-name: Symbol sync validation
+name: "Gallery: Validate symbol sync"
 on:
   pull_request:
     paths:

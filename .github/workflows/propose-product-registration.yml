@@ -1,4 +1,4 @@
-name: Propose SUN Product Registration
+name: "Registration: New repository"
 on:
   workflow_dispatch:
     inputs:

@@ -1,4 +1,4 @@
-name: Sync Approved SUN Symbol
+name: "Gallery: Preview or sync private symbol"
 on:
   workflow_dispatch:
     inputs:

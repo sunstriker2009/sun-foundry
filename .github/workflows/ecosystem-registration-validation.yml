@@ -1,4 +1,4 @@
-name: Foundry registration validation
+name: "Registration: Validate product publication"
 on:
   pull_request:
     paths:

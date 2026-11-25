@@ -1,4 +1,4 @@
-name: SUN Branding ZIP Installer
+name: "Branding: Install or roll back ZIP manually"
 on:
   workflow_dispatch:
     inputs:

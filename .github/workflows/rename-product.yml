@@ -1,4 +1,4 @@
-name: SUN Rename Product
+name: "Rename: Product"
 on:
   workflow_dispatch:
     inputs:

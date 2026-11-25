@@ -1,4 +1,4 @@
-name: Rename pipeline validation
+name: "Rename: Validate product and repository renames"
 on:
   pull_request:
     paths:

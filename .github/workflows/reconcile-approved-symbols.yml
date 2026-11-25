@@ -1,4 +1,4 @@
-name: Reconcile Approved SUN Symbols
+name: "Gallery: Reconcile symbols"
 on:
   schedule:
     - cron: '17 8 * * *'
