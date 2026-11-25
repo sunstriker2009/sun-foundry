@@ -65,8 +65,7 @@
       "classification": "product",
       "name": "TryPane",
       "summary": "Productivity product by Sun",
-      "symbolMode": "text",
-      "autoLiveSymbol": true
+      "symbolMode": "live"
     }
   ]
 }
