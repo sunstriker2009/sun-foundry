@@ -2,6 +2,46 @@
 
 Approved scope: reduce maintenance and low-value Actions executions while preserving product builds, functional tests and security checks.
 
+## Completed cleanup and closeout audit
+
+Status: the higher-value cleanup is complete. Current `main` workflow directories were re-read across all ten repositories on November 28, 2026. There are **54 workflow files**, down from the original audit's **78** (24 fewer). File counts are an inventory measure, not runner executions, runner minutes or a billing estimate.
+
+| Completed change | Implementation |
+| --- | --- |
+| Shared validation, title-check retirement and provisioning defaults | [Foundry #134](https://github.com/sunstriker2009/sun-foundry/pull/134), [Ecosystem #64](https://github.com/sunstriker2009/sun-ecosystem/pull/64), plus the six product cleanup PRs listed below |
+| Weekly symbol recovery fallback | [Foundry #135](https://github.com/sunstriker2009/sun-foundry/pull/135) |
+| MarketPilot component-scoped CI | [MarketPilot #39](https://github.com/sunstriker2009/sun-marketpilot-ai/pull/39) |
+| Outpost shared Keycloak fixture | [Outpost #184](https://github.com/sunstriker2009/sun-outpost/pull/184) |
+| TryPane shared local runner setup | [TryPane #41](https://github.com/sunstriker2009/sun-trypane/pull/41) |
+
+Required and explicitly retained optional checks passed before those implementation PRs merged. The current post-merge MarketPilot CI, Outpost backend/frontend/reservation/full-stack E2E and TryPane CI also completed successfully. The weekly recovery schedule removes six scheduled reconciliation runs per week; event-driven and manual recovery remain available.
+
+| Repository | Original workflow files | Current workflow files |
+| --- | ---: | ---: |
+| sun-ecosystem | 2 | 2 |
+| sun-foundry | 24 | 16 |
+| sun-strata | 6 | 4 |
+| sun-outpost | 7 | 6 |
+| sun-workbench | 5 | 4 |
+| sun-codefolio | 8 | 6 |
+| sun-playground | 7 | 5 |
+| sun-trypane | 9 | 6 |
+| sun-foundry-pilot | 6 | 4 |
+| sun-marketpilot-ai | 4 | 1 |
+| **Total** | **78** | **54** |
+
+### CodeFolio audit: retain the existing stages
+
+CodeFolio's PR preview and main publishing workflows already call the same `tools/regex-preview/build-preview.sh` entry point with matching Node 24, .NET 10 and the pinned Go SDK configuration. Their automatic events are complementary: preview validates a PR; publishing builds current main for Pages. Each uses one site-build invocation per execution. The fast required `repository-validation` check runs the repository's Node tests.
+
+No CodeFolio workflow or runtime is retired in this audit. Reusing PR output for publication would require a separate design for provenance, exact merged inputs and trust boundaries; it is not justified as a routine maintenance cleanup. Keep the Chromium suites, current owner-controlled preview deferral, main build and deployment permissions unchanged.
+
+### Stop condition and retained tools
+
+The five optional asset-preparation workflows share the same manual-only definition and do not run on pushes, PRs or a schedule. Their ongoing operator usage has not been established; retaining them adds no recurring runner executions. The targeted title-check migration is also manual-only and remains a controlled repair/rollback aid. Do not remove optional operator tools solely to reduce the sidebar/file count.
+
+Foundation existence checks are inexpensive steps within the existing required baseline, rather than separate heavyweight pipelines. Preserve them until provisioning/template validation offers an equivalent agreed contract. Preserve PR/main validation when it checks different trusted revisions or supports publishing. The remaining decisions below are deferred unless measured duration/usage identifies a material maintenance or cost problem. Avoid more refactoring solely to reduce the number of YAML files.
+
 ## First phase
 
 Completed in Foundry [#134](https://github.com/sunstriker2009/sun-foundry/pull/134), ecosystem policy [#64](https://github.com/sunstriker2009/sun-ecosystem/pull/64), and the six product cleanup PRs: Strata #25, Workbench #51, CodeFolio #80, Playground #5, TryPane #40, Foundry Pilot #10. All six targeted rulesets retain `repository-validation` and have retired `conventional-title`.
@@ -15,7 +55,7 @@ Completed in Foundry [#134](https://github.com/sunstriker2009/sun-foundry/pull/1
 
 The audit found 78 workflow files across 10 accessible repositories, including 15 manual-only workflows and one scheduled workflow. Counts describe files, not billable executions. Manual workflows incur no runner execution until dispatched. Savings depend on event frequency and runner duration; no monetary estimate is implied.
 
-## Rollout order
+## First-phase rollout order (completed)
 
 1. Merge the Foundry documentation and implementation PR.
 2. Run the targeted title-check retirement migration in plan mode for each of the six repositories. Review the live ruleset and its digest.
@@ -61,10 +101,10 @@ Acceptance: selection regression tests, existing npm tests, preserved-command/se
 
 | Candidate | Recommendation / condition |
 | --- | --- |
-| Foundation file-existence checks | Move to provisioning and relevant path checks after confirming no product-specific validation is lost. |
-| Asset-preparation stubs | Remove only after verifying no active operator or automation depends on them. |
-| CodeFolio build and publishing | Reuse build outputs only where inputs and deployment requirements match. |
-| Repeated PR/main builds | Keep deployment/release checks; remove duplicate validation only after confirming required-check and trust-boundary behavior. |
+| Foundation file-existence checks | Retain the inexpensive current baseline. Move only after agreeing equivalent provisioning/template coverage. |
+| Asset-preparation stubs | Retain pending operator-usage evidence; they are manual-only and create no recurring runner executions. |
+| CodeFolio build and publishing | Audited: already share the build entry point and matching toolchains. Retain PR verification and trusted-main publication. |
+| Repeated PR/main builds | Retain where revisions, publishing or trust boundaries differ; investigate only with measured duration/usage evidence. |
 
 Keep security scans, meaningful unit/integration tests, deploy/release workflows and product builds. Avoid replacing several short jobs with a single larger job unless setup savings justify it. Do not consolidate unrelated privileged workflows.
 
