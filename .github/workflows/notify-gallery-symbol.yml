@@ -34,7 +34,7 @@ jobs:
           echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
       - name: Report missing relay configuration
         if: steps.approval.outputs.eligible == 'true' && env.RELAY_CONFIGURED != 'true'
-        run: echo '::warning::Gallery relay credentials are missing. Foundry will pick up the symbol during daily reconciliation.'
+        run: echo '::warning::Gallery relay credentials are missing. Foundry will pick up the symbol during weekly reconciliation; dispatch reconciliation manually if needed sooner.'
       - name: Create a Foundry Actions token
         id: relay-token
         if: steps.approval.outputs.eligible == 'true' && env.RELAY_CONFIGURED == 'true'
