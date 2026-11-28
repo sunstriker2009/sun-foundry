@@ -41,13 +41,20 @@ Retain solution/unit tests, PostgreSQL-backed API tests, production migration/id
 
 Acceptance: change-classifier regression tests, YAML/Bash validation and every retained check must pass on the consolidation PR before merge. Existing private-repository settings/check enforcement that cannot be inspected are not claimed as verified or changed. Savings depend on change scope; the small classification job adds overhead to full-coverage runs. No extra manual CI run is needed just to measure savings.
 
+## Fourth phase: Outpost shared Keycloak fixture
+
+Run the existing role-mapping integration exercise immediately after the full-stack suite's fresh Keycloak instance becomes ready, before any profile/bootstrap setup. Retire only the independent `keycloak-integration.yml` workflow. Both workflows used the same image and realm; this removes one duplicate Keycloak startup and hosted runner per PR/main event.
+
+Preserve every original role-mapping assertion. Add explicit empty-fixture preconditions and finally-based cleanup of the two exact test identities, verifying their absence and empty master membership before subsequent tests. Unexpected pre-existing fixture identities or master membership must fail without deleting them; cleanup failure must fail the test. Other identities are preserved. Keep separate PostgreSQL fixtures, backend/frontend/reservation checks and all original full-stack security tests unchanged. No required-check or repository-setting migration is needed.
+
+Acceptance: fixture-lifecycle regression tests, workflow syntax/ordering checks, all existing required checks and the full `master-bootstrap-e2e` must pass before merge. Do not rely on auto-merge while that longer E2E is optional in the live ruleset. Outpost `docs/CI.md` records the retained scenarios, manual recovery entry point, cost limits and revert path.
+
 ## Later candidates requiring separate changes
 
 | Candidate | Recommendation / condition |
 | --- | --- |
 | Foundation file-existence checks | Move to provisioning and relevant path checks after confirming no product-specific validation is lost. |
 | Asset-preparation stubs | Remove only after verifying no active operator or automation depends on them. |
-| Outpost repeated service setup | Share setup where practical; preserve authentication, bootstrap, concurrency and reservation tests. |
 | TryPane compiler prototypes | Establish which compiler paths are supported before retiring builds. |
 | CodeFolio build and publishing | Reuse build outputs only where inputs and deployment requirements match. |
 | Repeated PR/main builds | Keep deployment/release checks; remove duplicate validation only after confirming required-check and trust-boundary behavior. |
