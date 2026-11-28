@@ -49,13 +49,20 @@ Preserve every original role-mapping assertion. Add explicit empty-fixture preco
 
 Acceptance: fixture-lifecycle regression tests, workflow syntax/ordering checks, all existing required checks and the full `master-bootstrap-e2e` must pass before merge. Do not rely on auto-merge while that longer E2E is optional in the live ruleset. Outpost `docs/CI.md` records the retained scenarios, manual recovery entry point, cost limits and revert path.
 
+## Fifth phase: TryPane local runner CI
+
+The public browser compiler, fixed execution probe, editable hosting candidate, browser Go tools and local Docker runners are distinct supported use cases. Keep their functional builds and test coverage. The duplicate setup is in the two local C#/Go container workflows: combine those into `local-runners.yml` so shared-source PRs use one runner, npm installation, TypeScript build and Chromium setup.
+
+Keep each language's original image, CLI smoke suite and browser smoke script. Language-only paths select only that runner; shared/unknown inputs, unavailable diffs and cross-language renames receive both suites. Manual dispatch offers both or either language, while automatic checks remain PR-only. The existing browser compiler, required `repository-validation` and Pages workflow remain unchanged. The two optional standalone `smoke` checks need no required-check migration.
+
+Acceptance: selection regression tests, existing npm tests, preserved-command/setup checks, required repository validation and both local-language CLI/browser suites must pass on the consolidation PR before merge. One sequential job can take longer in wall time than two parallel jobs; savings come from removing duplicate setup on shared changes, not from retiring supported runtimes. TryPane `docs/CI.md` records scope, tradeoffs and rollback.
+
 ## Later candidates requiring separate changes
 
 | Candidate | Recommendation / condition |
 | --- | --- |
 | Foundation file-existence checks | Move to provisioning and relevant path checks after confirming no product-specific validation is lost. |
 | Asset-preparation stubs | Remove only after verifying no active operator or automation depends on them. |
-| TryPane compiler prototypes | Establish which compiler paths are supported before retiring builds. |
 | CodeFolio build and publishing | Reuse build outputs only where inputs and deployment requirements match. |
 | Repeated PR/main builds | Keep deployment/release checks; remove duplicate validation only after confirming required-check and trust-boundary behavior. |
 
