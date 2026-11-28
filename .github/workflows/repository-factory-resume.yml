@@ -26,7 +26,7 @@ on:
       required_checks:
         description: 'Exact CI job names, comma-separated'
         required: false
-        default: repository-validation,conventional-title
+        default: repository-validation
         type: string
       confirm_repository:
         description: 'For Apply, repeat short repository name'

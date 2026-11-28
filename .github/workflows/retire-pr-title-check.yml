@@ -1,0 +1,54 @@
+name: 'Governance: Retire PR-title required check'
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Repository (owner is sunstriker2009)'
+        required: true
+        type: choice
+        options: [sun-strata, sun-workbench, sun-codefolio, sun-playground, sun-trypane, sun-foundry-pilot]
+      operation:
+        description: 'Plan first, review the artifact, then Apply'
+        required: true
+        type: choice
+        default: plan
+        options: [plan, apply]
+      expected_digest:
+        description: 'Apply only: digest from the reviewed Plan summary'
+        type: string
+        default: ''
+      confirm_repository:
+        description: 'Apply only: exact sunstriker2009/repository'
+        type: string
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: sun-governance-alignment
+  cancel-in-progress: false
+jobs:
+  retire:
+    if: ${{ github.repository == 'sunstriker2009/sun-foundry' && github.ref == 'refs/heads/main' && github.actor == 'sunstriker2009' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: repository-administration
+    steps:
+      - uses: actions/checkout@v4
+      - name: Plan or apply the targeted migration
+        env:
+          GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
+          REPOSITORY: ${{ inputs.repository }}
+          OPERATION: ${{ inputs.operation }}
+          EXPECTED_DIGEST: ${{ inputs.expected_digest }}
+          CONFIRM_REPOSITORY: ${{ inputs.confirm_repository }}
+        run: |
+          python3 scripts/retire-pr-title-check.py \
+            --repository "sunstriker2009/$REPOSITORY" --operation "$OPERATION" \
+            --expected-digest "$EXPECTED_DIGEST" --confirm-repository "$CONFIRM_REPOSITORY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: title-check-migration
+          path: title-check-migration/
+          if-no-files-found: ignore
+          retention-days: 30

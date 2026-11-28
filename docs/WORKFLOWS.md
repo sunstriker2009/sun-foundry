@@ -40,7 +40,7 @@ If a proposal is stale because another registration advanced the counter, run a 
 
 The factory takes visibility and public symbol copy approval from the merged registration. A recovery run rejects an existing repository with different visibility. Private creation requires a GitHub plan and credential that can enforce the existing private-repository governance ruleset. Factory stops before seed merge and publication if strict verification fails.
 
-The seed replaces STRATA artwork and the template README with a product-neutral README. If `repository-validation` or `conventional-title` fails, fix the seed branch and retry the approved registration. Factory resumes a matching seed or continues from a matching product `main`. Inspect an existing repository that lacks either verified match. Factory can reuse an identical publication PR. Inspect changed or stale publication branches before retrying.
+The seed replaces STRATA artwork and the template README with a product-neutral README. If `repository-validation` fails, fix the seed branch and retry the approved registration. Factory resumes a matching seed or continues from a matching product `main`. Inspect an existing repository that lacks either verified match. Factory can reuse an identical publication PR. Inspect changed or stale publication branches before retrying.
 
 ### Repository Maintenance
 
@@ -53,7 +53,7 @@ Run [Governance: Diagnose or maintain repository](https://github.com/sunstriker2
 | `apply` | Apply supported settings and protection. Requires exact check names and short-name confirmation. |
 | `verify` | Read-only strict verification. Requires exact check names. |
 
-Use comma-separated check job names from the target policy; the form defaults to STRATA's `repository-validation,conventional-title`. For example, use those checks and `other-repository` / `sun-codefolio` to verify CodeFolio. Use controlled alignment for a supported existing ruleset that needs changes.
+Use comma-separated check job names from the target policy; the form defaults to STRATA's `repository-validation`. For example, use those checks and `other-repository` / `sun-codefolio` to verify CodeFolio. Use controlled alignment for a supported existing ruleset that needs changes.
 
 <a id="register-sun-repository"></a>
 
@@ -74,7 +74,7 @@ If GitHub reports the applicable private-repository plan restriction, Plan/Audit
 For local verification, use the .NET 10 SDK and set `GH_TOKEN` securely in the shell.
 
 ```sh
-dotnet run --project src/Sun.RepoBootstrap -- --repo sunstriker2009/sun-codefolio --mode verify --checks repository-validation,conventional-title
+dotnet run --project src/Sun.RepoBootstrap -- --repo sunstriker2009/sun-codefolio --mode verify --checks repository-validation
 ```
 
 <a id="sun-governance-alignment"></a>
@@ -152,6 +152,8 @@ Inspect the `repository-rename-run` or `product-rename-run` artifact, including 
 
 ## CI and developer validation
 
-[CI](../.github/workflows/ci.yml) publishes Foundry's required `build` check. Scoped validation workflows exercise [workflow inputs](../.github/workflows/workflow-input-validation.yml), [factory recovery](../.github/workflows/factory-recovery-validation.yml), [Foundry registration](../.github/workflows/ecosystem-registration-validation.yml), [governance alignment](../.github/workflows/governance-alignment-validation.yml), [fleet audit](../.github/workflows/governance-fleet-validation.yml), [governance idempotency](../.github/workflows/governance-idempotency-validation.yml), [ZIP installation](../.github/workflows/branding-installer-validation.yml), [symbol sync](../.github/workflows/symbol-sync-validation.yml), and the [rename pipeline](../.github/workflows/product-rename-validation.yml).
+[CI](../.github/workflows/ci.yml) publishes Foundry's required `build` check and runs the shared Python suite, retained workflow safety assertions and shell syntax checks before compiling the governance CLI. Asset generator/initializer regression and integration coverage remain in the scoped asset workflow.
 
-[Branding: Validate asset preparation](../.github/workflows/asset-validation.yml) runs manually or on relevant paths. It runs generator and initializer regression tests, then generates and checks synthetic fixtures and Foundry's own configured assets. See the [local asset preparation guide](ASSET-ADOPTION.md) for inputs and outputs.
+See [Workflow simplification](WORKFLOW-SIMPLIFICATION.md) for the approved retirement plan, migration order and later candidates. To remove the old title requirement, use [Retire PR-title required check](../.github/workflows/retire-pr-title-check.yml): run Plan for one repository, review the snapshot artifact and digest, then run Apply with that digest and the exact full repository name. The owner-only workflow uses the existing `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`. Repeat for each of the six repositories before merging its workflow-removal PR.
+
+[Branding: Validate asset preparation](../.github/workflows/asset-validation.yml) runs manually or on relevant paths. It runs generator and initializer regression tests, then exercises the centralized disposable product adoption E2E and generates and checks synthetic fixtures and Foundry's own configured assets. See the [local asset preparation guide](ASSET-ADOPTION.md) for inputs and outputs.

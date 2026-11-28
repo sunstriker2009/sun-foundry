@@ -166,8 +166,7 @@ jobs:
             default=$(gh api "repos/$REPO" --jq .default_branch 2>/dev/null || true)
             if [[ "$default" == main ]] &&
                gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha >/dev/null 2>&1 &&
-               gh api "repos/$REPO/contents/.github/workflows/ci.yml" --jq .path >/dev/null 2>&1 &&
-               gh api "repos/$REPO/contents/.github/workflows/pr-title.yml" --jq .path >/dev/null 2>&1; then
+               gh api "repos/$REPO/contents/.github/workflows/ci.yml" --jq .path >/dev/null 2>&1; then
               ready=true
               break
             fi
@@ -218,11 +217,11 @@ jobs:
           set -euo pipefail
           sha=$(gh api "repos/$REPO/pulls/$PR" --jq .head.sha)
           for attempt in {1..40}; do
-            checks=$(gh api "repos/$REPO/commits/$sha/check-runs?per_page=100" --jq '[.check_runs[] | select(.name == "repository-validation" or .name == "conventional-title") | {name,status,conclusion}]')
+            checks=$(gh api "repos/$REPO/commits/$sha/check-runs?per_page=100" --jq '[.check_runs[] | select(.name == "repository-validation") | {name,status,conclusion}]')
             echo "Attempt $attempt: $checks"
-            if jq -e 'length == 2 and (map(.name) | unique | length) == 2 and all(.[]; .status == "completed" and .conclusion == "success")' <<< "$checks" >/dev/null; then
+            if jq -e 'length == 1 and (map(.name) | unique | length) == 1 and all(.[]; .status == "completed" and .conclusion == "success")' <<< "$checks" >/dev/null; then
               echo "head_sha=$sha" >> "$GITHUB_OUTPUT"
-              echo "Both required checks passed"; exit 0
+              echo "Required repository validation passed"; exit 0
             fi
             if jq -e 'any(.[]; .status == "completed" and (.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out"))' <<< "$checks" >/dev/null; then
               echo "::error::A required check failed; fix the PR then dispatch Factory again with the same approved registration"; exit 1
@@ -235,18 +234,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           REPO: ${{ steps.prepare.outputs.repository }}
-        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode plan --checks repository-validation,conventional-title
+        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode plan --checks repository-validation
       - name: Apply governance
         if: steps.prepare.outputs.complete != 'true'
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           REPO: ${{ steps.prepare.outputs.repository }}
-        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode apply --checks repository-validation,conventional-title --confirm "$REPO"
+        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode apply --checks repository-validation --confirm "$REPO"
       - name: Strict verify governance
         env:
           GH_TOKEN: ${{ secrets.SUN_REPO_ADMIN_TOKEN }}
           REPO: ${{ steps.prepare.outputs.repository }}
-        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode verify --checks repository-validation,conventional-title
+        run: dotnet run --project src/Sun.RepoBootstrap -- --repo "$REPO" --mode verify --checks repository-validation
       - name: Squash merge the verified product seed
         if: steps.prepare.outputs.complete != 'true'
         shell: bash
