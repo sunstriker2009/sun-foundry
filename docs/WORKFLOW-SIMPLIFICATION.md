@@ -33,13 +33,20 @@ The schedule is a recovery fallback. A missed relay or unavailable relay credent
 
 Validation: inspect the cron-only reconciliation workflow diff, retain dispatch inputs and the existing job unchanged, check the relay warning and current handbook/roadmap references, and run the existing required Foundry CI. A calendar-only change does not need a new test or a manual reconciliation run. To roll back, restore `17 8 * * *` and the corresponding documentation wording.
 
+## Third phase: MarketPilot CI standardization
+
+Consolidate the four MarketPilot CI definitions into one pipeline while preserving the existing `Build and unit tests`, `postgres-integration`, `web` and `docker-build` check identities. Scope backend/web jobs and container services to changed inputs; use full coverage for CI edits, unfamiliar paths, manual dispatch and unavailable diffs. Known documentation-only changes run the classifier's regression suite. Failed classification must fail the downstream checks rather than report success.
+
+Retain solution/unit tests, PostgreSQL-backed API tests, production migration/idempotency validation, frontend lint/type checking/builds and actual container builds. Build API integration tests once and reuse the binaries for migrations and test execution. Keep PR and main verification; no repository settings change is included. The implementation and rollback guide belong in MarketPilot's `docs/CI.md`.
+
+Acceptance: change-classifier regression tests, YAML/Bash validation and every retained check must pass on the consolidation PR before merge. Existing private-repository settings/check enforcement that cannot be inspected are not claimed as verified or changed. Savings depend on change scope; the small classification job adds overhead to full-coverage runs. No extra manual CI run is needed just to measure savings.
+
 ## Later candidates requiring separate changes
 
 | Candidate | Recommendation / condition |
 | --- | --- |
 | Foundation file-existence checks | Move to provisioning and relevant path checks after confirming no product-specific validation is lost. |
 | Asset-preparation stubs | Remove only after verifying no active operator or automation depends on them. |
-| MarketPilot overlapping CI | Design one build/test pipeline with shared outputs before removing existing jobs. |
 | Outpost repeated service setup | Share setup where practical; preserve authentication, bootstrap, concurrency and reservation tests. |
 | TryPane compiler prototypes | Establish which compiler paths are supported before retiring builds. |
 | CodeFolio build and publishing | Reuse build outputs only where inputs and deployment requirements match. |
