@@ -4,6 +4,8 @@ Approved scope: reduce maintenance and low-value Actions executions while preser
 
 ## First phase
 
+Completed in Foundry [#134](https://github.com/sunstriker2009/sun-foundry/pull/134), ecosystem policy [#64](https://github.com/sunstriker2009/sun-ecosystem/pull/64), and the six product cleanup PRs: Strata #25, Workbench #51, CodeFolio #80, Playground #5, TryPane #40, Foundry Pilot #10. All six targeted rulesets retain `repository-validation` and have retired `conventional-title`.
+
 | Change | Repositories | Result |
 | --- | --- | --- |
 | Retire PR-title enforcement | Strata, Workbench, CodeFolio, Playground, TryPane, Foundry Pilot | Conventional Commit titles remain guidance; remove the dedicated workflow and its required check. |
@@ -23,12 +25,19 @@ The audit found 78 workflow files across 10 accessible repositories, including 1
 
 The GitHub connection used for this change cannot write repository administration settings or dispatch Actions. Those migration runs require an owner with access to the existing `repository-administration` environment and `SUN_REPO_ADMIN_TOKEN`.
 
+## Second phase: weekly symbol reconciliation
+
+The scheduled full-catalog symbol reconciliation runs every Monday at 08:17 UTC (`17 8 * * 1`) instead of daily. Product merge-triggered targeted notifications and manual reconciliation remain available. Scheduled executions fall from seven to one per week (six fewer, approximately 86% fewer scheduled reconciliation runs). This is not a claim about total CI usage or billing.
+
+The schedule is a recovery fallback. A missed relay or unavailable relay credentials can delay automatic symbol discovery/copy updates by up to a week. Dispatch reconciliation manually for an earlier update. Public products already using live symbol URLs continue to read the canonical product file independently of this schedule.
+
+Validation: inspect the cron-only reconciliation workflow diff, retain dispatch inputs and the existing job unchanged, check the relay warning and current handbook/roadmap references, and run the existing required Foundry CI. A calendar-only change does not need a new test or a manual reconciliation run. To roll back, restore `17 8 * * *` and the corresponding documentation wording.
+
 ## Later candidates requiring separate changes
 
 | Candidate | Recommendation / condition |
 | --- | --- |
 | Foundation file-existence checks | Move to provisioning and relevant path checks after confirming no product-specific validation is lost. |
-| Daily approved-symbol reconciliation | Consider weekly; retain event-driven sync and manual repair. |
 | Asset-preparation stubs | Remove only after verifying no active operator or automation depends on them. |
 | MarketPilot overlapping CI | Design one build/test pipeline with shared outputs before removing existing jobs. |
 | Outpost repeated service setup | Share setup where practical; preserve authentication, bootstrap, concurrency and reservation tests. |
