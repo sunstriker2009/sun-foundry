@@ -1,10 +1,37 @@
 {
   "schemaVersion": 1,
   "repositories": [
-    {"repository": "sunstriker2009/sun-foundry", "requiredChecks": ["build"]},
-    {"repository": "sunstriker2009/sun-strata", "requiredChecks": ["repository-validation", "conventional-title"]},
-    {"repository": "sunstriker2009/sun-ecosystem", "requiredChecks": ["gallery"]},
-    {"repository": "sunstriker2009/sun-outpost", "requiredChecks": ["backend", "frontend", "reservation"]},
-    {"repository": "sunstriker2009/sun-workbench", "requiredChecks": ["repository-validation", "conventional-title"]}
+    {
+      "repository": "sunstriker2009/sun-foundry",
+      "requiredChecks": [
+        "build"
+      ]
+    },
+    {
+      "repository": "sunstriker2009/sun-strata",
+      "requiredChecks": [
+        "repository-validation"
+      ]
+    },
+    {
+      "repository": "sunstriker2009/sun-ecosystem",
+      "requiredChecks": [
+        "gallery"
+      ]
+    },
+    {
+      "repository": "sunstriker2009/sun-outpost",
+      "requiredChecks": [
+        "backend",
+        "frontend",
+        "reservation"
+      ]
+    },
+    {
+      "repository": "sunstriker2009/sun-workbench",
+      "requiredChecks": [
+        "repository-validation"
+      ]
+    }
   ]
 }

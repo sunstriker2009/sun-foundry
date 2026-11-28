@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/prepare-assets.py'
       - 'scripts/init-asset-config.py'
+      - 'scripts/test-asset-adoption.sh'
       - 'tests/test_asset_pipeline.py'
       - 'tests/test_asset_adoption.py'
       - 'assets/**'
@@ -19,6 +20,7 @@ on:
     paths:
       - 'scripts/prepare-assets.py'
       - 'scripts/init-asset-config.py'
+      - 'scripts/test-asset-adoption.sh'
       - 'assets/**'
       - 'tests/test_asset_pipeline.py'
       - 'tests/test_asset_adoption.py'
@@ -56,6 +58,8 @@ jobs:
           PY
           python scripts/prepare-assets.py --product-root /tmp/sun-assets-smoke --config config.json
           python scripts/prepare-assets.py --product-root /tmp/sun-assets-smoke --config config.json --check
+      - name: Shared asset adoption end-to-end coverage
+        run: bash scripts/test-asset-adoption.sh
       - name: Run FOUNDRY approved-master self-pilot
         run: |
           python scripts/prepare-assets.py --product-root . --config branding/asset-config.json
